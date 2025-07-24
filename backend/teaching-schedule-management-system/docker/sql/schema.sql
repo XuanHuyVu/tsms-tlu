@@ -27,10 +27,17 @@ CREATE TABLE teachers (
 
 CREATE TABLE subjects (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    code VARCHAR(20) CHARACTER SET utf8mb4 NOT NULL UNIQUE,
-    name VARCHAR(100) CHARACTER SET utf8mb4 NOT NULL,
-    department VARCHAR(100) CHARACTER SET utf8mb4
+    code VARCHAR(20) NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL,
+    credits INT NOT NULL,
+    description TEXT,
+    department VARCHAR(100),
+    semester VARCHAR(20),
+    type ENUM('Bắt buộc', 'Tự chọn', 'Đại cương') CHARACTER SET utf8mb4 NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
 
 CREATE TABLE semesters (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,

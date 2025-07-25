@@ -32,9 +32,9 @@ public class TeachingLogEntity {
     private String note;
 
     public enum LogStatus {
-        COMPLETED("Hoàn thành"),
-        CANCELLED("Đã hủy"),
-        RESCHEDULED("Bù");
+        HOAN_THANH("Hoàn thành"),
+        DA_HUY("Đã hủy"),
+        BU("Bù");
 
         private final String label;
 

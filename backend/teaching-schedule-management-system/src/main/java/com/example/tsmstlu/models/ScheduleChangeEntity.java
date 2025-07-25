@@ -30,8 +30,8 @@ public class ScheduleChangeEntity {
     private Date updatedAt = new Date();
 
     public enum ChangeType {
-        CANCEL("Hủy"),
-        MAKEUP("Bù");
+        HUY("Hủy"),
+        BU("Bù");
 
         private final String label;
 

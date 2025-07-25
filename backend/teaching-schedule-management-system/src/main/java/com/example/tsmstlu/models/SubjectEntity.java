@@ -61,8 +61,18 @@ public class SubjectEntity {
     }
 
     public enum SubjectType {
-        Bắt_buộc,
-        Tự_chọn,
-        Đại_cương
+        BAT_BUOC("Bắt buộc"),
+        TU_CHON("Tự chọn"),
+        DAI_CUONG("Đại cương");
+
+        private final String label;
+
+        SubjectType(String label) {
+            this.label = label;
+        }
+
+        public String getLabel() {
+            return label;
+        }
     }
 }

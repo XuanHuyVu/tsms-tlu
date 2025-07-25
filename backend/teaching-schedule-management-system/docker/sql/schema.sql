@@ -20,8 +20,15 @@ CREATE TABLE teachers (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id BIGINT NOT NULL UNIQUE,
     teacher_code VARCHAR(20) CHARACTER SET utf8mb4 NOT NULL UNIQUE,
-    full_name VARCHAR(100) CHARACTER SET utf8mb4,
+    full_name VARCHAR(100) CHARACTER SET utf8mb4 NOT NULL,
+    gender ENUM('NAM', 'NỮ', 'KHÁC'),
+    date_of_birth DATE,
+    email VARCHAR(100),
+    phone_number VARCHAR(20),
     department VARCHAR(100) CHARACTER SET utf8mb4,
+    status ENUM('ĐANG_LÀM', 'NGHỈ_PHÉP', 'NGHỈ_VIỆC') DEFAULT 'ĐANG_LÀM',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 

@@ -33,13 +33,13 @@ public class TeachingScheduleDetailEntity {
     private LessonType type;
 
     public enum DayOfWeek {
-        MONDAY("Thứ hai"),
-        TUESDAY("Thứ ba"),
-        WEDNESDAY("Thứ tư"),
-        THURSDAY("Thứ năm"),
-        FRIDAY("Thứ sáu"),
-        SATURDAY("Thứ bảy"),
-        SUNDAY("Chủ nhật");
+        THU_HAI("Thứ hai"),
+        THU_BA("Thứ ba"),
+        THU_TU("Thứ tư"),
+        THU_NAM("Thứ năm"),
+        THU_SAU("Thứ sáu"),
+        THU_BAY("Thứ bảy"),
+        CHU_NHAT("Chủ nhật");
 
         private final String label;
 
@@ -53,8 +53,8 @@ public class TeachingScheduleDetailEntity {
     }
 
     public enum LessonType {
-        THEORY("Lý thuyết"),
-        PRACTICE("Thực hành");
+        LY_THUYET("Lý thuyết"),
+        THUC_HANH("Thực hành");
 
         private final String label;
 

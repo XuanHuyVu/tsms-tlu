@@ -77,6 +77,7 @@ CREATE TABLE teaching_schedules (
     class_section_id BIGINT,
     semester_id BIGINT,
     note TEXT CHARACTER SET utf8mb4,
+    status ENUM('CHỜ_DUYỆT', 'ĐÃ_DUYỆT', 'ĐÃ_HUỶ') DEFAULT 'CHỜ_DUYỆT',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (teacher_id) REFERENCES teachers(id),
     FOREIGN KEY (subject_id) REFERENCES subjects(id),

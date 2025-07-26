@@ -33,6 +33,10 @@ public class TeachingScheduleEntity {
     @Column(columnDefinition = "TEXT")
     private String note;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private TeachingScheduleStatus status;
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at", nullable = false, updatable = false)
     private Date createdAt;
@@ -40,5 +44,21 @@ public class TeachingScheduleEntity {
     @PrePersist
     protected void onCreate() {
         this.createdAt = new Date();
+    }
+
+    public enum TeachingScheduleStatus {
+        CHO_DUYET("Chờ duyệt"),
+        DA_DUYET("Đã duyệt"),
+        DA_HUY("Đã hủy");
+
+        private final String label;
+
+        TeachingScheduleStatus(String label) {
+            this.label = label;
+        }
+
+        public String getLabel() {
+            return label;
+        }
     }
 }

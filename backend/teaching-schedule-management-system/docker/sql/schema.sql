@@ -121,18 +121,6 @@ CREATE TABLE teaching_logs (
     FOREIGN KEY (teacher_id) REFERENCES teachers(id)
 );
 
-CREATE TABLE notifications (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
-    class_section_id BIGINT,
-    title VARCHAR(255) CHARACTER SET utf8mb4 NOT NULL,
-    content TEXT CHARACTER SET utf8mb4,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    is_read BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (class_section_id) REFERENCES class_sections(id)
-);
-
 CREATE TABLE student_class_sections (
     student_id BIGINT,
     class_section_id BIGINT,

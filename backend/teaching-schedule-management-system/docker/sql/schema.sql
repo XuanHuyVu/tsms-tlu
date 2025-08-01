@@ -48,29 +48,21 @@ CREATE TABLE subjects (
 
 CREATE TABLE semesters (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    code VARCHAR(20) CHARACTER SET utf8mb4 UNIQUE NOT NULL,     -- VD: "2025_1"
-    name VARCHAR(50) CHARACTER SET utf8mb4 NOT NULL,            -- VD: "Học kỳ 1 năm 2025-2026"
-    academic_year VARCHAR(20) NOT NULL,                         -- VD: "2025-2026"
-    term ENUM('1', '2', 'Hè') NOT NULL,                         -- Học kỳ 1, 2 hoặc hè
+    name VARCHAR(50) CHARACTER SET utf8mb4 NOT NULL,
+    academic_year VARCHAR(20) NOT NULL,
+    term ENUM('1', '2', 'Hè') NOT NULL,
     start_date DATE NOT NULL,
-    end_date DATE NOT NULL
-);
-
-
-CREATE TABLE courses (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    code VARCHAR(20) CHARACTER SET utf8mb4 NOT NULL UNIQUE,
-    name VARCHAR(100) CHARACTER SET utf8mb4 NOT NULL,
-    credit INT NOT NULL
+    end_date DATE NOT NULL,
+    status ENUM('Đang diễn ra', 'Chưa bắt đầu', 'Kết thúc') DEFAULT 'Chưa bắt đầu' CHARACTER SET utf8mb4 NOT NULL
 );
 
 CREATE TABLE class_sections (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) CHARACTER SET utf8mb4 NOT NULL,
-    course_id BIGINT NOT NULL,
+    subject_id BIGINT NOT NULL,
     teacher_id BIGINT NOT NULL,
     room VARCHAR(50) CHARACTER SET utf8mb4,
-    FOREIGN KEY (course_id) REFERENCES courses(id),
+    FOREIGN KEY (subject_id) REFERENCES subjects(id),
     FOREIGN KEY (teacher_id) REFERENCES teachers(id)
 );
 

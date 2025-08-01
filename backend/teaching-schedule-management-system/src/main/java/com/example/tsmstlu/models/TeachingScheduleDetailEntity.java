@@ -3,7 +3,6 @@ package com.example.tsmstlu.models;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Entity
 @Table(name = "teaching_schedule_detail")
 @Data
 @NoArgsConstructor

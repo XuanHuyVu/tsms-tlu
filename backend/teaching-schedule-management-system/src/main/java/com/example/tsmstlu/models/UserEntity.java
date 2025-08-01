@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Entity
 @Table(name = "users")
 @Data
 @NoArgsConstructor

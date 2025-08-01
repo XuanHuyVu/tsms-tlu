@@ -16,8 +16,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SemesterServiceImpl implements SemesterService {
 
-    private final SemesterRepository repository;
-    private final MapperUtils mapper;
+    private SemesterRepository repository;
+    private MapperUtils mapper;
 
     @Override
     public List<SemesterDto> getAll() {
@@ -45,20 +45,14 @@ public class SemesterServiceImpl implements SemesterService {
 
     @Override
     public SemesterDto update(Long id, SemesterDto dto) {
-        return repository.findById(id)
-                .map(existing -> {
-                    existing.setName(dto.getName());
-                    existing.setAcademicYear(dto.getAcademicYear());
-                    existing.setStartDate(dto.getStartDate());
-                    existing.setEndDate(dto.getEndDate());
-                    existing.setTerm(SemesterEntity.Term.valueOf(dto.getTerm()));
-                    existing.setStatus(SemesterEntity.SemesterStatus.valueOf(dto.getStatus()));
-                    return mapper.toDto(repository.save(existing));
-                })
-                .orElseGet(() -> {
-                    log.warn("Update failed: semester with id {} not found.", id);
-                    return null;
-                });
+        if (!repository.existsById(id)) {
+            log.warn("Update failed: semester with id {} not found.", id);
+            return null;
+        }
+
+        SemesterEntity entity = mapper.toEntity(dto);
+        entity.setId(id);
+        return mapper.toDto(repository.save(entity));
     }
 
     @Override

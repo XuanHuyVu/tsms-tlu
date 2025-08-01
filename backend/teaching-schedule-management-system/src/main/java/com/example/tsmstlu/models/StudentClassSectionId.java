@@ -10,7 +10,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StudentClassSectionId implements Serializable {
-    private Long student;
-    private Long classSection;
+    private Long studentId;
+    private Long classSectionId;
 }
 

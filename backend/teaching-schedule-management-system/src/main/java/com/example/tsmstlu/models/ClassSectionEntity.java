@@ -17,8 +17,8 @@ public class ClassSectionEntity {
     private String name;
 
     @ManyToOne
-    @JoinColumn(name = "course_id")
-    private CourseEntity course;
+    @JoinColumn(name = "subject_id")
+    private SubjectEntity subject;
 
     @ManyToOne
     @JoinColumn(name = "teacher_id")

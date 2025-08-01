@@ -54,6 +54,7 @@ public class SemesterEntity {
         }
     }
 
+    @Getter
     public enum SemesterStatus {
         CHUA_BAT_DAU("Chưa bắt đầu"),
         DANG_DIEN_RA("Đang diễn ra"),
@@ -63,10 +64,6 @@ public class SemesterEntity {
 
         SemesterStatus(String label) {
             this.label = label;
-        }
-
-        public String getLabel() {
-            return label;
         }
     }
 }

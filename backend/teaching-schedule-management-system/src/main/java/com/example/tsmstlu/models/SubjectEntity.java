@@ -5,7 +5,6 @@ import lombok.*;
 
 import java.util.Date;
 
-@Entity
 @Table(name = "subjects")
 @Getter
 @Setter

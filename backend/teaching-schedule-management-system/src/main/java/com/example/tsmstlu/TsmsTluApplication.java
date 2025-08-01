@@ -7,9 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class TsmsTluApplication {
 
 	public static void main(String[] args) {
-		// SpringApplication.run(TsmsTluApplication.class, args);
-		System.out.println(">>>> JDBC URL = " + System.getProperty("spring.datasource.url"));
-        SpringApplication.run(TsmsTluApplication.class, args);
+		SpringApplication.run(TsmsTluApplication.class, args);
 	}
 
 }

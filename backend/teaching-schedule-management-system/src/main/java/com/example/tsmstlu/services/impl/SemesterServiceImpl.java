@@ -5,62 +5,33 @@ import com.example.tsmstlu.models.SemesterEntity;
 import com.example.tsmstlu.repositories.SemesterRepository;
 import com.example.tsmstlu.services.SemesterService;
 import com.example.tsmstlu.utils.MapperUtils;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
-public class SemesterServiceImpl implements SemesterService {
+public class SemesterServiceImpl extends BaseServiceImpl<SemesterEntity, SemesterDto, Long> implements SemesterService {
 
-    private SemesterRepository repository;
-    private MapperUtils mapper;
+    private final MapperUtils mapper;
 
-    @Override
-    public List<SemesterDto> getAll() {
-        return repository.findAll()
-                .stream()
-                .map(mapper::toDto)
-                .collect(Collectors.toList());
+    public SemesterServiceImpl(SemesterRepository repository, MapperUtils mapper) {
+        super(repository);
+        this.mapper = mapper;
     }
 
     @Override
-    public SemesterDto getById(Long id) {
-        return repository.findById(id)
-                .map(mapper::toDto)
-                .orElseGet(() -> {
-                    log.warn("Semester with id {} not found.", id);
-                    return null;
-                });
+    protected SemesterDto toDto(SemesterEntity entity) {
+        return mapper.toDto(entity);
     }
 
     @Override
-    public SemesterDto create(SemesterDto dto) {
-        SemesterEntity entity = mapper.toEntity(dto);
-        return mapper.toDto(repository.save(entity));
+    protected SemesterEntity toEntity(SemesterDto dto) {
+        return mapper.toEntity(dto);
     }
 
     @Override
-    public SemesterDto update(Long id, SemesterDto dto) {
-        if (!repository.existsById(id)) {
-            log.warn("Update failed: semester with id {} not found.", id);
-            return null;
-        }
-
-        SemesterEntity entity = mapper.toEntity(dto);
+    protected void setId(SemesterEntity entity, Long id) {
         entity.setId(id);
-        return mapper.toDto(repository.save(entity));
-    }
-
-    @Override
-    public void delete(Long id) {
-        if (repository.existsById(id)) {
-            repository.deleteById(id);
-        } else {
-            log.warn("Delete failed: semester with id {} not found.", id);
-        }
     }
 }
+

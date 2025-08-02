@@ -1,69 +1,39 @@
 package com.example.tsmstlu.models;
 
+import com.example.tsmstlu.common.TableNameContants;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import java.time.LocalDate;
 
-@Entity
-@Table(name = "semesters")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class SemesterEntity {
+@EqualsAndHashCode(callSuper = true)
+@Entity
+@Table(name = TableNameContants.SEMESTER)
+public class SemesterEntity extends TableNameContants {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
-    @Column(length = 50, nullable = false)
+    @Column(name = "name")
     private String name;
 
-    @Column(length = 20, nullable = false)
+    @Column(name = "academic_year")
     private String academicYear;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "ENUM('1', '2', 'Hè')")
-    private Term term;
+    @Column(name = "term")
+    private String term;
 
-    @Column(nullable = false)
+    @Column(name = "start_date")
     private LocalDate startDate;
 
-    @Column(nullable = false)
+    @Column(name = "end_date")
     private LocalDate endDate;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "ENUM('CHUA_BAT_DAU', 'DANG_DIEN_RA', 'DA_KET_THUC')")
-    private SemesterStatus status;
-
-    public enum Term {
-        MOT("1"),
-        HAI("2"),
-        HE("Hè");
-
-        private final String label;
-
-        Term(String label) {
-            this.label = label;
-        }
-
-        @Override
-        public String toString() {
-            return label;
-        }
-    }
-
-    @Getter
-    public enum SemesterStatus {
-        CHUA_BAT_DAU("Chưa bắt đầu"),
-        DANG_DIEN_RA("Đang diễn ra"),
-        DA_KET_THUC("Đã kết thúc");
-
-        private final String label;
-
-        SemesterStatus(String label) {
-            this.label = label;
-        }
-    }
+    @Column(name = "status")
+    private String status;
 }

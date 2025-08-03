@@ -13,9 +13,7 @@ import java.util.stream.Collectors;
 public abstract class BaseServiceImpl<T, D, ID>  implements BaseService<T, D, ID> {
 
     protected final JpaRepository<T, ID> repository;
-
     protected abstract D toDto(T entity);
-
     protected abstract T toEntity(D dto);
 
     public List<D> getAll() {

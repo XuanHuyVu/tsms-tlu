@@ -5,13 +5,10 @@ import com.example.tsmstlu.models.FacultyEntity;
 import com.example.tsmstlu.repositories.FacultyRepository;
 import com.example.tsmstlu.services.FacultyService;
 import com.example.tsmstlu.utils.MapperUtils;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
-@Slf4j
 @Service
-public class FacultyServiceImpl extends BaseServiceImpl<FacultyEntity, FacultyDto, Long> implements FacultyService {
+public class FacultyServiceImpl extends BaseServiceImpl<FacultyEntity,FacultyDto,FacultyDto,FacultyDto,FacultyDto,Long> implements FacultyService {
 
     private final MapperUtils mapper;
 
@@ -21,13 +18,23 @@ public class FacultyServiceImpl extends BaseServiceImpl<FacultyEntity, FacultyDt
     }
 
     @Override
-    protected FacultyDto toDto(FacultyEntity entity) {
-        return mapper.toDto(entity);
+    protected FacultyDto toListDto(FacultyEntity entity) {
+        return mapper.toFacultyDto(entity);
     }
 
     @Override
-    protected FacultyEntity toEntity(FacultyDto dto) {
-        return mapper.toEntity(dto);
+    protected FacultyDto toDetailDto(FacultyEntity entity) {
+        return mapper.toFacultyDto(entity);
+    }
+
+    @Override
+    protected FacultyEntity fromCreateDto(FacultyDto dto) {
+        return mapper.toFacultyEntity(dto);
+    }
+
+    @Override
+    protected FacultyEntity fromUpdateDto(FacultyDto dto) {
+        return mapper.toFacultyEntity(dto);
     }
 
     @Override
@@ -35,3 +42,4 @@ public class FacultyServiceImpl extends BaseServiceImpl<FacultyEntity, FacultyDt
         entity.setId(id);
     }
 }
+

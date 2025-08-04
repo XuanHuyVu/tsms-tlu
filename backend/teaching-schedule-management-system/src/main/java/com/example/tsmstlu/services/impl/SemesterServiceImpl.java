@@ -5,12 +5,10 @@ import com.example.tsmstlu.models.SemesterEntity;
 import com.example.tsmstlu.repositories.SemesterRepository;
 import com.example.tsmstlu.services.SemesterService;
 import com.example.tsmstlu.utils.MapperUtils;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-@Slf4j
 @Service
-public class SemesterServiceImpl extends BaseServiceImpl<SemesterEntity, SemesterDto, Long> implements SemesterService {
+public class SemesterServiceImpl extends BaseServiceImpl<SemesterEntity,SemesterDto,SemesterDto,SemesterDto,SemesterDto,Long> implements SemesterService {
 
     private final MapperUtils mapper;
 
@@ -20,13 +18,23 @@ public class SemesterServiceImpl extends BaseServiceImpl<SemesterEntity, Semeste
     }
 
     @Override
-    protected SemesterDto toDto(SemesterEntity entity) {
-        return mapper.toDto(entity);
+    protected SemesterDto toListDto(SemesterEntity entity) {
+        return mapper.toSemesterDto(entity);
     }
 
     @Override
-    protected SemesterEntity toEntity(SemesterDto dto) {
-        return mapper.toEntity(dto);
+    protected SemesterDto toDetailDto(SemesterEntity entity) {
+        return mapper.toSemesterDto(entity);
+    }
+
+    @Override
+    protected SemesterEntity fromCreateDto(SemesterDto dto) {
+        return mapper.toSemesterEntity(dto);
+    }
+
+    @Override
+    protected SemesterEntity fromUpdateDto(SemesterDto dto) {
+        return mapper.toSemesterEntity(dto);
     }
 
     @Override
@@ -34,4 +42,5 @@ public class SemesterServiceImpl extends BaseServiceImpl<SemesterEntity, Semeste
         entity.setId(id);
     }
 }
+
 

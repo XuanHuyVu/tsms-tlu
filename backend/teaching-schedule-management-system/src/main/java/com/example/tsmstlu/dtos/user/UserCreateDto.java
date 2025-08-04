@@ -1,4 +1,4 @@
-package com.example.tsmstlu.dtos.faculty;
+package com.example.tsmstlu.dtos.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
@@ -8,9 +8,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class FacultyDto {
+public class UserCreateDto {
     private Long id;
-    private String code;
-    private String name;
-    private String description;
+    private String username;
+    private String password;
+    private String role;
 }

@@ -7,29 +7,30 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RequiredArgsConstructor
-public abstract class BaseController<T, D, ID> {
+@RestController
+public abstract class BaseController<T, ListDto, DetailDto, CreateDto, UpdateDto, ID> {
 
-    protected final BaseService<T, D, ID> service;
+    protected final BaseService<T, ListDto, DetailDto, CreateDto, UpdateDto, ID> service;
 
     @GetMapping
-    public ResponseEntity<List<D>> getAll() {
+    public ResponseEntity<List<ListDto>> getAll() {
         return ResponseEntity.ok(service.getAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<D> getById(@PathVariable ID id) {
-        D result = service.getById(id);
+    public ResponseEntity<DetailDto> getById(@PathVariable ID id) {
+        DetailDto result = service.getById(id);
         return result != null ? ResponseEntity.ok(result) : ResponseEntity.notFound().build();
     }
 
     @PostMapping
-    public ResponseEntity<D> create(@RequestBody D dto) {
+    public ResponseEntity<DetailDto> create(@RequestBody CreateDto dto) {
         return ResponseEntity.ok(service.create(dto));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<D> update(@PathVariable ID id, @RequestBody D dto) {
-        D result = service.update(id, dto);
+    public ResponseEntity<DetailDto> update(@PathVariable ID id, @RequestBody UpdateDto dto) {
+        DetailDto result = service.update(id, dto);
         return result != null ? ResponseEntity.ok(result) : ResponseEntity.notFound().build();
     }
 

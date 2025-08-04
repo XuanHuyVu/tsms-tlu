@@ -1,5 +1,6 @@
 package com.example.tsmstlu.dtos.semester;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 import java.time.LocalDate;
 
@@ -7,6 +8,7 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SemesterDto {
     private Long id;
     private String name;

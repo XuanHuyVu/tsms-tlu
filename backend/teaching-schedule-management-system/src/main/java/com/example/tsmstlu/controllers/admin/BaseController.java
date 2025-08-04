@@ -1,4 +1,4 @@
-package com.example.tsmstlu.controllers;
+package com.example.tsmstlu.controllers.admin;
 
 import com.example.tsmstlu.services.BaseService;
 import lombok.RequiredArgsConstructor;

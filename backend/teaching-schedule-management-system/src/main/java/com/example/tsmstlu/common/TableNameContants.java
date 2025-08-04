@@ -5,5 +5,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TableNameContants {
     public static final String SEMESTER = "semesters";
+    public static final String FACULTY = "faculties";
 
 }

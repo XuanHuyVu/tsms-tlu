@@ -1,8 +1,17 @@
 // src/layouts/AppLayout.jsx
 import React from 'react';
+import Sidebar from '../components/Sidebar'; 
+import { Outlet } from 'react-router-dom';
 
-function AppLayout() {
-  return <h1>Đây là giao diện chính sau khi đăng nhập (App Layout)</h1>;
-}
+const AppLayout = () => {
+  return (
+    <div style={{ display: 'flex' }}>
+      <Sidebar />
+      <div style={{ flex: 1, padding: '20px' }}>
+        <Outlet /> {/* nơi hiển thị nội dung các route con */}
+      </div>
+    </div>
+  );
+};
 
 export default AppLayout;

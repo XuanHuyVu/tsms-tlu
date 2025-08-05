@@ -1,0 +1,103 @@
+/* Sidebar container */
+.sidebar {
+  width: 220px;
+  background: #1e429f; /* Màu nền sidebar */
+  color: #fff;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: Arial, sans-serif;
+}
+
+/* Header của sidebar */
+.sidebar-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #fff;
+  color: #1e429f;
+  height: 48px;
+  font-weight: bold;
+  font-size: 18px;
+  border-bottom: 1px solid #2e4fa2;
+  margin-bottom: 10px;
+}
+
+/* Menu chính */
+.sidebar-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+}
+
+.sidebar-menu > li {
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: bold;
+  border: none;
+  background: none;
+  color: white;
+  transition: background-color 0.2s ease;
+}
+
+.sidebar-menu > li:hover {
+  background-color: #c0bebe;
+  color: #517bce;
+}
+
+.sidebar-menu > li.active {
+  background-color: #fff;
+  color: #1d479a;
+}
+
+/* Submenu container */
+.submenu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  background-color: #274bbf;
+  border-radius: 4px;
+  margin-top: 5px;
+}
+
+/* Submenu mở */
+.submenu.open {
+  max-height: 500px; /* Đủ lớn để chứa tất cả item */
+}
+
+/* Submenu item */
+.submenu li {
+  padding: 10px 20px;
+  font-size: 14px;
+  color: #e0e6ff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background-color 0.2s ease, color 0.2s ease;
+  cursor: pointer;
+}
+
+/* Submenu item cuối cùng không có border */
+.submenu li:last-child {
+  border-bottom: none;
+}
+
+/* Hover hiệu ứng */
+.submenu li:hover {
+  background-color: #3b61e0;
+  color: #fff;
+}
+
+.menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.arrow-icon {
+  margin-left: 8px;
+  font-size: 12px;
+}

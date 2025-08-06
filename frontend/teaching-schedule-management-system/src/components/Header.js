@@ -4,16 +4,20 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faChevronDown, faBell, faUser, faCog, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 import '../styles/Header.css';
 import avatar from '../assets/images/avt.jpg';
+import { useAuth } from '../contexts/AuthContext';
 
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   const getPageTitle = (pathname) => {
     switch (pathname) {
       case '/':
+        return 'TRANG CHỦ';
+      case '/dashboard':
         return 'TRANG CHỦ';
       case '/teachers':
         return 'QUẢN LÝ GIẢNG VIÊN'
@@ -23,8 +27,8 @@ const Header = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/');
+    logout(); // Sử dụng logout từ AuthContext
+    navigate('/login'); // Chuyển về trang login
   };
 
   const handleClickOutside = (event) => {

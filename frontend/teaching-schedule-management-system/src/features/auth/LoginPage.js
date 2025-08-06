@@ -157,7 +157,13 @@ export default function LoginPage() {
                       Ghi nhớ đăng nhập
                     </label>
                   </div>
-                  <a href="#" className="text-primary">Quên mật khẩu?</a>
+                  <button 
+                    type="button" 
+                    className="btn btn-link text-primary p-0" 
+                    onClick={() => {/* TODO: Xử lý quên mật khẩu */}}
+                  >
+                    Quên mật khẩu?
+                  </button>
                 </div>
 
                 <div className="d-grid mb-3">

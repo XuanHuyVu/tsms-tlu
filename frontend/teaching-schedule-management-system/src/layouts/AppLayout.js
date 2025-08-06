@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Dashboard from '../features/admin/dashboard/Dashboard';
 import TeacherList from '../features/admin/teachers/TeacherList';
+import AccountList from '../features/admin/accounts/AccountList';
 import Header from '../components/Header';
 import '../styles/AppLayout.css'; // Assuming you have a CSS file for layout styles
 
@@ -19,6 +20,7 @@ function AppLayout() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/teachers" element={<TeacherList />} />
+            <Route path="/tai-khoan" element={<div><AccountList /></div>} />
             {/* Tất cả routes khác tạm thời chuyển về Dashboard */}
             <Route path="*" element={<Dashboard />} />
           </Routes>

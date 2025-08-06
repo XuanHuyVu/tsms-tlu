@@ -1,0 +1,124 @@
+.account-form-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: flex-start; /* Thay đổi từ center thành flex-start */
+  justify-content: center;
+  z-index: 9999;
+  padding-top: 120px; /* Thêm padding-top để form hiển thị dưới card */
+}
+
+.form-grid.no-card {
+  background: white;
+  padding: 24px; /* Tăng padding để giống AccountDetail */
+  border-radius: 10px; /* Tăng border-radius để giống AccountDetail */
+  width: 500px; /* Thay đổi từ 500px thành 600px như AccountDetail */
+  max-width: 95%;
+  max-height: 80vh; /* Giới hạn chiều cao */
+  overflow-y: auto; /* Thêm scroll nếu cần */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 20px; /* Giảm từ 16px 24px xuống 12px 20px */
+  position: relative;
+}
+
+/* Tiêu đề */
+.form-title {
+  grid-column: span 2;
+  background-color: #0d47a1;
+  color: white;
+  font-weight: bold;
+  font-size: 18px; /* Tăng về 18px để giống AccountDetail */
+  padding: 12px 20px; /* Tăng padding để giống AccountDetail */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  margin: -24px -24px 24px -24px; /* Cập nhật margin để giống AccountDetail */
+}
+
+.close {
+  cursor: pointer;
+  font-size: 24px; /* Tăng về 24px để giống AccountDetail */
+  font-weight: bold;
+  transition: opacity 0.2s ease;
+}
+
+.close:hover {
+  opacity: 0.7; /* Thêm hiệu ứng hover */
+}
+
+/* Các ô nhập */
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: 400; /* Bỏ đậm từ 600 xuống 400 */
+  margin-bottom: 4px; /* Giảm từ 6px xuống 4px */
+  font-size: 14px;
+}
+
+.form-group label span {
+  color: red;
+}
+
+.form-group input,
+.form-group select {
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+/* Styling cho select dropdown */
+.form-group select {
+  padding: 8px 30px 8px 10px; /* Thêm padding-right để icon dropdown không sát viền */
+  appearance: none; /* Bỏ style mặc định */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center; /* Icon cách viền 8px */
+  background-size: 16px;
+}
+
+/* Placeholder option styling */
+.form-group select option[value=""] {
+  color: #999; /* Chữ nhạt cho "-- Chọn vai trò --" */
+}
+
+/* Hành động */
+.form-actions {
+  grid-column: span 2;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 6px; /* Giảm từ 10px xuống 6px */
+}
+
+.submit-btn {
+  background-color: #0d47a1;
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 400; /* Bỏ đậm từ bold xuống 400 */
+  min-width: 100px; /* Tăng từ 80px lên 100px để đảm bảo 2 nút bằng nhau */
+}
+
+.cancel-btn {
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  padding: 8px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 400; /* Thêm font-weight để đồng bộ với submit-btn */
+  min-width: 100px; /* Tăng từ 80px lên 100px để đảm bảo 2 nút bằng nhau */
+}

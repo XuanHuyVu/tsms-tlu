@@ -19,6 +19,8 @@ function AppLayout() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/teachers" element={<TeacherList />} />
+            {/* Tất cả routes khác tạm thời chuyển về Dashboard */}
+            <Route path="*" element={<Dashboard />} />
           </Routes>
 
         </div>

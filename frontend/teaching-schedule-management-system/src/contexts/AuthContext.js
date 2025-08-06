@@ -29,16 +29,16 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user');
   };
 
-  // Khôi phục trạng thái đăng nhập từ localStorage khi khởi động
-  React.useEffect(() => {
-    const savedLoginState = localStorage.getItem('isLoggedIn');
-    const savedUser = localStorage.getItem('user');
-    
-    if (savedLoginState === 'true' && savedUser) {
-      setIsLoggedIn(true);
-      setUser(JSON.parse(savedUser));
-    }
-  }, []);
+  // Tạm thời tắt khôi phục tự động để luôn hiển thị login đầu tiên
+  // React.useEffect(() => {
+  //   const savedLoginState = localStorage.getItem('isLoggedIn');
+  //   const savedUser = localStorage.getItem('user');
+  //   
+  //   if (savedLoginState === 'true' && savedUser) {
+  //     setIsLoggedIn(true);
+  //     setUser(JSON.parse(savedUser));
+  //   }
+  // }, []);
 
   const value = {
     isLoggedIn,

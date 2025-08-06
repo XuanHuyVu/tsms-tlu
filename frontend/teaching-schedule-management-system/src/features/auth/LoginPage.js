@@ -48,20 +48,27 @@ export default function LoginPage() {
       console.log("Username:", username);
       console.log("Password:", password);
 
-      // Gọi API thật
-      const response = await fetch('http://localhost:8080/api/auth/login', {
+      // Gọi API thật với proxy
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
+        mode: 'cors', // Explicitly set CORS mode
         body: JSON.stringify({
           username: username,
           password: password
         }),
       });
 
+      console.log("Response status:", response.status);
+      console.log("Response ok:", response.ok);
+
       if (!response.ok) {
-        throw new Error('Login failed');
+        const errorText = await response.text();
+        console.log("Error response:", errorText);
+        throw new Error(`Login failed: ${response.status}`);
       }
 
       const data = await response.json();
@@ -84,8 +91,15 @@ export default function LoginPage() {
       
     } catch (error) {
       console.log("Login error:", error);
-      setUsernameError("Tên đăng nhập hoặc mật khẩu không đúng");
-      setPasswordError("Tên đăng nhập hoặc mật khẩu không đúng");
+      
+      // Xử lý các loại lỗi khác nhau
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        setUsernameError("Không thể kết nối tới server. Kiểm tra backend có đang chạy không?");
+        setPasswordError("Lỗi kết nối - Kiểm tra CORS hoặc Backend");
+      } else {
+        setUsernameError("Tên đăng nhập hoặc mật khẩu không đúng");
+        setPasswordError("Tên đăng nhập hoặc mật khẩu không đúng");
+      }
     } finally {
       setIsLoading(false);
     }

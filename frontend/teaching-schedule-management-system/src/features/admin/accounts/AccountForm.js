@@ -6,7 +6,6 @@ const AccountForm = ({ onClose, editData }) => {
   const [formData, setFormData] = useState({
     username: editData?.tenDangNhap || "",
     password: editData ? "••••••••" : "", // Hiển thị dấu chấm khi sửa
-    email: editData?.email || "",
     role: editData?.vaiTro === "Admin" ? "admin" : editData?.vaiTro === "Giảng viên" ? "user" : editData?.vaiTro === "Sinh viên" ? "manager" : "",
   });
 
@@ -53,17 +52,6 @@ const AccountForm = ({ onClose, editData }) => {
             type="password"
             name="password"
             value={formData.password}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Email: <span>*</span></label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
             onChange={handleChange}
             required
           />

@@ -1,24 +1,114 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaEdit, FaTrash, FaInfoCircle, FaSearch } from "react-icons/fa";
 import "../../../styles/AccountList.css";
 import AccountForm from "./AccountForm";
 import AccountDetail from "./AccountDetail";
-
-const data = [
-  {
-    stt: 1,
-    tenDangNhap: "2251172378",
-    email: "nva@tlu.com",
-    vaiTro: "Admin",
-    ngayTao: "20/10/2023",
-  },
-];
+import { useAuth } from "../../../contexts/AuthContext";
 
 const AccountList = () => {
   const [showForm, setShowForm] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [editingAccount, setEditingAccount] = useState(null);
+  const [accounts, setAccounts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { logout, checkTokenExpiry, isTokenValid } = useAuth();
+
+  // Fetch accounts từ API với multiple endpoint fallback
+  const fetchAccounts = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const token = localStorage.getItem('token');
+      console.log("Fetching accounts...", token);
+
+      // Check token validity first
+      if (!isTokenValid()) {
+        throw new Error('Token không hợp lệ hoặc đã hết hạn');
+      }
+
+      // Try multiple endpoints
+      const endpoints = ['/api/users', '/api/accounts', '/api/admin/users'];
+      let response = null;
+      let lastError = null;
+
+      for (const endpoint of endpoints) {
+        try {
+          console.log(`Trying endpoint: ${endpoint}`);
+          response = await fetch(endpoint, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+
+          console.log(`${endpoint} Response status:`, response.status);
+
+          if (response.ok) {
+            break; // Success, exit loop
+          } else if (response.status === 401 || response.status === 403) {
+            lastError = new Error('Token hết hạn hoặc không có quyền truy cập');
+            continue; // Try next endpoint
+          } else {
+            lastError = new Error(`API Error: ${response.status}`);
+            continue;
+          }
+        } catch (err) {
+          console.log(`${endpoint} failed:`, err);
+          lastError = err;
+          continue;
+        }
+      }
+
+      if (!response || !response.ok) {
+        throw lastError || new Error('Không thể kết nối đến API');
+      }
+
+      const data = await response.json();
+      console.log("API Response:", data);
+
+      // Transform data để match với UI format
+      const transformedData = data.map((user, index) => ({
+        stt: index + 1,
+        tenDangNhap: user.username,
+        vaiTro: user.role || 'User',
+        ngayTao: user.createdDate || 'N/A',
+        id: user.id
+      }));
+
+      setAccounts(transformedData);
+    } catch (error) {
+      console.error("Fetch accounts error:", error);
+      setError(error.message);
+      
+      // Nếu token hết hạn, tự động logout
+      if (error.message.includes('Token hết hạn') || error.message.includes('không có quyền')) {
+        setTimeout(() => {
+          logout();
+        }, 2000); // Delay 2s để user đọc message
+      }
+      
+      // Fallback data nếu API lỗi
+      setAccounts([
+        {
+          stt: 1,
+          tenDangNhap: "admin",
+          vaiTro: "Admin",
+          ngayTao: "20/10/2023",
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load data khi component mount
+  useEffect(() => {
+    fetchAccounts();
+  }, []);
 
   const handleAddAccount = () => {
     setEditingAccount(null); // Reset editing state
@@ -45,13 +135,49 @@ const AccountList = () => {
     setSelectedAccount(null);
   };
 
+  // Reload data sau khi thêm/sửa
+  const handleFormSuccess = () => {
+    fetchAccounts();
+    handleCloseForm();
+  };
+
+  if (loading) {
+    return (
+      <div className="container">
+        <div className="text-center p-4">
+          <div className="spinner-border" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <p>Đang tải danh sách tài khoản...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container">
       {/* Hiển thị form overlay khi showForm = true */}
-      {showForm && <AccountForm onClose={handleCloseForm} editData={editingAccount} />}
+      {showForm && <AccountForm onClose={handleCloseForm} onSuccess={handleFormSuccess} editData={editingAccount} />}
       
       {/* Hiển thị detail modal khi showDetail = true */}
       {showDetail && <AccountDetail account={selectedAccount} onClose={handleCloseDetail} />}
+      
+      {/* Error message with login again option */}
+      {error && (
+        <div className="alert alert-warning mb-3">
+          <strong>Lỗi kết nối API:</strong> {error}
+          <div className="mt-2">
+            <button className="btn btn-sm btn-outline-primary me-2" onClick={fetchAccounts}>
+              Thử lại
+            </button>
+            {error.includes('Token hết hạn') && (
+              <button className="btn btn-sm btn-danger" onClick={logout}>
+                Đăng nhập lại
+              </button>
+            )}
+          </div>
+        </div>
+      )}
       
       {/* Form Card */}
       <div className="form-card compact">
@@ -68,18 +194,16 @@ const AccountList = () => {
           <tr>
             <th>STT</th>
             <th>Tên đăng nhập</th>
-            <th>Email</th>
             <th>Vai trò</th>
             <th>Ngày tạo</th>
             <th>Thao tác</th>
           </tr>
         </thead>
         <tbody>
-          {data.map((item, index) => (
-            <tr key={index}>
+          {accounts.map((item, index) => (
+            <tr key={item.id || index}>
               <td>{item.stt}</td>
               <td>{item.tenDangNhap}</td>
-              <td>{item.email}</td>
               <td>{item.vaiTro}</td>
               <td>{item.ngayTao}</td>
               <td className="actions">
@@ -92,7 +216,7 @@ const AccountList = () => {
         </tbody>
       </table>
       <div className="footer">
-        <div>Hiển thị 100 kết quả</div>
+        <div>Hiển thị {accounts.length} kết quả</div>
         <div className="pagination">
           <select>
             <option>10</option>

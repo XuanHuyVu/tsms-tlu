@@ -24,11 +24,6 @@ const AccountDetail = ({ account, onClose }) => {
         </div>
 
         <div className="detail-row">
-          <label>Email:</label>
-          <div>{account.email}</div>
-        </div>
-
-        <div className="detail-row">
           <label>Vai trò:</label>
           <div>{account.vaiTro}</div>
         </div>

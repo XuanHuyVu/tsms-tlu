@@ -27,6 +27,29 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('user');
+    localStorage.removeItem('token'); // Clear token khi logout
+  };
+
+  // Helper function để check token còn hợp lệ không
+  const isTokenValid = () => {
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+    
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Date.now() / 1000;
+      return payload.exp > currentTime;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  // Auto logout khi token hết hạn
+  const checkTokenExpiry = () => {
+    if (isLoggedIn && !isTokenValid()) {
+      console.log("Token expired, auto logout");
+      logout();
+    }
   };
 
   // Tạm thời tắt khôi phục tự động để luôn hiển thị login đầu tiên
@@ -44,7 +67,9 @@ export const AuthProvider = ({ children }) => {
     isLoggedIn,
     user,
     login,
-    logout
+    logout,
+    isTokenValid,
+    checkTokenExpiry
   };
 
   return (

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import '../styles/Sidebar.css';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import logo from '../assets/images/logo.png'; // Assuming you have a logo image
 
 const Sidebar = () => {
   const [openMenus, setOpenMenus] = useState({
@@ -16,8 +17,8 @@ const Sidebar = () => {
 
   return (
     <div className="sidebar">
-      <div className="sidebar-header">
-        <h2>TSMS - TLU</h2>
+      <div className="sidebar-logo">
+        <img src={logo} alt="TSMS Logo" className="logo-image" />
       </div>
       <ul className="sidebar-menu">
         <li>
@@ -45,7 +46,7 @@ const Sidebar = () => {
             </span>
           </div>
           <ul className={`submenu ${openMenus.giangVien ? 'open' : ''}`}>
-            <li><NavLink to="/giang-vien" className="submenu-link">DANH SÁCH GIẢNG VIÊN</NavLink></li>
+            <li><NavLink to="/teachers" className="submenu-link">QUẢN LÝ GIẢNG VIÊN</NavLink></li>
             <li><NavLink to="/lich-giang-day" className="submenu-link">LỊCH GIẢNG DẠY</NavLink></li>
           </ul>
         </li>

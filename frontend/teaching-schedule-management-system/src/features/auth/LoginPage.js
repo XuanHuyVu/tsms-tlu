@@ -7,11 +7,11 @@ import "../../styles/LoginPage.css";
 import { useAuth } from "../../contexts/AuthContext";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [emailError, setEmailError] = useState("");
+  const [usernameError, setUsernameError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
@@ -22,17 +22,14 @@ export default function LoginPage() {
     e.preventDefault();
     
     // Reset errors
-    setEmailError("");
+    setUsernameError("");
     setPasswordError("");
     
     let hasError = false;
     
-    // Validate email
-    if (!email) {
-      setEmailError("Vui lòng nhập email");
-      hasError = true;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setEmailError("Email không đúng định dạng");
+    // Validate username - chỉ kiểm tra có rỗng không
+    if (!username) {
+      setUsernameError("Vui lòng nhập tên đăng nhập");
       hasError = true;
     }
     
@@ -47,34 +44,60 @@ export default function LoginPage() {
     setIsLoading(true);
     
     try {
-      // Mô phỏng API call đăng nhập
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Giả lập dữ liệu user sau khi đăng nhập thành công
+      console.log("=== LOGIN DEBUG ===");
+      console.log("Username:", username);
+      console.log("Password:", password);
+
+      // Gọi API thật
+      const response = await fetch('http://localhost:8080/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: username,
+          password: password
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Login failed');
+      }
+
+      const data = await response.json();
+      console.log("API Response:", data);
+
+      // Lưu token
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
+
+      // Tạo userData từ API response
       const userData = {
-        email: email,
-        name: "Admin User",
-        role: "admin"
+        username: data.user?.username || username,
+        name: data.user?.name || username,
+        role: data.user?.role || "admin"
       };
       
       login(userData);
-      navigate("/dashboard"); // Chuyển hướng đến dashboard
+      navigate("/dashboard");
       
     } catch (error) {
-      setEmailError("Email hoặc mật khẩu không đúng");
-      setPasswordError("Email hoặc mật khẩu không đúng");
+      console.log("Login error:", error);
+      setUsernameError("Tên đăng nhập hoặc mật khẩu không đúng");
+      setPasswordError("Tên đăng nhập hoặc mật khẩu không đúng");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleEmailChange = (e) => {
-    const newEmail = e.target.value;
-    setEmail(newEmail);
+  const handleUsernameChange = (e) => {
+    const newUsername = e.target.value;
+    setUsername(newUsername);
     
     // Clear error when user starts typing
-    if (emailError) {
-      setEmailError("");
+    if (usernameError) {
+      setUsernameError("");
     }
   };
 
@@ -106,17 +129,17 @@ export default function LoginPage() {
 
               <form onSubmit={handleLogin} noValidate>
                 <div className="form-outline mb-2">
-                  <label className="form-label" htmlFor="email">Email </label>
+                  <label className="form-label" htmlFor="username">Tên đăng nhập</label>
                   <input
-                    type="email"
-                    id="email"
-                    className={`form-control ${emailError ? "is-invalid" : ""}`}
-                    placeholder="abc@tlu.edu.vn"
-                    value={email}
-                    onChange={handleEmailChange}
+                    type="text"
+                    id="username"
+                    className={`form-control ${usernameError ? "is-invalid" : ""}`}
+                    placeholder="Nhập tên đăng nhập"
+                    value={username}
+                    onChange={handleUsernameChange}
                   />
                   <div className="error-container">
-                    {emailError && <div className="text-danger small">{emailError}</div>}
+                    {usernameError && <div className="text-danger small">{usernameError}</div>}
                   </div>
                 </div>
 

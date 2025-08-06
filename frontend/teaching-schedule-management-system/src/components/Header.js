@@ -60,7 +60,7 @@ const Header = () => {
               <img src={avatar} alt="User Avatar" className="header-avatar" />
               <div className="header-user-info">
                 <span className="header-user-name">Nguyễn Văn A</span>
-                <span className="header-user-role">Điều phối viên</span>
+                <span className="header-user-role">Quản trị viên</span>
               </div>
               <FontAwesomeIcon icon={faChevronDown} className="dropdown-arrow" />
             </div>

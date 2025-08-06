@@ -1,6 +1,6 @@
 package com.example.tsmstlu.dto.department;
 
-import com.example.tsmstlu.dto.faculty.FacultyResponseDto;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,10 +12,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DepartmentDto {
-    private Long id;
-    private String code;
+public class DepartmentResponseDto {
     private String name;
-    private String description;
-    private FacultyResponseDto faculty;
 }

@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DepartmentDto {
+public class DepartmentListDto {
     private Long id;
     private String code;
     private String name;

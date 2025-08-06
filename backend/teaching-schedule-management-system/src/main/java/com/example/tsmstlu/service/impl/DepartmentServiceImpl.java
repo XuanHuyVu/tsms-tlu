@@ -1,49 +1,82 @@
 package com.example.tsmstlu.service.impl;
 
+import com.example.tsmstlu.dto.department.DepartmentCreateDto;
 import com.example.tsmstlu.dto.department.DepartmentDto;
+import com.example.tsmstlu.dto.department.DepartmentListDto;
+import com.example.tsmstlu.dto.department.DepartmentUpdateDto;
 import com.example.tsmstlu.entity.DepartmentEntity;
+import com.example.tsmstlu.entity.FacultyEntity;
 import com.example.tsmstlu.repository.DepartmentRepository;
+import com.example.tsmstlu.repository.FacultyRepository;
 import com.example.tsmstlu.service.DepartmentService;
 import com.example.tsmstlu.utils.MapperUtils;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-@Service
-public class DepartmentServiceImpl extends BaseServiceImpl<DepartmentEntity, DepartmentDto, DepartmentDto, DepartmentDto, DepartmentDto, Long> implements DepartmentService {
+import java.util.List;
+import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
+@Service
+@Slf4j
+public class DepartmentServiceImpl implements DepartmentService {
+
+    private final DepartmentRepository departmentRepository;
+    private final FacultyRepository facultyRepository;
     private final MapperUtils mapper;
 
-    public DepartmentServiceImpl(DepartmentRepository departmentRepository, MapperUtils mapper) {
-        super(departmentRepository);
-        this.mapper = mapper;
+    @Override
+    public List<DepartmentListDto> getAll() {
+        return departmentRepository.findAll()
+                .stream()
+                .map(mapper::toDepartmentListDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    protected DepartmentDto toListDto(DepartmentEntity entity) {
+    public DepartmentDto getById(Long id) {
+        DepartmentEntity entity = departmentRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Department not found with id: " + id));
         return mapper.toDepartmentDto(entity);
     }
 
     @Override
-    protected DepartmentDto toDetailDto(DepartmentEntity entity) {
-        return mapper.toDepartmentDto(entity);
+    public DepartmentDto create(DepartmentCreateDto dto) {
+        DepartmentEntity entity = mapper.toDepartmentEntity(dto);
+
+        FacultyEntity faculty = facultyRepository.findById(dto.getFacultyId())
+                .orElseThrow(() -> new EntityNotFoundException("Faculty not found with id: " + dto.getFacultyId()));
+        entity.setFaculty(faculty);
+
+        DepartmentEntity saved = departmentRepository.save(entity);
+        return mapper.toDepartmentDto(saved);
     }
 
     @Override
-    protected DepartmentEntity fromCreateDto(DepartmentDto departmentDto) {
-        return mapper.toDepartmentEntity(departmentDto);
+    public DepartmentDto update(Long id, DepartmentUpdateDto dto) {
+        DepartmentEntity entity = departmentRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Department not found with id: " + id));
+
+        mapper.copyEntity(dto, entity);
+
+        if (dto.getFacultyId() != null) {
+            FacultyEntity faculty = facultyRepository.findById(dto.getFacultyId())
+                    .orElseThrow(() -> new EntityNotFoundException("Faculty not found with id: " + dto.getFacultyId()));
+            entity.setFaculty(faculty);
+        }
+
+        DepartmentEntity updated = departmentRepository.save(entity);
+        return mapper.toDepartmentDto(updated);
     }
 
     @Override
-    protected DepartmentEntity fromUpdateDto(DepartmentDto departmentDto) {
-        return mapper.toDepartmentEntity(departmentDto);
-    }
-
-    @Override
-    protected void setId(DepartmentEntity entity, Long id) {
-        entity.setId(id);
-    }
-
-    @Override
-    protected String getEntityName() {
-        return "departments";
+    public void delete(Long id) {
+        if (!departmentRepository.existsById(id)) {
+            throw new EntityNotFoundException("Department not found with id: " + id);
+        }
+        departmentRepository.deleteById(id);
+        log.info("Deleted department with id: {}", id);
     }
 }

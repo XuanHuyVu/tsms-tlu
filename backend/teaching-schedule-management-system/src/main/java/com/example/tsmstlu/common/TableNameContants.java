@@ -8,4 +8,6 @@ public class TableNameContants {
     public static final String FACULTY = "faculties";
     public static final String DEPARTMENT = "departments";
     public static final String USER = "users";
+    public static final String TEACHER = "teachers";
+    public static final String STUDENT = "students";
 }

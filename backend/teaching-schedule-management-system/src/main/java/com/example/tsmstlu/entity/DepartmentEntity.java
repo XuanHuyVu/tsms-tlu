@@ -20,12 +20,12 @@ public class DepartmentEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    private String code;
     private String name;
 
-    @Column(name = "faculty_id")
-    private Long facultyId;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "faculty_id", nullable = false)
+    private FacultyEntity faculty;
 
-    private String facultyName;
     private String description;
 }

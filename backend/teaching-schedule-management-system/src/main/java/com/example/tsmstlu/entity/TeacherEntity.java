@@ -1,99 +1,47 @@
 package com.example.tsmstlu.entity;
 
+import com.example.tsmstlu.common.TableNameContants;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
+
 import java.util.Date;
 
-@Table(name = "teachers")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
+@EqualsAndHashCode(callSuper = false)
+@Entity
+@Table(name = TableNameContants.TEACHER)
 public class TeacherEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
-    private UserEntity user;
-
-    @Column(name = "teacher_code", length = 20, nullable = false, unique = true)
+    @Column(name = "teacher_code")
     private String teacherCode;
 
-    @Column(name = "full_name", length = 100, nullable = false)
+    @Column(name = "full_name")
     private String fullName;
 
-    @Enumerated(EnumType.STRING)
-    @Column(length = 10)
-    private Gender gender;
-
-    @Temporal(TemporalType.DATE)
-    private Date dateOfBirth;
-
-    @Column(length = 100)
+    private String gender;
     private String email;
 
-    @Column(length = 20)
+    @Column(name = "date_of_birth")
+    private Date dateOfBirth;
+
+    @Column(name = "phone_number")
     private String phoneNumber;
 
-    @Column(length = 100)
-    private String department;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "department_id", nullable = false)
+    private DepartmentEntity department;
 
-    @Enumerated(EnumType.STRING)
-    @Column(length = 20)
-    @Builder.Default
-    private Status status = Status.ĐANG_LÀM;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "faculty_id", nullable = false)
+    private FacultyEntity faculty;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "created_at", updatable = false)
-    private Date createdAt;
-
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "updated_at")
-    private Date updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = new Date();
-        updatedAt = new Date();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = new Date();
-    }
-
-    public enum Gender {
-        NAM("Nam"), NU("Nữ"), KHAC("Khác");
-
-        private final String label;
-
-        Gender(String label) {
-            this.label = label;
-        }
-
-        public String getLabel() {
-            return label;
-        }
-    }
-
-    public enum Status {
-        ĐANG_LÀM("Đang làm"),
-        NGHỈ_PHÉP("Nghỉ phép"),
-        NGHỈ_VIỆC("Nghỉ việc");
-
-        private final String label;
-
-        Status(String label) {
-            this.label = label;
-        }
-
-        public String getLabel() {
-            return label;
-        }
-    }
-
+    private String status;
 }

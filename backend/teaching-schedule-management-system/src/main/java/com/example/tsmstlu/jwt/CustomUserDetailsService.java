@@ -1,7 +1,7 @@
 package com.example.tsmstlu.jwt;
 
-import com.example.tsmstlu.models.UserEntity;
-import com.example.tsmstlu.repositories.UserRepository;
+import com.example.tsmstlu.entity.UserEntity;
+import com.example.tsmstlu.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.*;
@@ -22,7 +22,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                 user.getUsername(),
                 user.getPassword(),
                 AuthorityUtils.createAuthorityList(user.getRole().startsWith("ROLE_") ? user.getRole() : "ROLE_" + user.getRole())
-
         );
     }
 }

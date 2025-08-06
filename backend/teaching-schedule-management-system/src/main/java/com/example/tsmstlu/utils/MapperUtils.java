@@ -1,13 +1,12 @@
 package com.example.tsmstlu.utils;
 
-import com.example.tsmstlu.dtos.faculty.FacultyDto;
-import com.example.tsmstlu.dtos.user.UserCreateDto;
-import com.example.tsmstlu.dtos.user.UserDto;
-import com.example.tsmstlu.dtos.user.UserLoginDto;
-import com.example.tsmstlu.models.*;
-import com.example.tsmstlu.dtos.semester.SemesterDto;
+import com.example.tsmstlu.dto.department.DepartmentDto;
+import com.example.tsmstlu.dto.faculty.FacultyDto;
+import com.example.tsmstlu.dto.user.UserCreateDto;
+import com.example.tsmstlu.dto.user.UserDto;
+import com.example.tsmstlu.entity.*;
+import com.example.tsmstlu.dto.semester.SemesterDto;
 import org.mapstruct.Mapper;
-import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface MapperUtils {
@@ -26,5 +25,9 @@ public interface MapperUtils {
     UserCreateDto toUserCreateDto(UserEntity entity);
     UserEntity toEntity(UserCreateDto dto);
 //    void copyEntity(UserDto dto, @MappingTarget UserEntity entity);
+
+    //Departments
+    DepartmentEntity toDepartmentEntity(DepartmentDto dto);
+    DepartmentDto toDepartmentDto(DepartmentEntity entity);
 }
 

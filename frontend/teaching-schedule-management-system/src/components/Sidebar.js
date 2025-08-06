@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { NavLink } from 'react-router-dom';
 import '../styles/Sidebar.css';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
@@ -19,7 +20,9 @@ const Sidebar = () => {
         <h2>TSMS - TLU</h2>
       </div>
       <ul className="sidebar-menu">
-        <li>TRANG CHỦ</li>
+        <li>
+          <NavLink to="/" className="menu-link">TRANG CHỦ</NavLink>
+        </li>
 
         <li onClick={() => toggleMenu('hocPhan')}>
           <div className="menu-item">
@@ -29,8 +32,8 @@ const Sidebar = () => {
             </span>
           </div>
           <ul className={`submenu ${openMenus.hocPhan ? 'open' : ''}`}>
-            <li>HỌC PHẦN</li>
-            <li>LỚP HỌC PHẦN</li>
+            <li><NavLink to="/hoc-phan" className="submenu-link">HỌC PHẦN</NavLink></li>
+            <li><NavLink to="/lop-hoc-phan" className="submenu-link">LỚP HỌC PHẦN</NavLink></li>
           </ul>
         </li>
 
@@ -42,8 +45,8 @@ const Sidebar = () => {
             </span>
           </div>
           <ul className={`submenu ${openMenus.giangVien ? 'open' : ''}`}>
-            <li>DANH SÁCH GIẢNG VIÊN</li>
-            <li>LỊCH GIẢNG DẠY</li>
+            <li><NavLink to="/giang-vien" className="submenu-link">DANH SÁCH GIẢNG VIÊN</NavLink></li>
+            <li><NavLink to="/lich-giang-day" className="submenu-link">LỊCH GIẢNG DẠY</NavLink></li>
           </ul>
         </li>
 
@@ -55,13 +58,17 @@ const Sidebar = () => {
             </span>
           </div>
           <ul className={`submenu ${openMenus.lichHoc ? 'open' : ''}`}>
-            <li>THỜI KHÓA BIỂU</li>
-            <li>LỊCH THAY ĐỔI</li>
+            <li><NavLink to="/tkb" className="submenu-link">THỜI KHÓA BIỂU</NavLink></li>
+            <li><NavLink to="/lich-thay-doi" className="submenu-link">LỊCH THAY ĐỔI</NavLink></li>
           </ul>
         </li>
 
-        <li>HỌC KỲ</li>
-        <li>THỐNG KÊ - BÁO CÁO</li>
+        <li>
+          <NavLink to="/hoc-ky" className="menu-link">HỌC KỲ</NavLink>
+        </li>
+        <li>
+          <NavLink to="/thong-ke" className="menu-link">THỐNG KÊ - BÁO CÁO</NavLink>
+        </li>
       </ul>
     </div>
   );

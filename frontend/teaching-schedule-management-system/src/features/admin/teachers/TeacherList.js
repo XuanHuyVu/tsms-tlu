@@ -1,35 +1,32 @@
-import React, { useState } from 'react';
-import { FaTrashAlt, FaEdit, FaInfoCircle } from 'react-icons/fa';
+import React, { useEffect, useState } from 'react';
+import { FaTrashAlt, FaEdit, FaInfoCircle, FaSearch } from 'react-icons/fa';
 import '../../../styles/TeacherList.css';
 import TeacherForm from './TeacherForm';
+import axiosInstance from '../../../api/axiosInstance'; // dùng instance
 
 const TeacherList = () => {
   const [openForm, setOpenForm] = useState(false);
-  const [teachers, setTeachers] = useState([
-    {
-      id: 1,
-      maGV: '2251172378',
-      hoTen: 'ThS. Nguyễn Văn A',
-      ngaySinh: '20/10/1990',
-      email: 'nva@tlu.com',
-      soDienThoai: '0123456789',
-      khoa: 'Công Nghệ Thông Tin',
-    },
-        {
-      id: 2,
-      maGV: '2251172378',
-      hoTen: 'ThS. Nguyễn Văn A',
-      ngaySinh: '20/10/1990',
-      email: 'nva@tlu.com',
-      soDienThoai: '0123456789',
-      khoa: 'Công Nghệ Thông Tin',
-    },
-  ]);
+  const [teachers, setTeachers] = useState([]);
 
   const handleAddTeacher = (newTeacher) => {
     setTeachers([...teachers, { ...newTeacher, id: teachers.length + 1 }]);
     setOpenForm(false);
   };
+
+useEffect(() => {
+  const fetchTeachers = async () => {
+    try {
+      const response = await axiosInstance.get('/admin/teachers');
+      console.log('✅ Danh sách giảng viên được lấy thành công:', response.data); 
+      setTeachers(response.data);
+    } catch (error) {
+      console.error('❌ Lỗi khi tải danh sách giảng viên:', error); 
+    }
+  };
+
+  fetchTeachers();
+}, []);
+
 
   return (
     <div className="teacher-container">
@@ -37,7 +34,10 @@ const TeacherList = () => {
         <button className="add-button" onClick={() => setOpenForm(true)}>
           Thêm giảng viên
         </button>
-        <input type="text" className="search-input" placeholder="Tìm kiếm" />
+        <div className="search-container">
+          <input type="text" placeholder="Tìm kiếm" className="search-box" />
+          <FaSearch className="search-icon" />
+        </div>
       </div>
 
       <table className="teacher-table">
@@ -73,7 +73,20 @@ const TeacherList = () => {
         </tbody>
       </table>
 
-      {/* Form thêm giảng viên */}
+      <div className="footer">
+        <div>Hiển thị {teachers.length} kết quả</div>
+        <div className="pagination">
+          <select>
+            <option>10</option>
+            <option>25</option>
+            <option>50</option>
+          </select>
+          <span>Từ 1 đến 10 bản ghi</span>
+          <button>&lt;</button>
+          <button>&gt;</button>
+        </div>
+      </div>
+
       <TeacherForm
         visible={openForm}
         onClose={() => setOpenForm(false)}

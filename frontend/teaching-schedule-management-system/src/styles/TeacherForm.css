@@ -1,5 +1,5 @@
 /* Overlay toàn màn hình */
-.modal-overlay {
+.modal-teacher-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -13,7 +13,7 @@
 }
 
 /* Hộp modal chính */
-.modal-content {
+.modal-teacher-content {
   background: white;
   width: 850px;
   padding: 0;
@@ -23,7 +23,7 @@
 }
 
 /* Header của modal */
-.modal-header {
+.modal-teacher-header {
   background-color: #1D479A !important;
   padding: 16px 24px;
   font-size: 20px;
@@ -36,7 +36,7 @@
   border-top-right-radius: 6px;
 }
 
-.modal-header h2 {
+.modal-teacher-header h2 {
   color: #fff;
   font-size: 20px;
   font-weight: 600;

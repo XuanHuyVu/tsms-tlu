@@ -28,9 +28,9 @@ const TeacherForm = ({ visible, onClose, onSubmit }) => {
   if (!visible) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
+    <div className="modal-teacher-overlay">
+      <div className="modal-teacher-content">
+        <div className="modal-teacher-header">
           <h2>THÊM GIẢNG VIÊN MỚI</h2>
           <button className="close-button" onClick={onClose}>×</button>
         </div>

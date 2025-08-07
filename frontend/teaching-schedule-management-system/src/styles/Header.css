@@ -8,6 +8,16 @@
   background: #fff;
   z-index: 100;
   border-bottom: 1px solid #ddd; /* Border below header */
+}ontainer */
+.header-container {
+  position: fixed;
+  top: 0;
+  left: 220px; /* Sidebar width */
+  width: calc(100% - 220px); /* Ensure header width matches sidebar width */
+  height: 36px; /* Giảm chiều cao từ 48px xuống 36px */
+  background: #fff;
+  z-index: 100;
+  border-bottom: 1px solid #ddd; /* Border below header */
 }
 
 /* Header Bar */

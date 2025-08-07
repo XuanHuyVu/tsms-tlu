@@ -21,12 +21,10 @@ function AppContent() {
   return (
     <Router>
       <Routes>
-        {/* Nếu chưa đăng nhập thì chuyển sang /login */}
+        {/* Mặc định luôn hiển thị form đăng nhập */}
         <Route
           path="/"
-          element={
-            isLoggedIn ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
-          }
+          element={<Navigate to="/login" replace />}
         />
 
         {/* Trang đăng nhập */}

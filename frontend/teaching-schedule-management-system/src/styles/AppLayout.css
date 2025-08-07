@@ -7,19 +7,18 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  /* Thêm margin-left khi có sidebar, auto khi không có */
-  margin-left: 0;
-  width: 100%;
+  margin-left: 220px; /* Dịch chuyển content sang phải để tránh sidebar */
+  width: calc(100% - 220px);
 }
 
 .main-content-with-sidebar {
-  margin-left: 250px; /* Chiều rộng của sidebar */
+  margin-left: 220px; /* Chiều rộng của sidebar */
 }
 
 .content-area {
   flex: 1;
   padding: 20px;
-  margin-top: 20px; /* hoặc padding-top nếu Header có background */
+  margin-top: 20px; /* Dịch content xuống dưới một chút */
   background-color: #f8f9fa;
 }
 

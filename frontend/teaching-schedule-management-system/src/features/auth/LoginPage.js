@@ -16,7 +16,7 @@ export default function LoginPage() {
   const [passwordError, setPasswordError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
-  const { login } = useAuth();
+  const { login, isLoggedIn, user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -194,6 +194,75 @@ export default function LoginPage() {
     setPassword(e.target.value);
     if (passwordError) setPasswordError("");
   };
+
+  const handleGoToDashboard = () => {
+    navigate("/dashboard");
+  };
+
+  const handleLogout = () => {
+    logout();
+  };
+
+  // Nếu đã đăng nhập, hiển thị thông báo và nút vào dashboard
+  if (isLoggedIn) {
+    return (
+      <section className="vh-100">
+        <div className="container-fluid h-custom">
+          <div className="row d-flex justify-content-center align-items-center h-100">
+            {/* Bên trái là hình ảnh */}
+            <div className="col-md-6 col-lg-6 col-xl-6 d-flex justify-content-center">
+              <img
+                src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp"
+                className="img-fluid w-75"
+                alt="Login"
+                style={{ maxHeight: "400px", objectFit: "contain" }}
+              />
+            </div>
+
+            {/* Bên phải là thông báo đã đăng nhập */}
+            <div className="col-md-6 col-lg-5 col-xl-4 offset-xl-1">
+              <div className="card p-4 shadow rounded-3">
+                <h4 className="text-center mb-4">TSMS TLU</h4>
+                
+                <div className="text-center mb-4">
+                  <div className="mb-3">
+                    <i className="fas fa-user-check text-success" style={{ fontSize: "48px" }}></i>
+                  </div>
+                  <h5 className="text-success mb-2">Đã đăng nhập thành công!</h5>
+                  <p className="text-muted mb-1">Xin chào <strong>{user?.fullName || user?.username}</strong></p>
+                  <p className="text-muted small">Vai trò: <span className="badge bg-primary">{user?.role || 'User'}</span></p>
+                </div>
+
+                <div className="d-grid gap-2 mb-3">
+                  <button 
+                    type="button" 
+                    className="btn btn-primary"
+                    onClick={handleGoToDashboard}
+                  >
+                    <i className="fas fa-tachometer-alt me-2"></i>
+                    Vào Dashboard
+                  </button>
+                  
+                  <button 
+                    type="button" 
+                    className="btn btn-outline-secondary"
+                    onClick={handleLogout}
+                  >
+                    <i className="fas fa-sign-out-alt me-2"></i>
+                    Đăng xuất
+                  </button>
+                </div>
+
+                <p className="text-center text-muted mt-3 mb-0" style={{ fontSize: "14px" }}>
+                  © 2025 Trường Đại học Thủy Lợi
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="vh-100">

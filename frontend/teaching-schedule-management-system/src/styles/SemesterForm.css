@@ -1,5 +1,5 @@
 /* Overlay toàn màn hình */
-.modal-teacher-overlay {
+.modal-semester-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -13,7 +13,7 @@
 }
 
 /* Hộp modal chính */
-.modal-teacher-content {
+.modal-semester-content {
   background: white;
   width: 850px;
   padding: 0;
@@ -23,7 +23,7 @@
 }
 
 /* Header của modal */
-.modal-teacher-header {
+.modal-semester-header {
   background-color: #1D479A !important;
   padding: 16px 24px;
   font-size: 20px;
@@ -36,9 +36,9 @@
   border-top-right-radius: 6px;
 }
 
-.modal-teacher-header h2 {
+.modal-semester-header h2 {
   color: #fff;
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 600;
   margin: 0;
   line-height: 1.2;
@@ -55,12 +55,12 @@
 }
 
 /* Phần form */
-.teacher-form {
+.semester-form {
   padding: 24px;
 }
 
 /* Grid layout cho form */
-.teacher-form .form-grid {
+.semester-form .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;

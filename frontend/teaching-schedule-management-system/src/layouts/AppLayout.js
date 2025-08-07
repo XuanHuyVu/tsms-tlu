@@ -7,8 +7,8 @@ import StudentDashboard from '../features/student/dashboard/StudentDashboard';
 import TeacherList from '../features/admin/teachers/TeacherList';
 import AccountList from '../features/admin/accounts/AccountList';
 import Header from '../components/Header';
-import '../styles/AppLayout.css'; // Assuming you have a CSS file for layout styles
-
+import '../styles/AppLayout.css';
+import SemesterList from '../features/admin/semesters/SemesterList';
 function AppLayout() {
   return (
     <div className="app-layout" style={{ display: 'flex' }}>
@@ -25,7 +25,7 @@ function AppLayout() {
             <Route path="/student-dashboard" element={<StudentDashboard />} />
             <Route path="/teachers" element={<TeacherList />} />
             <Route path="/accounts" element={<div><AccountList /></div>} />
-            {/* Tất cả routes khác tạm thời chuyển về Dashboard */}
+            <Route path="/semesters" element={<div><SemesterList /></div>} />
             <Route path="*" element={<Dashboard />} />
           </Routes>
 

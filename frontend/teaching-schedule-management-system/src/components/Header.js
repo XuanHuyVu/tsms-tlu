@@ -21,6 +21,8 @@ const Header = () => {
         return 'TRANG CHỦ';
       case '/teachers':
         return 'QUẢN LÝ GIẢNG VIÊN'
+      case '/semesters':
+        return 'QUẢN LÝ HỌC KỲ';
       default:
         return 'QUẢN LÝ HỆ THỐNG';
     }

@@ -9,7 +9,6 @@ const AccountForm = ({ onClose, editData, onSuccess }) => {
     username: editData?.tenDangNhap || "",
     password: editData ? "••••••••" : "", // Hiển thị dấu chấm khi sửa
     role: editData?.vaiTro === "Admin" ? "Admin" : editData?.vaiTro === "Teacher" ? "Teacher" : editData?.vaiTro === "Student" ? "Student" : "",
-    description: editData?.moTa || "", // Thêm description field
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -38,7 +37,6 @@ const AccountForm = ({ onClose, editData, onSuccess }) => {
         username: formData.username,
         password: formData.password,
         role: formData.role,
-        description: formData.description
       };
 
       console.log('=== ACCOUNT FORM SUBMIT ===');
@@ -131,31 +129,20 @@ const AccountForm = ({ onClose, editData, onSuccess }) => {
           </select>
         </div>
 
-        <div className="form-group">
-          <label>Mô tả:</label>
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            placeholder="Nhập mô tả (tùy chọn)"
-            rows="3"
-            disabled={loading}
-            style={{ resize: 'vertical' }}
-          />
-        </div>
-
         <div className="form-actions">
           <button type="submit" className="submit-btn" disabled={loading}>
             {loading ? (
               <>
-                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                 {isEditing ? "Đang cập nhật..." : "Đang tạo..."}
               </>
             ) : (
               isEditing ? "Cập nhật" : "Xác nhận"
             )}
           </button>
-          <button type="button" onClick={onClose} className="cancel-btn" disabled={loading}>Hủy bỏ</button>
+          <button type="button" onClick={onClose} className="cancel-btn" disabled={loading}>
+            Hủy bỏ
+          </button>
         </div>
       </form>
     </div>

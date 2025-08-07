@@ -3,16 +3,22 @@ import { FaEdit, FaTrash, FaInfoCircle, FaSearch } from "react-icons/fa";
 import "../../../styles/AccountList.css";
 import AccountForm from "./AccountForm";
 import AccountDetail from "./AccountDetail";
+import DeleteConfirmModal from "./DeleteConfirmModal";
 import { useAuth } from "../../../contexts/AuthContext";
 import { accountApi } from "../../../api/AccountApi";
 
 const AccountList = () => {
   const [showForm, setShowForm] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [editingAccount, setEditingAccount] = useState(null);
+  const [deletingAccount, setDeletingAccount] = useState(null);
   const [accounts, setAccounts] = useState([]);
+  const [filteredAccounts, setFilteredAccounts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [error, setError] = useState(null);
   const { logout, checkTokenExpiry, isTokenValid } = useAuth();
 
@@ -61,6 +67,7 @@ const AccountList = () => {
       }));
 
       setAccounts(finalData);
+      setFilteredAccounts(finalData); // Khởi tạo danh sách lọc
     } catch (error) {
       console.error("Fetch accounts error:", error);
       setError(error.message);
@@ -80,6 +87,24 @@ const AccountList = () => {
   useEffect(() => {
     fetchAccounts();
   }, []);
+
+  // Effect để filter accounts khi searchTerm thay đổi
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setFilteredAccounts(accounts);
+    } else {
+      const filtered = accounts.filter(account => 
+        account.tenDangNhap.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        account.vaiTro.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredAccounts(filtered);
+    }
+  }, [accounts, searchTerm]);
+
+  // Hàm xử lý tìm kiếm
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
 
   const handleAddAccount = () => {
     setEditingAccount(null); // Reset editing state
@@ -106,6 +131,50 @@ const AccountList = () => {
     setSelectedAccount(null);
   };
 
+  const handleDeleteAccount = (account) => {
+    setDeletingAccount(account);
+    setShowDeleteModal(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false);
+    setDeletingAccount(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingAccount) return;
+
+    try {
+      setDeleteLoading(true);
+      setError(null);
+
+      if (!isTokenValid()) {
+        throw new Error('Token không hợp lệ hoặc đã hết hạn');
+      }
+
+      // Gọi API xóa tài khoản
+      await accountApi.delete(deletingAccount.id);
+
+      // Refresh data sau khi xóa thành công
+      await fetchAccounts();
+      
+      // Đóng modal
+      handleCloseDeleteModal();
+
+    } catch (error) {
+      console.error("Delete account error:", error);
+      setError(error.message);
+      
+      if (error.message.includes('Token hết hạn') || error.message.includes('không có quyền')) {
+        setTimeout(() => {
+          logout();
+        }, 2000);
+      }
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   // Reload data sau khi thêm/sửa
   const handleFormSuccess = async () => {
     // Refresh data từ API để có thông tin mới nhất
@@ -118,7 +187,6 @@ const AccountList = () => {
       <div className="container">
         <div className="text-center p-4">
           <div className="spinner-border" role="status">
-            <span className="sr-only">Loading...</span>
           </div>
         </div>
       </div>
@@ -132,6 +200,16 @@ const AccountList = () => {
       
       {/* Hiển thị detail modal khi showDetail = true */}
       {showDetail && <AccountDetail account={selectedAccount} onClose={handleCloseDetail} />}
+      
+      {/* Hiển thị delete confirm modal */}
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDelete}
+        title="XÓA TÀI KHOẢN"
+        message="Bạn có chắc chắn muốn xóa tài khoản này không?"
+        loading={deleteLoading}
+      />
       
       {/* Error message with login again option */}
       {error && (
@@ -154,7 +232,13 @@ const AccountList = () => {
       <div className="form-card compact">
         <button className="add-btn" onClick={handleAddAccount}>Thêm tài khoản</button>
         <div className="search-container">
-          <input type="text" placeholder="Tìm kiếm" className="search-box" />
+          <input 
+            type="text" 
+            placeholder="Tìm kiếm" 
+            className="search-box"
+            value={searchTerm}
+            onChange={handleSearch}
+          />
           <FaSearch className="search-icon" />
         </div>
       </div>
@@ -171,30 +255,30 @@ const AccountList = () => {
           </tr>
         </thead>
         <tbody>
-          {accounts.map((item, index) => (
+          {filteredAccounts.map((item, index) => (
             <tr key={item.id || index}>
-              <td>{item.stt}</td>
+              <td>{index + 1}</td>
               <td>{item.tenDangNhap}</td>
               <td>{item.vaiTro}</td>
               <td>{item.ngayTao}</td>
               <td className="actions">
                 <FaInfoCircle className="icon info" onClick={() => handleViewAccount(item)} />
                 <FaEdit className="icon edit" onClick={() => handleEditAccount(item)} />
-                <FaTrash className="icon delete" />
+                <FaTrash className="icon delete" onClick={() => handleDeleteAccount(item)} />
               </td>
             </tr>
           ))}
         </tbody>
       </table>
       <div className="footer">
-        <div>Hiển thị {accounts.length} kết quả</div>
+        <div>Hiển thị {filteredAccounts.length} kết quả {searchTerm && `(lọc từ ${accounts.length} tài khoản)`}</div>
         <div className="pagination">
           <select>
             <option>10</option>
             <option>25</option>
             <option>50</option>
           </select>
-          <span>Từ 1 đến 10 bản ghi</span>
+          <span>Từ 1 đến {Math.min(10, filteredAccounts.length)} bản ghi</span>
           <button>&lt;</button>
           <button>&gt;</button>
         </div>

@@ -17,8 +17,8 @@
   background: white;
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-  max-width: 550px;
-  width: 90%;
+  max-width: 500px; 
+  width: 80%; 
   max-height: 90vh;
   overflow-y: auto;
   animation: modalSlideIn 0.3s ease-out;
@@ -38,7 +38,7 @@
 .modal-header {
   background: #4f75db;
   color: white;
-  padding: 10px 16px;
+  padding:14px 16px; 
   border-radius: 12px 12px 0 0;
   display: flex;
   justify-content: space-between;
@@ -47,9 +47,10 @@
 }
 
 .modal-header h2 {
-  font-size: 1.1rem;
+  font-size: 1rem; 
   font-weight: 700;
   margin: 0;
+  margin-left: 15px; 
   letter-spacing: 0.5px;
   color: white;
 }
@@ -70,13 +71,13 @@
 }
 
 .modal-form {
-  padding: 20px 24px 24px 24px;
+  padding: 16px 20px 20px 20px; 
 }
 
 .form-row {
   display: flex;
-  gap: 16px;
-  margin-bottom: 18px;
+  gap: 6px; /* Giảm từ 8px xuống 6px để các trường gần nhau hơn */
+  margin-bottom: 6px; /* Giảm từ 12px xuống 8px */
 }
 
 .form-group {
@@ -92,8 +93,8 @@
 .form-group label {
   font-weight: 600;
   color: #374151;
-  margin-bottom: 6px;
-  font-size: 0.9rem;
+  margin-bottom: 1px; /* Giảm từ 2px xuống 1px để label gần input hơn */
+  font-size: 0.85rem; /* Giảm từ 0.9rem xuống 0.85rem */
 }
 
 .required {
@@ -103,10 +104,10 @@
 .form-group input,
 .form-group select,
 .form-group textarea {
-  padding: 10px 12px;
+  padding: 6px 10px; /* Giảm từ 8px 10px xuống 6px 10px */
   border: 2px solid #e5e7eb;
   border-radius: 6px;
-  font-size: 0.9rem;
+  font-size: 0.85rem; /* Giảm từ 0.9rem xuống 0.85rem */
   transition: all 0.2s ease;
   background: white;
 }
@@ -125,27 +126,27 @@
 
 .form-group textarea {
   resize: vertical;
-  min-height: 80px;
+  min-height: 50px; /* Giảm từ 60px xuống 50px */
 }
 
 .file-upload {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px; /* Giảm từ 8px xuống 4px */
 }
 
 .file-upload-label {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
+  gap: 6px; /* Giảm từ 8px xuống 6px */
+  padding: 8px 12px; /* Giảm từ 10px 16px xuống 8px 12px */
   background: #f8fafc;
   border: 2px dashed #cbd5e1;
   border-radius: 6px;
   color: #64748b;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 0.9rem;
+  font-size: 0.8rem; /* Giảm từ 0.9rem xuống 0.8rem */
   font-weight: 500;
   width: fit-content;
 }
@@ -164,23 +165,23 @@
 
 .modal-footer {
   display: flex;
-  gap: 12px;
+  gap: 8px; /* Giảm từ 10px xuống 8px */
   justify-content: flex-end;
-  padding-top: 20px;
+  padding-top: 12px; /* Giảm từ 16px xuống 12px */
   border-top: 1px solid #e5e7eb;
-  margin-top: 20px;
+  margin-top: 12px; /* Giảm từ 16px xuống 12px */
 }
 
 .btn-confirm,
 .btn-cancel {
-  padding: 12px 24px;
+  padding: 8px 18px; /* Giảm từ 10px 20px xuống 8px 18px */
   border-radius: 6px;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.85rem; /* Giảm từ 0.9rem xuống 0.85rem */
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
-  min-width: 120px;
+  min-width: 90px; /* Giảm từ 100px xuống 90px */
 }
 
 .btn-confirm {

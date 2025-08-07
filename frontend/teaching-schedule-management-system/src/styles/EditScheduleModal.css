@@ -3,8 +3,8 @@
   background: white;
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-  max-width: 550px;
-  width: 90%;
+  max-width: 500px; /* Giảm từ 550px xuống 500px như CreateScheduleModal */
+  width: 80%; /* Giảm từ 90% xuống 80% như CreateScheduleModal */
   max-height: 90vh;
   overflow-y: auto;
   animation: editModalSlideIn 0.3s ease-out;
@@ -24,7 +24,7 @@
 .edit-modal-header {
   background: #4f75db;
   color: white;
-  padding: 16px 20px;
+  padding: 14px 16px; /* Giảm từ 16px 20px xuống 14px 16px như CreateScheduleModal */
   border-radius: 12px 12px 0 0;
   display: flex;
   justify-content: space-between;
@@ -33,9 +33,10 @@
 }
 
 .edit-modal-header h2 {
-  font-size: 1.1rem;
+  font-size: 1rem; /* Giảm từ 1.1rem xuống 1rem như CreateScheduleModal */
   font-weight: 700;
   margin: 0;
+  margin-left: 15px; /* Thêm margin-left như CreateScheduleModal */
   letter-spacing: 0.5px;
   color: white;
 }
@@ -56,13 +57,13 @@
 }
 
 .edit-modal-form {
-  padding: 20px 24px 24px 24px;
+  padding: 16px 20px 20px 20px; /* Giảm từ 20px 24px 24px 24px như CreateScheduleModal */
 }
 
 .form-row {
   display: flex;
-  gap: 16px;
-  margin-bottom: 18px;
+  gap: 6px; /* Cập nhật từ 2px lên 6px để giống CreateScheduleModal */
+  margin-bottom: 6px; /* Giảm từ 18px xuống 6px như CreateScheduleModal */
 }
 
 .form-group {
@@ -78,8 +79,8 @@
 .form-group label {
   font-weight: 600;
   color: #374151;
-  margin-bottom: 6px;
-  font-size: 0.9rem;
+  margin-bottom: 1px; /* Giảm từ 6px xuống 1px như CreateScheduleModal */
+  font-size: 0.85rem; /* Giảm từ 0.9rem xuống 0.85rem như CreateScheduleModal */
 }
 
 .required {
@@ -89,10 +90,10 @@
 .form-group input,
 .form-group select,
 .form-group textarea {
-  padding: 10px 12px;
+  padding: 6px 10px; /* Giảm từ 10px 12px xuống 6px 10px như CreateScheduleModal */
   border: 2px solid #e5e7eb;
   border-radius: 6px;
-  font-size: 0.9rem;
+  font-size: 0.85rem; /* Giảm từ 0.9rem xuống 0.85rem như CreateScheduleModal */
   transition: all 0.2s ease;
   background: white;
 }
@@ -111,27 +112,27 @@
 
 .form-group textarea {
   resize: vertical;
-  min-height: 80px;
+  min-height: 50px; /* Giảm từ 80px xuống 50px như CreateScheduleModal */
 }
 
 .file-upload {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px; /* Giảm từ 8px xuống 4px như CreateScheduleModal */
 }
 
 .file-upload-label {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
+  gap: 6px; /* Giảm từ 8px xuống 6px như CreateScheduleModal */
+  padding: 8px 12px; /* Giảm từ 10px 16px xuống 8px 12px như CreateScheduleModal */
   background: #f8fafc;
   border: 2px dashed #cbd5e1;
   border-radius: 6px;
   color: #64748b;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 0.9rem;
+  font-size: 0.8rem; /* Giảm từ 0.9rem xuống 0.8rem như CreateScheduleModal */
   font-weight: 500;
   width: fit-content;
 }
@@ -150,23 +151,23 @@
 
 .edit-modal-footer {
   display: flex;
-  gap: 12px;
+  gap: 8px; /* Giảm từ 12px xuống 8px như CreateScheduleModal */
   justify-content: flex-end;
-  padding-top: 20px;
+  padding-top: 12px; /* Giảm từ 20px xuống 12px như CreateScheduleModal */
   border-top: 1px solid #e5e7eb;
-  margin-top: 20px;
+  margin-top: 12px; /* Giảm từ 20px xuống 12px như CreateScheduleModal */
 }
 
 .btn-confirm,
 .btn-cancel {
-  padding: 12px 24px;
+  padding: 8px 18px; /* Giảm từ 12px 24px xuống 8px 18px như CreateScheduleModal */
   border-radius: 6px;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.85rem; /* Giảm từ 0.9rem xuống 0.85rem như CreateScheduleModal */
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
-  min-width: 120px;
+  min-width: 90px; /* Giảm từ 120px xuống 90px như CreateScheduleModal */
 }
 
 .btn-confirm {

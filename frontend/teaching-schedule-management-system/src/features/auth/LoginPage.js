@@ -5,6 +5,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "../../styles/LoginPage.css";
 import { useAuth } from "../../contexts/AuthContext";
+import { authApi } from "../../api/AccountApi";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -48,44 +49,132 @@ export default function LoginPage() {
       console.log("Username:", username);
       console.log("Password:", password);
 
-      // Gọi API thật
-      const response = await fetch('http://localhost:8080/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: username,
-          password: password
-        }),
+      // Sử dụng AccountApi thay vì fetch trực tiếp
+      const data = await authApi.login({
+        username: username,
+        password: password
       });
-
-      if (!response.ok) {
-        throw new Error('Login failed');
-      }
-
-      const data = await response.json();
-      console.log("API Response:", data);
 
       // Lưu token
       if (data.token) {
         localStorage.setItem('token', data.token);
+        console.log("✅ Token saved to localStorage:", data.token);
+      } else {
+        console.log("❌ No token in API response");
+        // Tạo fake token cho test
+        const fakeToken = 'fake-token-' + Date.now();
+        localStorage.setItem('token', fakeToken);
+        console.log("🔧 Created fake token for testing:", fakeToken);
       }
 
       // Tạo userData từ API response
+      const apiRole = data.user?.role || "admin";
+      
+      console.log("=== ROLE NORMALIZATION DEBUG ===");
+      console.log("Original API role:", apiRole);
+      
+      // Normalize role values from backend
+      let normalizedRole = apiRole;
+      
+      console.log("Before normalization check - apiRole:", apiRole);
+      console.log("apiRole type:", typeof apiRole);
+      console.log("apiRole length:", apiRole?.length);
+      console.log("apiRole JSON:", JSON.stringify(apiRole));
+      console.log("apiRole === 'ROLE_TEACHER':", apiRole === 'ROLE_TEACHER');
+      console.log("apiRole.trim() === 'ROLE_TEACHER':", apiRole?.trim() === 'ROLE_TEACHER');
+      
+      // Force normalize for debugging
+      if (apiRole && (apiRole.includes('TEACHER') || apiRole.includes('Teacher'))) {
+        normalizedRole = 'Teacher';
+        console.log("🔧 FORCED normalization to Teacher due to TEACHER/Teacher in role");
+      } else if (apiRole && (apiRole.includes('ADMIN') || apiRole.includes('Admin'))) {
+        normalizedRole = 'Admin';
+        console.log("🔧 FORCED normalization to Admin due to ADMIN/Admin in role");
+      } else if (apiRole && (apiRole.includes('STUDENT') || apiRole.includes('Student'))) {
+        normalizedRole = 'Student';
+        console.log("🔧 FORCED normalization to Student due to STUDENT/Student in role");
+      } else {
+        switch (apiRole) {
+          case 'ROLE_ADMIN':
+            normalizedRole = 'Admin';
+            console.log("✅ Normalized to Admin");
+            break;
+          case 'ROLE_TEACHER':
+          case 'ROLE_Teacher': // Handle both cases
+            normalizedRole = 'Teacher';
+            console.log("✅ Normalized to Teacher");
+            break;
+          case 'ROLE_STUDENT':
+            normalizedRole = 'Student';
+            console.log("✅ Normalized to Student");
+            break;
+          default:
+            console.log("⚠️ No normalization applied, keeping:", apiRole);
+        }
+      }
+      
+      console.log("Normalized role:", normalizedRole);
+      
       const userData = {
         username: data.user?.username || username,
         name: data.user?.name || username,
-        role: data.user?.role || "admin"
+        role: normalizedRole
       };
       
+      console.log("Final userData:", userData);
+      
       login(userData);
-      navigate("/dashboard");
+      
+      // Điều hướng dựa trên role
+      console.log("=== NAVIGATION DEBUG ===");
+      console.log("Checking role for navigation:", userData.role);
+      
+      if (userData.role === 'Admin') {
+        console.log("🔄 Navigating to admin dashboard...");
+        navigate("/dashboard"); // Admin vào dashboard quản trị
+      } else if (userData.role === 'Teacher') {
+        console.log("🔄 Navigating to teacher-dashboard...");
+        navigate("/teacher-dashboard"); // Teacher vào dashboard giảng viên
+      } else if (userData.role === 'Student') {
+        console.log("🔄 Navigating to student-dashboard...");
+        navigate("/student-dashboard"); // Student vào dashboard sinh viên
+      } else {
+        console.log("🔄 Navigating to default dashboard...");
+        navigate("/dashboard"); // Default fallback
+      }
+      
+      console.log(`✅ Login successful, role: ${userData.role} (original: ${apiRole})`);
       
     } catch (error) {
-      console.log("Login error:", error);
-      setUsernameError("Tên đăng nhập hoặc mật khẩu không đúng");
-      setPasswordError("Tên đăng nhập hoặc mật khẩu không đúng");
+      console.log("=== LOGIN ERROR DEBUG ===");
+      console.log("Error object:", error);
+      console.log("Error message:", error.message);
+      console.log("Error response:", error.response?.data);
+      console.log("Error status:", error.response?.status);
+      
+      let errorMessage = "Tên đăng nhập hoặc mật khẩu không đúng";
+      
+      if (error.response) {
+        // Server responded with error status
+        switch (error.response.status) {
+          case 401:
+            errorMessage = "Tên đăng nhập hoặc mật khẩu không đúng";
+            break;
+          case 403:
+            errorMessage = "Tài khoản bị khóa hoặc không có quyền truy cập";
+            break;
+          case 500:
+            errorMessage = "Lỗi server, vui lòng thử lại sau";
+            break;
+          default:
+            errorMessage = `Lỗi ${error.response.status}: ${error.response.data?.message || 'Không thể đăng nhập'}`;
+        }
+      } else if (error.message.includes('Network Error')) {
+        errorMessage = "Không thể kết nối đến server";
+      }
+      
+      setUsernameError(errorMessage);
+      setPasswordError(errorMessage);
     } finally {
       setIsLoading(false);
     }

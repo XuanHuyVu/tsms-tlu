@@ -4,6 +4,7 @@ import "../../../styles/AccountList.css";
 import AccountForm from "./AccountForm";
 import AccountDetail from "./AccountDetail";
 import { useAuth } from "../../../contexts/AuthContext";
+import { accountApi } from "../../../api/AccountApi";
 
 const AccountList = () => {
   const [showForm, setShowForm] = useState(false);
@@ -15,71 +16,51 @@ const AccountList = () => {
   const [error, setError] = useState(null);
   const { logout, checkTokenExpiry, isTokenValid } = useAuth();
 
-  // Fetch accounts từ API với multiple endpoint fallback
+  // Fetch accounts từ API sử dụng AccountApi
   const fetchAccounts = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const token = localStorage.getItem('token');
-      console.log("Fetching accounts...", token);
+      console.log("Fetching accounts...");
 
       // Check token validity first
       if (!isTokenValid()) {
         throw new Error('Token không hợp lệ hoặc đã hết hạn');
       }
 
-      // Try multiple endpoints
-      const endpoints = ['/api/users', '/api/accounts', '/api/admin/users'];
-      let response = null;
-      let lastError = null;
+      // Sử dụng AccountApi thay vì fetch trực tiếp
+      const data = await accountApi.getAll();
 
-      for (const endpoint of endpoints) {
-        try {
-          console.log(`Trying endpoint: ${endpoint}`);
-          response = await fetch(endpoint, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-            },
-          });
-
-          console.log(`${endpoint} Response status:`, response.status);
-
-          if (response.ok) {
-            break; // Success, exit loop
-          } else if (response.status === 401 || response.status === 403) {
-            lastError = new Error('Token hết hạn hoặc không có quyền truy cập');
-            continue; // Try next endpoint
-          } else {
-            lastError = new Error(`API Error: ${response.status}`);
-            continue;
-          }
-        } catch (err) {
-          console.log(`${endpoint} failed:`, err);
-          lastError = err;
-          continue;
-        }
-      }
-
-      if (!response || !response.ok) {
-        throw lastError || new Error('Không thể kết nối đến API');
-      }
-
-      const data = await response.json();
       console.log("API Response:", data);
 
       // Transform data để match với UI format
-      const transformedData = data.map((user, index) => ({
-        stt: index + 1,
-        tenDangNhap: user.username,
-        vaiTro: user.role || 'User',
-        ngayTao: user.createdDate || 'N/A',
-        id: user.id
+      const transformedData = data.map((user, index) => {
+        // Normalize role values
+        let normalizedRole = user.role || 'User';
+        if (normalizedRole === 'ROLE_ADMIN') normalizedRole = 'Admin';
+        if (normalizedRole === 'ROLE_TEACHER') normalizedRole = 'Teacher';
+        if (normalizedRole === 'ROLE_STUDENT') normalizedRole = 'Student';
+        
+        return {
+          stt: index + 1,
+          tenDangNhap: user.username,
+          vaiTro: normalizedRole,
+          ngayTao: user.createdDate || new Date().toISOString().split('T')[0],
+          id: user.id
+        };
+      });
+
+      // Sort theo ID giảm dần để item mới nhất lên đầu
+      transformedData.sort((a, b) => (b.id || 0) - (a.id || 0));
+
+      // Cập nhật lại STT sau khi sort
+      const finalData = transformedData.map((item, index) => ({
+        ...item,
+        stt: index + 1
       }));
 
-      setAccounts(transformedData);
+      setAccounts(finalData);
     } catch (error) {
       console.error("Fetch accounts error:", error);
       setError(error.message);
@@ -90,16 +71,6 @@ const AccountList = () => {
           logout();
         }, 2000); // Delay 2s để user đọc message
       }
-      
-      // Fallback data nếu API lỗi
-      setAccounts([
-        {
-          stt: 1,
-          tenDangNhap: "admin",
-          vaiTro: "Admin",
-          ngayTao: "20/10/2023",
-        },
-      ]);
     } finally {
       setLoading(false);
     }
@@ -136,8 +107,9 @@ const AccountList = () => {
   };
 
   // Reload data sau khi thêm/sửa
-  const handleFormSuccess = () => {
-    fetchAccounts();
+  const handleFormSuccess = async () => {
+    // Refresh data từ API để có thông tin mới nhất
+    await fetchAccounts();
     handleCloseForm();
   };
 
@@ -148,7 +120,6 @@ const AccountList = () => {
           <div className="spinner-border" role="status">
             <span className="sr-only">Loading...</span>
           </div>
-          <p>Đang tải danh sách tài khoản...</p>
         </div>
       </div>
     );

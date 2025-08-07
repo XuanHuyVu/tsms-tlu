@@ -5,7 +5,18 @@ import LoginPage from "./features/auth/LoginPage";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 function AppContent() {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, isLoading, user } = useAuth();
+
+  // Hiển thị loading screen khi đang khôi phục auth state
+  if (isLoading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <div className="spinner-border text-primary" role="status">
+          <span className="sr-only">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Router>
@@ -13,7 +24,9 @@ function AppContent() {
         {/* Nếu chưa đăng nhập thì chuyển sang /login */}
         <Route
           path="/"
-          element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />}
+          element={
+            isLoggedIn ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+          }
         />
 
         {/* Trang đăng nhập */}

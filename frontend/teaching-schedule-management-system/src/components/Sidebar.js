@@ -93,7 +93,7 @@ const Sidebar = () => {
 
         {/* TÀI KHOẢN */}
         <li>
-          <NavLink to="/tai-khoan" className="menu-link-standalone">TÀI KHOẢN</NavLink>
+          <NavLink to="/accounts" className="menu-link-standalone">TÀI KHOẢN</NavLink>
         </li>
       </ul>
     </div>

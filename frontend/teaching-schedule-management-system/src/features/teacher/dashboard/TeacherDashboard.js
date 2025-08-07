@@ -1,214 +1,389 @@
-import React from 'react';
-import { useAuth } from '../../../contexts/AuthContext';
+import React, { useState } from "react";
+import "../../../styles/TeacherDashboard.css";
+import CreateScheduleModal from "../schedule/CreateScheduleModal";
+import ViewScheduleModal from "../schedule/ViewScheduleModal";
+import EditScheduleModal from "../schedule/EditScheduleModal";
+import {
+  FaChalkboardTeacher,
+  FaClock,
+  FaBook,
+  FaCalendarAlt,
+  FaPlus,
+  FaMapMarkerAlt,
+  FaUsers,
+  FaPen,
+  FaTrash,
+  FaInfoCircle,
+} from "react-icons/fa";
 
 const TeacherDashboard = () => {
-  const { user } = useAuth();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedSchedule, setSelectedSchedule] = useState(null);
+  const [upcomingClasses, setUpcomingClasses] = useState([
+    {
+      id: 1,
+      course: "Lập trình phân tán-2-24",
+      courseCode: "CSE423_001",
+      type: "Thực hành",
+      day: "Thứ 5, ngày 31/7/2025",
+      room: "208 - B5",
+      period: "Tiết 1 – 3 (7:00 - 9:40)",
+      content: "Semaphore & Monitor",
+      materials: "Tài liệu tham khảo.pdf",
+      department: "Công nghệ thông tin",
+      faculty: "Khoa Công nghệ thông tin",
+    },
+    {
+      id: 2,
+      course: "Công nghệ phần mềm-2-24",
+      courseCode: "CSE481_002",
+      type: "Lý thuyết",
+      day: "Thứ 6, ngày 1/8/2025",
+      room: "209 - B5",
+      period: "Tiết 10 – 12 (16:20 - 19:00)",
+      content: "Quy trình phát triển phần mềm",
+      materials: "Slide bài giảng.pptx",
+      department: "Công nghệ thông tin",
+      faculty: "Khoa Công nghệ thông tin",
+    },
+  ]);
+
+  const handleCreateSchedule = (scheduleData) => {
+    // Tạo lịch dạy mới
+    const newSchedule = {
+      id: upcomingClasses.length + 1,
+      course:
+        scheduleData.course === "CSE423_001"
+          ? "Lập trình phân tán-2-24"
+          : scheduleData.course === "CSE481_002"
+          ? "Công nghệ phần mềm-2-24"
+          : scheduleData.course === "CSE350_003"
+          ? "Cơ sở dữ liệu-2-24"
+          : "Khóa học khác",
+      courseCode: scheduleData.course,
+      type:
+        scheduleData.type === "thuc-hanh"
+          ? "Thực hành"
+          : scheduleData.type === "ly-thuyet"
+          ? "Lý thuyết"
+          : scheduleData.type === "bai-tap"
+          ? "Bài tập"
+          : scheduleData.type,
+      day: formatDate(scheduleData.date),
+      room: scheduleData.room,
+      period:
+        scheduleData.period === "1-3"
+          ? "Tiết 1 – 3 (7:00 - 9:40)"
+          : scheduleData.period === "4-6"
+          ? "Tiết 4 – 6 (9:50 - 12:30)"
+          : scheduleData.period === "7-9"
+          ? "Tiết 7 – 9 (13:30 - 16:10)"
+          : scheduleData.period === "10-12"
+          ? "Tiết 10 – 12 (16:20 - 19:00)"
+          : scheduleData.period,
+      content: scheduleData.content || "",
+      materials: scheduleData.materials?.name || "",
+      department:
+        scheduleData.department === "cntt"
+          ? "Công nghệ thông tin"
+          : scheduleData.department === "ktmt"
+          ? "Kỹ thuật máy tính"
+          : scheduleData.department === "httt"
+          ? "Hệ thống thông tin"
+          : "Công nghệ thông tin",
+      faculty:
+        scheduleData.faculty === "cntt"
+          ? "Khoa Công nghệ thông tin"
+          : scheduleData.faculty === "ktxd"
+          ? "Khoa Kỹ thuật xây dựng"
+          : scheduleData.faculty === "ktthuy"
+          ? "Khoa Kỹ thuật thủy lợi"
+          : "Khoa Công nghệ thông tin",
+    };
+
+    // Thêm vào danh sách
+    setUpcomingClasses((prev) => [...prev, newSchedule]);
+
+    // Đóng modal
+    setIsModalOpen(false);
+
+    // Thông báo thành công
+    alert("Tạo lịch dạy thành công!");
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+
+    const date = new Date(dateString);
+    const days = [
+      "Chủ nhật",
+      "Thứ 2",
+      "Thứ 3",
+      "Thứ 4",
+      "Thứ 5",
+      "Thứ 6",
+      "Thứ 7",
+    ];
+    const dayName = days[date.getDay()];
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+
+    return `${dayName}, ngày ${day}/${month}/${year}`;
+  };
+
+  const handleViewDetails = (schedule) => {
+    setSelectedSchedule(schedule);
+    setIsViewModalOpen(true);
+  };
+
+  const handleEditSchedule = (schedule) => {
+    setSelectedSchedule(schedule);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateSchedule = (updatedData) => {
+    console.log("Updating schedule with data:", updatedData); // Debug log
+
+    // Cập nhật lịch dạy trong danh sách
+    setUpcomingClasses((prev) =>
+      prev.map((item) =>
+        item.id === updatedData.id
+          ? {
+              ...item,
+              course:
+                updatedData.course === "CSE423_001"
+                  ? "Lập trình phân tán-2-24"
+                  : updatedData.course === "CSE481_002"
+                  ? "Công nghệ phần mềm-2-24"
+                  : updatedData.course === "CSE350_003"
+                  ? "Cơ sở dữ liệu-2-24"
+                  : "Khóa học khác",
+              courseCode: updatedData.course,
+              type:
+                updatedData.type === "thuc-hanh"
+                  ? "Thực hành"
+                  : updatedData.type === "ly-thuyet"
+                  ? "Lý thuyết"
+                  : updatedData.type === "bai-tap"
+                  ? "Bài tập"
+                  : updatedData.type,
+              day: formatDate(updatedData.date),
+              room: updatedData.room.includes("-")
+                ? updatedData.room.replace(/-/g, " - ")
+                : updatedData.room,
+              period:
+                updatedData.period === "1-3"
+                  ? "Tiết 1 – 3 (7:00 - 9:40)"
+                  : updatedData.period === "4-6"
+                  ? "Tiết 4 – 6 (9:50 - 12:30)"
+                  : updatedData.period === "7-9"
+                  ? "Tiết 7 – 9 (13:30 - 16:10)"
+                  : updatedData.period === "10-12"
+                  ? "Tiết 10 – 12 (16:20 - 19:00)"
+                  : updatedData.period,
+              content: updatedData.content || item.content,
+              materials: updatedData.materials?.name || item.materials,
+              department:
+                updatedData.department === "cntt"
+                  ? "Công nghệ thông tin"
+                  : updatedData.department === "ktmt"
+                  ? "Kỹ thuật máy tính"
+                  : updatedData.department === "httt"
+                  ? "Hệ thống thông tin"
+                  : "Công nghệ thông tin",
+              faculty:
+                updatedData.faculty === "cntt"
+                  ? "Khoa Công nghệ thông tin"
+                  : updatedData.faculty === "ktxd"
+                  ? "Khoa Kỹ thuật xây dựng"
+                  : updatedData.faculty === "ktthuy"
+                  ? "Khoa Kỹ thuật thủy lợi"
+                  : "Khoa Công nghệ thông tin",
+            }
+          : item
+      )
+    );
+
+    // Đóng modal
+    setIsEditModalOpen(false);
+    setSelectedSchedule(null);
+
+    // Thông báo thành công
+    alert("Cập nhật lịch dạy thành công!");
+  };
+
+  const handleDeleteSchedule = (schedule) => {
+    setSelectedSchedule(schedule);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = (schedule) => {
+    // Xóa lịch dạy khỏi danh sách
+    setUpcomingClasses((prev) =>
+      prev.filter((item) => item.id !== schedule.id)
+    );
+
+    // Đóng modal
+    setIsDeleteModalOpen(false);
+    setSelectedSchedule(null);
+
+    // Thông báo thành công
+    alert("Xóa lịch dạy thành công!");
+  };
+
+  const dashboardStats = [
+    {
+      id: 1,
+      title: "45h đã dạy",
+      icon: FaClock,
+      color: "blue",
+    },
+    {
+      id: 2,
+      title: "15h sắp dạy",
+      icon: FaCalendarAlt,
+      color: "green",
+    },
+    {
+      id: 3,
+      title: "5h dạy bù",
+      icon: FaBook,
+      color: "orange",
+    },
+    {
+      id: 4,
+      title: "2 lớp đang dạy",
+      icon: FaChalkboardTeacher,
+      color: "purple",
+    },
+  ];
 
   return (
-    <div className="container-fluid">
-      <div className="row justify-content-center">
-        <div className="col-12 col-md-10 col-lg-8">
-          <div className="card">
-            <div className="card-header bg-primary text-white text-center">
-              <h2 className="mb-0">
-                <i className="fas fa-chalkboard-teacher me-2"></i>
-                🏫 HỆ THỐNG GIẢNG VIÊN - TRANG GIẢNG VIÊN 🏫
-              </h2>
-              <small className="d-block mt-2">Teacher Dashboard - Dành riêng cho Giảng viên</small>
-            </div>
-            <div className="card-body">
-              <div className="row mb-4">
-                <div className="col-12">
-                  <div className="alert alert-info text-center">
-                    <h5 className="alert-heading">
-                      <i className="fas fa-user-circle me-2"></i>
-                      Xin chào Giảng viên: {user?.name || user?.username}!
-                    </h5>
-                    <p className="mb-2"><strong>🎓 ĐÂY LÀ TRANG DÀNH CHO GIẢNG VIÊN 🎓</strong></p>
-                    <p className="mb-0">Chào mừng bạn đến với hệ thống quản lý lịch giảng dạy - Giao diện Giảng viên</p>
-                  </div>
-                </div>
+    <>
+      <div className={`teaching-dashboard ${isModalOpen ? "modal-open" : ""}`}>
+        {/* Statistics Cards */}
+        <div className="stats-grid">
+          {dashboardStats.map((stat) => (
+            <div key={stat.id} className={`stat-card stat-card-${stat.color}`}>
+              <div className="stat-icon">
+                <stat.icon />
               </div>
-
-              <div className="row">
-                {/* Lịch giảng dạy hôm nay */}
-                <div className="col-md-6 col-lg-4 mb-4">
-                  <div className="card border-primary">
-                    <div className="card-body text-center">
-                      <i className="fas fa-calendar-day fa-3x text-primary mb-3"></i>
-                      <h5 className="card-title">Lịch hôm nay</h5>
-                      <p className="card-text text-muted">Xem lịch giảng dạy hôm nay</p>
-                      <button className="btn btn-primary">
-                        <i className="fas fa-eye me-1"></i>
-                        Xem lịch
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Lịch tuần này */}
-                <div className="col-md-6 col-lg-4 mb-4">
-                  <div className="card border-success">
-                    <div className="card-body text-center">
-                      <i className="fas fa-calendar-week fa-3x text-success mb-3"></i>
-                      <h5 className="card-title">Lịch tuần</h5>
-                      <p className="card-text text-muted">Xem lịch giảng dạy tuần này</p>
-                      <button className="btn btn-success">
-                        <i className="fas fa-calendar me-1"></i>
-                        Xem lịch tuần
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quản lý môn học */}
-                <div className="col-md-6 col-lg-4 mb-4">
-                  <div className="card border-warning">
-                    <div className="card-body text-center">
-                      <i className="fas fa-book fa-3x text-warning mb-3"></i>
-                      <h5 className="card-title">Môn học</h5>
-                      <p className="card-text text-muted">Quản lý các môn học giảng dạy</p>
-                      <button className="btn btn-warning">
-                        <i className="fas fa-edit me-1"></i>
-                        Quản lý
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Thông báo */}
-                <div className="col-md-6 col-lg-4 mb-4">
-                  <div className="card border-info">
-                    <div className="card-body text-center">
-                      <i className="fas fa-bell fa-3x text-info mb-3"></i>
-                      <h5 className="card-title">Thông báo</h5>
-                      <p className="card-text text-muted">Xem thông báo từ nhà trường</p>
-                      <button className="btn btn-info">
-                        <i className="fas fa-envelope me-1"></i>
-                        Xem thông báo
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Hồ sơ cá nhân */}
-                <div className="col-md-6 col-lg-4 mb-4">
-                  <div className="card border-secondary">
-                    <div className="card-body text-center">
-                      <i className="fas fa-user-edit fa-3x text-secondary mb-3"></i>
-                      <h5 className="card-title">Hồ sơ</h5>
-                      <p className="card-text text-muted">Cập nhật thông tin cá nhân</p>
-                      <button className="btn btn-secondary">
-                        <i className="fas fa-user me-1"></i>
-                        Chỉnh sửa
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Báo cáo */}
-                <div className="col-md-6 col-lg-4 mb-4">
-                  <div className="card border-dark">
-                    <div className="card-body text-center">
-                      <i className="fas fa-chart-bar fa-3x text-dark mb-3"></i>
-                      <h5 className="card-title">Báo cáo</h5>
-                      <p className="card-text text-muted">Xem báo cáo giảng dạy</p>
-                      <button className="btn btn-dark">
-                        <i className="fas fa-chart-line me-1"></i>
-                        Xem báo cáo
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Thống kê nhanh */}
-              <div className="row mt-4">
-                <div className="col-12">
-                  <h5 className="mb-3">
-                    <i className="fas fa-chart-pie me-2"></i>
-                    Thống kê nhanh
-                  </h5>
-                </div>
-                <div className="col-md-3 mb-3">
-                  <div className="card bg-primary text-white">
-                    <div className="card-body">
-                      <div className="d-flex align-items-center">
-                        <i className="fas fa-calendar fa-2x me-3"></i>
-                        <div>
-                          <h4 className="mb-0">5</h4>
-                          <small>Lớp hôm nay</small>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-3 mb-3">
-                  <div className="card bg-success text-white">
-                    <div className="card-body">
-                      <div className="d-flex align-items-center">
-                        <i className="fas fa-book fa-2x me-3"></i>
-                        <div>
-                          <h4 className="mb-0">12</h4>
-                          <small>Môn học</small>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-3 mb-3">
-                  <div className="card bg-warning text-white">
-                    <div className="card-body">
-                      <div className="d-flex align-items-center">
-                        <i className="fas fa-users fa-2x me-3"></i>
-                        <div>
-                          <h4 className="mb-0">240</h4>
-                          <small>Sinh viên</small>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-3 mb-3">
-                  <div className="card bg-info text-white">
-                    <div className="card-body">
-                      <div className="d-flex align-items-center">
-                        <i className="fas fa-clock fa-2x me-3"></i>
-                        <div>
-                          <h4 className="mb-0">48</h4>
-                          <small>Giờ/tuần</small>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Thông báo phân biệt role */}
-              <div className="row mt-4">
-                <div className="col-12">
-                  <div className="alert alert-success text-center">
-                    <h4>
-                      <i className="fas fa-graduation-cap me-2"></i>
-                      BẠN ĐANG SỬ DỤNG TRANG DÀNH CHO GIẢNG VIÊN
-                      <i className="fas fa-graduation-cap ms-2"></i>
-                    </h4>
-                    <p className="mb-2">
-                      <strong>Role: Teacher (Giảng viên)</strong> | 
-                      <strong> User: {user?.username}</strong> | 
-                      <strong> Tên: {user?.name || 'Chưa cập nhật'}</strong>
-                    </p>
-                    <p className="mb-0 text-muted">
-                      Đây là giao diện quản lý lịch giảng dạy dành riêng cho các giảng viên của trường
-                    </p>
-                  </div>
-                </div>
+              <div className="stat-content">
+                <p className="stat-title">{stat.title}</p>
               </div>
             </div>
+          ))}
+        </div>
+
+        {/* Upcoming Classes */}
+        <div className="upcoming-section">
+          <div className="section-header">
+            <h2>Lịch dạy sắp tới</h2>
+            <button
+              className="btn-secondary"
+              onClick={() => setIsModalOpen(true)}
+            >
+              + Tạo lịch dạy
+            </button>
+          </div>
+
+          <div className="classes-list">
+            {upcomingClasses.map((classItem) => (
+              <div key={classItem.id} className="class-card">
+                <div className="class-header">
+                  <div className="class-title">
+                    <h3>
+                      {classItem.course}
+                      <span className="course-code">
+                        {classItem.courseCode}
+                      </span>
+                    </h3>
+                  </div>
+                  <div className="class-actions">
+                    <button
+                      className="action-btn"
+                      title="Xem chi tiết"
+                      onClick={() => handleViewDetails(classItem)}
+                    >
+                      <FaInfoCircle />
+                    </button>
+                    <button
+                      className="action-btn"
+                      title="Chỉnh sửa"
+                      onClick={() => handleEditSchedule(classItem)}
+                    >
+                      <FaPen />
+                    </button>
+                    <button
+                      className="action-btn danger"
+                      title="Xóa"
+                      onClick={() => handleDeleteSchedule(classItem)}
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="class-info">
+                  <div className="info-row">
+                    <FaCalendarAlt className="info-icon" />
+                    <span>{classItem.day}</span>
+                  </div>
+                  <div className="info-row">
+                    <FaBook className="info-icon" />
+                    <span>{classItem.type}</span>
+                    <FaMapMarkerAlt
+                      className="info-icon"
+                      style={{ marginLeft: "12px" }}
+                    />
+                    <span>{classItem.room}</span>
+                  </div>
+                  <div className="info-row">
+                    <FaClock className="info-icon" />
+                    <span>{classItem.period}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Create Schedule Modal - Outside dashboard div */}
+      <CreateScheduleModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleCreateSchedule}
+      />
+
+      {/* View Schedule Modal */}
+      <ViewScheduleModal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        scheduleData={selectedSchedule}
+      />
+
+      {/* Edit Schedule Modal */}
+      <EditScheduleModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSubmit={handleUpdateSchedule}
+        scheduleData={selectedSchedule}
+      />
+
+      {/* Delete Schedule Modal */}
+      <CreateScheduleModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onSubmit={handleConfirmDelete}
+        mode="delete"
+        scheduleData={selectedSchedule}
+      />
+    </>
   );
 };
 

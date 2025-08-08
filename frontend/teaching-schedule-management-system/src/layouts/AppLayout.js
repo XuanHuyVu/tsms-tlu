@@ -2,7 +2,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Dashboard from '../features/admin/dashboard/Dashboard';
-import TeacherDashboard from '../features/teacher/dashboard/TeacherDashboard';
+// import TeacherDashboard from '../features/teacher/dashboard/TeacherDashboard';
 import StudentDashboard from '../features/student/dashboard/StudentDashboard';
 import TeacherList from '../features/admin/teachers/TeacherList';
 import AccountList from '../features/admin/accounts/AccountList';
@@ -11,13 +11,12 @@ import Header from '../components/Header';
 import '../styles/AppLayout.css';
 import TeacherLayout from "./TeacherLayout";
 import SemesterList from '../features/admin/semesters/SemesterList';
+import RoomList from '../features/admin/rooms/RoomList';
 function AppLayout() {
   return (
     <Routes>
-      {/* Route teacher được render độc lập không có sidebar bên trái */}
       <Route path="/teacher-dashboard/*" element={<TeacherLayout />} />
       
-      {/* Routes với layout có sidebar */}
       <Route path="/*" element={
         <div className="app-layout" style={{ display: 'flex' }}>
           <Sidebar />
@@ -34,6 +33,7 @@ function AppLayout() {
                 <Route path="/accounts" element={<div><AccountList /></div>} />
                 <Route path="/departments" element={<div><DepartmentList /></div>} />
                 <Route path="/semesters" element={<div><SemesterList /></div>} />
+                <Route path="/rooms" element={<div><RoomList /></div>} />
                 <Route path="*" element={<Dashboard />} />
               </Routes>
             </div>

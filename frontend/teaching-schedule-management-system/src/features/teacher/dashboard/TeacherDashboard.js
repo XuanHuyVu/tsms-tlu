@@ -25,8 +25,7 @@ const TeacherDashboard = () => {
   const [upcomingClasses, setUpcomingClasses] = useState([
     {
       id: 1,
-      course: "Lập trình phân tán-2-24",
-      courseCode: "CSE423_001",
+      course: "Lập trình phân tán-2-24 (CSE423_001) ",
       type: "Thực hành",
       day: "Thứ 5, ngày 31/7/2025",
       room: "208 - B5",
@@ -38,8 +37,7 @@ const TeacherDashboard = () => {
     },
     {
       id: 2,
-      course: "Công nghệ phần mềm-2-24",
-      courseCode: "CSE481_002",
+      course: "Công nghệ phần mềm-2-24 (CSE481_002)",
       type: "Lý thuyết",
       day: "Thứ 6, ngày 1/8/2025",
       room: "209 - B5",
@@ -281,74 +279,81 @@ const TeacherDashboard = () => {
 
         {/* Upcoming Classes */}
         <div className="upcoming-section">
-          <div className="section-header">
-            <h2>Lịch dạy sắp tới</h2>
-            <button
-              className="btn-secondary"
-              onClick={() => setIsModalOpen(true)}
-            >
-              + Tạo lịch dạy
-            </button>
-          </div>
-
-          <div className="classes-list">
-            {upcomingClasses.map((classItem) => (
-              <div key={classItem.id} className="class-card">
-                <div className="class-header">
-                  <div className="class-title">
-                    <h3>
-                      {classItem.course}
-                      <span className="course-code">
-                        {classItem.courseCode}
-                      </span>
-                    </h3>
-                  </div>
-                  <div className="class-actions">
-                    <button
-                      className="action-btn"
-                      title="Xem chi tiết"
-                      onClick={() => handleViewDetails(classItem)}
-                    >
-                      <FaInfoCircle />
-                    </button>
-                    <button
-                      className="action-btn"
-                      title="Chỉnh sửa"
-                      onClick={() => handleEditSchedule(classItem)}
-                    >
-                      <FaPen />
-                    </button>
-                    <button
-                      className="action-btn danger"
-                      title="Xóa"
-                      onClick={() => handleDeleteSchedule(classItem)}
-                    >
-                      <FaTrash />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="class-info">
-                  <div className="info-row">
-                    <FaCalendarAlt className="info-icon" />
-                    <span>{classItem.day}</span>
-                  </div>
-                  <div className="info-row">
-                    <FaBook className="info-icon" />
-                    <span>{classItem.type}</span>
-                    <FaMapMarkerAlt
-                      className="info-icon"
-                      style={{ marginLeft: "12px" }}
-                    />
-                    <span>{classItem.room}</span>
-                  </div>
-                  <div className="info-row">
-                    <FaClock className="info-icon" />
-                    <span>{classItem.period}</span>
-                  </div>
-                </div>
+          <div className="schedule-content-wrapper">
+            <div className="schedule-content">
+              <div className="section-header">
+                <h2>Lịch dạy sắp tới</h2>
+                <button
+                  className="btn-secondary"
+                  onClick={() => setIsModalOpen(true)}
+                >
+                  + Tạo lịch dạy
+                </button>
               </div>
-            ))}
+
+              <div className="classes-list">
+                {upcomingClasses.map((classItem) => (
+                  <div key={classItem.id} className="class-card">
+                    <div className="card-left-accent"></div>
+                    <div className="card-content">
+                      <div className="class-header">
+                        <div className="class-title">
+                          <h3>
+                            {classItem.course}
+                            <span className="course-code">
+                              {classItem.courseCode}
+                            </span>
+                          </h3>
+                        </div>
+                        <div className="class-actions">
+                          <button
+                            className="action-btn"
+                            title="Xem chi tiết"
+                            onClick={() => handleViewDetails(classItem)}
+                          >
+                            <FaInfoCircle />
+                          </button>
+                          <button
+                            className="action-btn"
+                            title="Chỉnh sửa"
+                            onClick={() => handleEditSchedule(classItem)}
+                          >
+                            <FaPen />
+                          </button>
+                          <button
+                            className="action-btn danger"
+                            title="Xóa"
+                            onClick={() => handleDeleteSchedule(classItem)}
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="class-info">
+                        <div className="info-row">
+                          <FaCalendarAlt className="info-icon" />
+                          <span>{classItem.day}</span>
+                        </div>
+                        <div className="info-row">
+                          <FaBook className="info-icon" />
+                          <span>{classItem.type}</span>
+                          <FaMapMarkerAlt
+                            className="info-icon"
+                            style={{ marginLeft: "12px" }}
+                          />
+                          <span>{classItem.room}</span>
+                        </div>
+                        <div className="info-row">
+                          <FaClock className="info-icon" />
+                          <span>{classItem.period}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>

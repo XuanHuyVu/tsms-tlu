@@ -177,66 +177,71 @@ const ScheduleManagement = () => {
 
   return (
     <div className="schedule-management">
-      <div className="schedule-content">
-        <div className="content-header">
-          <h2>Danh sách đăng ký nghỉ dạy & dạy bù</h2>
-          <div className="action-buttons">
-            <button 
-              className="btn-register btn-leave"
-              onClick={() => setShowLeaveModal(true)}
-            >
-             x Đăng ký nghỉ dạy
-            </button>
-            <button 
-              className="btn-register btn-makeup"
-              onClick={() => setShowMakeupModal(true)}
-            >
-             + Đăng ký dạy bù
-            </button>
-          </div>
-        </div>
-
-        <div className="schedule-list">
-          {schedules.length === 0 ? (
-            <div className="empty-state">
-              <p>Không có lịch dạy nào được đăng ký</p>
+      <div className="schedule-content-wrapper">
+        <div className="schedule-content">
+          <div className="content-header">
+            <h2>Danh sách đăng ký nghỉ dạy & dạy bù</h2>
+            <div className="action-buttons">
+              <button 
+                className="btn-register btn-leave"
+                onClick={() => setShowLeaveModal(true)}
+              >
+               x Đăng ký nghỉ dạy
+              </button>
+              <button 
+                className="btn-register btn-makeup"
+                onClick={() => setShowMakeupModal(true)}
+              >
+               + Đăng ký dạy bù
+              </button>
             </div>
-          ) : (
-            schedules.map((schedule) => (
-              <div key={schedule.id} className="schedule-card">
-                <div className="card-header">
-                  <div className="schedule-title">
-                    <h3>{schedule.title}</h3>
-                  </div>
-                  {getStatusBadge(schedule.status)}
-                </div>
+          </div>
 
-                <div className="card-body">
-                  <div className="schedule-info">
-                    <div className="info-row">
-                      <FaCalendarAlt className="info-icon" />
-                      <span className="info-text">{schedule.date}</span>
-                    </div>
-                    <div className="info-row">
-                      <FaBook className="info-icon" />
-                      <span className="info-text">Thực hành</span>
-                      <FaMapMarkerAlt className="info-icon" style={{ marginLeft: "12px" }} />
-                      <span className="info-text">{schedule.room}</span>
-                    </div>
-                    <div className="info-row">
-                      <FaClock className="info-icon" />
-                      <span className="info-text">{schedule.time}</span>
-                    </div>
-                    {schedule.note && (
-                      <div className="info-row">
-                        <span className="info-text">{schedule.note}</span>
+          <div className="schedule-list">
+            {schedules.length === 0 ? (
+              <div className="empty-state">
+                <p>Không có lịch dạy nào được đăng ký</p>
+              </div>
+            ) : (
+              schedules.map((schedule) => (
+                <div key={schedule.id} className="schedule-card">
+                  <div className="card-left-accent"></div>
+                  <div className="card-content">
+                    <div className="card-header">
+                      <div className="schedule-title">
+                        <h3>{schedule.title}</h3>
                       </div>
-                    )}
+                      {getStatusBadge(schedule.status)}
+                    </div>
+
+                    <div className="card-body">
+                      <div className="schedule-info">
+                        <div className="info-row">
+                          <FaCalendarAlt className="info-icon" />
+                          <span className="info-text">{schedule.date}</span>
+                        </div>
+                        <div className="info-row">
+                          <FaBook className="info-icon" />
+                          <span className="info-text">Thực hành</span>
+                          <FaMapMarkerAlt className="info-icon" style={{ marginLeft: "12px" }} />
+                          <span className="info-text">{schedule.room}</span>
+                        </div>
+                        <div className="info-row">
+                          <FaClock className="info-icon" />
+                          <span className="info-text">{schedule.time}</span>
+                        </div>
+                        {schedule.note && (
+                          <div className="info-row">
+                            <span className="info-text">{schedule.note}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
-          )}
+              ))
+            )}
+          </div>
         </div>
       </div>
 

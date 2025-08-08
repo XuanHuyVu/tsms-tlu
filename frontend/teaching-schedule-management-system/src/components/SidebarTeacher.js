@@ -21,7 +21,7 @@ const SidebarTeacher = () => {
 
         {/* QUẢN LÝ LỊCH DẠY */}
         <li>
-          <NavLink to="/teacher-dashboard/schedule" className="menu-link-standalone">
+          <NavLink to="/teacher-dashboard/schedule-management" className="menu-link-standalone">
             QUẢN LÝ LỊCH DẠY
           </NavLink>
         </li>

@@ -4,6 +4,8 @@ import { Routes, Route } from "react-router-dom";
 import SidebarTeacher from "../components/SidebarTeacher";
 import HeaderTeacher from "../components/HeaderTeacher";
 import TeacherDashboard from "../features/teacher/dashboard/TeacherDashboard";
+import ScheduleManagement from "../features/teacher/schedule/ScheduleManagement";
+import TeachingHoursTracking from "../features/teacher/teachingHours/TeachingHoursTracking";
 
 import "../styles/TeacherLayout.css";
 
@@ -18,6 +20,8 @@ function TeacherLayout() {
         <div className="teacher-content-area">
           <Routes>
             <Route path="/" element={<TeacherDashboard />} />
+            <Route path="/schedule-management" element={<ScheduleManagement />} />
+            <Route path="/attendance" element={<TeachingHoursTracking />} />
           </Routes>
         </div>
       </div>

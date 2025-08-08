@@ -17,7 +17,7 @@ const Header = () => {
     switch (pathname) {
       case '/teacher-dashboard':
         return 'TRANG CHỦ';
-      case '/teacher-dashboard/schedule':
+      case '/teacher-dashboard/schedule-management':
         return 'QUẢN LÝ LỊCH DẠY';
       case '/teacher-dashboard/attendance':
         return 'GHI NHẬN GIỜ DẠY';

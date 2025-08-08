@@ -6,11 +6,11 @@ import TeacherDashboard from '../features/teacher/dashboard/TeacherDashboard';
 import StudentDashboard from '../features/student/dashboard/StudentDashboard';
 import TeacherList from '../features/admin/teachers/TeacherList';
 import AccountList from '../features/admin/accounts/AccountList';
+import DepartmentList from '../features/admin/departments/DepartmentList';
 import Header from '../components/Header';
 import '../styles/AppLayout.css';
 import TeacherLayout from "./TeacherLayout";
 import SemesterList from '../features/admin/semesters/SemesterList';
-
 function AppLayout() {
   return (
     <Routes>
@@ -32,6 +32,7 @@ function AppLayout() {
                 <Route path="/student-dashboard" element={<StudentDashboard />} />
                 <Route path="/teachers" element={<TeacherList />} />
                 <Route path="/accounts" element={<div><AccountList /></div>} />
+                <Route path="/departments" element={<div><DepartmentList /></div>} />
                 <Route path="/semesters" element={<div><SemesterList /></div>} />
                 <Route path="*" element={<Dashboard />} />
               </Routes>

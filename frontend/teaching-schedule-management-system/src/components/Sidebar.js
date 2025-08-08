@@ -37,7 +37,7 @@ const Sidebar = () => {
           </div>
           <ul className={`submenu ${openMenus.danhMuc ? 'open' : ''}`}>
             <li><NavLink to="/khoa" className="submenu-link">KHOA</NavLink></li>
-            <li><NavLink to="/bo-mon" className="submenu-link">BỘ MÔN</NavLink></li>
+            <li><NavLink to="/departments" className="submenu-link">BỘ MÔN</NavLink></li>
             <li><NavLink to="/nganh-hoc" className="submenu-link">NGÀNH HỌC</NavLink></li>
             <li><NavLink to="/phong-hoc" className="submenu-link">PHÒNG HỌC</NavLink></li>
           </ul>

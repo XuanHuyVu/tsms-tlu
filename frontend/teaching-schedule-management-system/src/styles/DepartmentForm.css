@@ -1,5 +1,4 @@
-/* Modal nền mờ */
-.account-form-modal {
+.department-form-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -10,10 +9,10 @@
   align-items: flex-start;
   justify-content: center;
   z-index: 9999;
-  padding-top: 100px; /* khoảng cách từ trên xuống modal */
+  padding-top: 100px;
 }
 
-/* Form chính */
+/* Form container */
 .form-grid.no-card {
   background: white;
   padding: 24px;
@@ -27,15 +26,17 @@
   grid-template-columns: 1fr 1fr;
   gap: 12px 20px;
   position: relative;
+  margin-top: 0;       /* ✅ xóa khoảng trắng */
+  padding-top: 0;      /* ✅ xóa khoảng trắng */
 }
 
-/* Tiêu đề form */
+/* Title */
 .form-title {
   grid-column: span 2;
   background-color: #0d47a1;
   color: white;
-  font-weight: bold;
   font-size: 18px;
+  font-weight: 600;
   padding: 14px 20px;
   display: flex;
   justify-content: space-between;
@@ -45,10 +46,10 @@
   position: sticky;
   top: 0;
   z-index: 10;
-  margin: -24px -24px 24px -24px;
+  margin: 0 -24px 24px -24px;  /* ✅ giữ tiêu đề sát mép trên */
 }
 
-/* Nút đóng */
+/* Close button */
 .close {
   cursor: pointer;
   font-size: 24px;
@@ -59,15 +60,15 @@
   opacity: 0.7;
 }
 
-/* Ô nhập liệu */
+/* Inputs & labels */
 .form-group {
   display: flex;
   flex-direction: column;
 }
 .form-group label {
   font-weight: normal;
-  margin-bottom: 4px;
   font-size: 14px;
+  margin-bottom: 4px;
 }
 .form-group label span {
   color: red;
@@ -81,16 +82,11 @@
   font-size: 14px;
 }
 
-/* Ô textarea chiếm cả dòng */
-.form-group textarea {
-  resize: vertical;
-}
-
-/* Dropdown chỉnh icon mũi tên */
+/* Dropdown */
 .form-group select {
   padding: 8px 30px 8px 10px;
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 8px center;
   background-size: 16px;
@@ -99,13 +95,13 @@
   color: #999;
 }
 
-/* Button hành động */
+/* Actions */
 .form-actions {
   grid-column: span 2;
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .submit-btn {
@@ -115,7 +111,6 @@
   padding: 8px 20px;
   border-radius: 5px;
   cursor: pointer;
-  font-weight: 400;
   min-width: 100px;
   display: flex;
   align-items: center;
@@ -138,7 +133,6 @@
   padding: 8px 20px;
   border-radius: 5px;
   cursor: pointer;
-  font-weight: 400;
   min-width: 100px;
   display: flex;
   align-items: center;

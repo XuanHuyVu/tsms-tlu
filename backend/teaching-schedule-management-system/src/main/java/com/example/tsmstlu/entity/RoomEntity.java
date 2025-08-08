@@ -14,18 +14,18 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @EqualsAndHashCode(callSuper = false)
 @Entity
-@Table(name = TableNameContants.DEPARTMENT)
-public class DepartmentEntity extends BaseEntity{
-
+@Table(name = TableNameContants.ROOM)
+public class RoomEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String code;
     private String name;
-
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "faculty_id", nullable = false)
-    private FacultyEntity faculty;
-
+    private String building;
+    private String floor;
+    private String capacity;
+    private String type;
+    private String status;
     private String description;
 }

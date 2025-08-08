@@ -14,7 +14,7 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = false)
 @Entity
 @Table(name = TableNameContants.TEACHER)
-public class TeacherEntity {
+public class TeacherEntity extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

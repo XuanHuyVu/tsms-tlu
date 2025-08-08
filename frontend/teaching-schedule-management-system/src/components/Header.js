@@ -23,6 +23,8 @@ const Header = () => {
         return 'QUẢN LÝ GIẢNG VIÊN'
       case '/semesters':
         return 'QUẢN LÝ HỌC KỲ';
+      case '/rooms':
+        return 'QUẢN LÝ PHÒNG HỌC';
       default:
         return 'QUẢN LÝ HỆ THỐNG';
     }

@@ -16,27 +16,28 @@
 /* Statistics Grid */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* Fixed 4 columns */
-  gap: 12px;
-  margin-bottom: 3px; /* Giảm từ 6px xuống 3px */
-  flex-shrink: 0; /* Don't shrink stats */
+  grid-template-columns: repeat(4, minmax(180px, 260px)); 
+  gap: 70px; 
+  margin-bottom: 30px; /* Tăng từ 3px lên 30px để có khoảng cách lớn hơn */
+  flex-shrink: 0; 
   margin-top: 50px;
+
 }
 
 .stat-card {
   background: white;
-  padding: 12px; /* Giảm từ 16px xuống 12px */
+  padding: 16px; 
   border-radius: 8px;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
   border: 1px solid #f1f5f9;
   display: flex;
   align-items: center;
-  gap: 12px; /* Giảm từ 16px xuống 12px */
+  gap: 20px; 
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  min-height: 75px; /* Giảm từ 90px xuống 75px */
-  aspect-ratio: 1.8; /* Tăng tỷ lệ để card dài hơn */
+  min-height: 80px; /* Tăng từ 65px lên 80px */
+  aspect-ratio: 2.0; /* Tăng từ 1.6 lên 2.0 để card dài hơn */
 }
 
 .stat-card:hover {
@@ -44,21 +45,82 @@
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
 }
 
+/* Màu sắc riêng cho từng stat card */
+.stat-card-blue {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+}
+
+.stat-card-blue .stat-icon {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.stat-card-blue .stat-content h3,
+.stat-card-blue .stat-title {
+  color: white;
+}
+
+.stat-card-green {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.stat-card-green .stat-icon {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.stat-card-green .stat-content h3,
+.stat-card-green .stat-title {
+  color: white;
+}
+
+.stat-card-orange {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+.stat-card-orange .stat-icon {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.stat-card-orange .stat-content h3,
+.stat-card-orange .stat-title {
+  color: white;
+}
+
+.stat-card-purple {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+}
+
+.stat-card-purple .stat-icon {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.stat-card-purple .stat-content h3,
+.stat-card-purple .stat-title {
+  color: white;
+}
+
 .stat-icon {
-  width: 40px; /* Giảm từ 48px xuống 40px */
-  height: 40px;
-  border-radius: 8px; /* Giảm từ 10px xuống 8px */
+  width: 42px; /* Tăng từ 35px lên 42px */
+  height: 42px;
+  border-radius: 8px; /* Tăng từ 6px lên 8px */
   background: var(--accent-color);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #090909;
-  font-size: 25px;
+  font-size: 22px; /* Tăng từ 20px lên 22px */
   flex-shrink: 0;
 }
 
 .stat-content h3 {
-  font-size: 1.7rem; /* Tăng từ 1.5rem lên 1.7rem */
+  font-size: 1.6rem; /* Tăng từ 1.4rem lên 1.6rem */
   font-weight: 700;
   color: #1f2937;
   margin-bottom: 4px; /* Tăng từ 2px lên 4px */
@@ -67,15 +129,12 @@
   gap: 4px;
 }
 
-
-
 .stat-title {
-  font-size: 1.2rem; /* Tăng từ 1.1rem lên 1.2rem */
+  font-size: 1.1rem; /* Tăng từ 1rem lên 1.1rem */
   font-weight: 600;
   color: #374151;
   margin-bottom: 0;
 }
-
 
 /* Upcoming Section */
 .upcoming-section {

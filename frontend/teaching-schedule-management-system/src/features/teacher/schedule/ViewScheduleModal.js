@@ -92,7 +92,7 @@ const ViewScheduleModal = ({ isOpen, onClose, scheduleData }) => {
           </div>
 
           <div className="view-modal-footer">
-            <button className="btn-close" onClick={onClose}>
+            <button className="btn-cancel" onClick={onClose}>
               Quay lại
             </button>
           </div>

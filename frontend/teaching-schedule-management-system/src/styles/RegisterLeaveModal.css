@@ -1,4 +1,4 @@
-/* CreateScheduleModal.css */
+/* RegisterLeaveModal.css */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -17,8 +17,8 @@
   background: white;
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-  max-width: 500px; 
-  width: 80%; 
+  max-width: 500px;
+  width: 90%;
   max-height: 90vh;
   overflow-y: auto;
   animation: modalSlideIn 0.3s ease-out;
@@ -38,7 +38,7 @@
 .modal-header {
   background: #4f75db;
   color: white;
-  padding:14px 16px; 
+  padding: 16px 20px;
   border-radius: 12px 12px 0 0;
   display: flex;
   justify-content: space-between;
@@ -47,10 +47,10 @@
 }
 
 .modal-header h2 {
-  font-size: 1rem; 
+  font-size: 1.1rem;
   font-weight: 700;
   margin: 0;
-  margin-left: 15px; 
+  margin-left: 20px;
   letter-spacing: 0.5px;
   color: white;
 }
@@ -71,13 +71,13 @@
 }
 
 .modal-form {
-  padding: 16px 20px 20px 20px; 
+  padding: 24px 28px 28px 28px;
 }
 
 .form-row {
   display: flex;
-  gap: 6px; /* Giảm từ 8px xuống 6px để các trường gần nhau hơn */
-  margin-bottom: 6px; /* Giảm từ 12px xuống 8px */
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
 .form-group {
@@ -93,8 +93,8 @@
 .form-group label {
   font-weight: 600;
   color: #374151;
-  margin-bottom: 1px; /* Giảm từ 2px xuống 1px để label gần input hơn */
-  font-size: 0.85rem; /* Giảm từ 0.9rem xuống 0.85rem */
+  margin-bottom: 6px;
+  font-size: 0.9rem;
 }
 
 .required {
@@ -104,100 +104,103 @@
 .form-group input,
 .form-group select,
 .form-group textarea {
-  padding: 6px 10px; /* Giảm từ 8px 10px xuống 6px 10px */
+  padding: 10px 12px;
   border: 2px solid #e5e7eb;
   border-radius: 6px;
-  font-size: 0.85rem; /* Giảm từ 0.9rem xuống 0.85rem */
+  font-size: 0.9rem;
   transition: all 0.2s ease;
   background: white;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #4f75db;
-  box-shadow: 0 0 0 3px rgba(79, 117, 219, 0.1);
+  border-color: #dc3545;
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
 }
 
 .form-group select {
   cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
 }
 
 .form-group textarea {
   resize: vertical;
-  min-height: 50px; /* Giảm từ 60px xuống 50px */
+  min-height: 35px;
 }
 
-.file-upload {
-  display: flex;
-  flex-direction: column;
-  gap: 4px; /* Giảm từ 8px xuống 4px */
+.file-upload-area {
+  border: 2px dashed #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  background: #f9fafb;
+  transition: all 0.2s ease;
+}
+
+.file-upload-area:hover {
+  border-color: #dc3545;
+  background: #fef2f2;
 }
 
 .file-upload-label {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px; /* Giảm từ 8px xuống 6px */
-  padding: 8px 12px; /* Giảm từ 10px 16px xuống 8px 12px */
-  background: #f8fafc;
-  border: 2px dashed #cbd5e1;
-  border-radius: 6px;
-  color: #64748b;
+  gap: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.8rem; /* Giảm từ 0.9rem xuống 0.8rem */
-  font-weight: 500;
-  width: fit-content;
-}
-
-.file-upload-label:hover {
-  background: #f1f5f9;
-  border-color: #94a3b8;
-  color: #475569;
-}
-
-.file-name {
-  font-size: 0.85rem;
   color: #6b7280;
-  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.upload-icon {
+  font-size: 1.5rem;
+  color: #9ca3af;
 }
 
 .modal-footer {
   display: flex;
-  gap: 8px; /* Giảm từ 10px xuống 8px */
-  justify-content: flex-end;
-  padding-top: 12px; /* Giảm từ 16px xuống 12px */
+  gap: 12px;
+  justify-content: center;
+  padding-top: 20px;
   border-top: 1px solid #e5e7eb;
-  margin-top: 12px; /* Giảm từ 16px xuống 12px */
+  margin-top: 20px;
 }
 
 .btn-confirm,
 .btn-cancel {
-  padding: 8px 18px; /* Giảm từ 10px 20px xuống 8px 18px */
+  padding: 12px 24px;
   border-radius: 6px;
   font-weight: 600;
-  font-size: 0.85rem; /* Giảm từ 0.9rem xuống 0.85rem */
+  font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
-  min-width: 90px; /* Giảm từ 100px xuống 90px */
+  min-width: 110px;
 }
 
 .btn-confirm {
-  background: #4f75db;
+  background: #2563eb;
   color: white;
   order: 1;
 }
 
 .btn-confirm:hover {
-  background: #3e5fc7;
+  background: #1d4ed8;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(79, 117, 219, 0.3);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 .btn-cancel {
-  background: #858585;
+  background: #6b7280;
   color: white;
   order: 2;
 }
@@ -206,49 +209,27 @@
   background: #4b5563;
 }
 
-/* Delete Mode Styles */
-.modal-container.delete-mode {
-  max-width: 450px;
-}
-
-.warning-section {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 24px;
-  padding: 20px;
-  background: #f8fafc;
-  border-radius: 8px;
-}
-
-.warning-icon {
-  color: #4f75db;
-  font-size: 2rem;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.warning-text {
-  flex: 1;
-}
-
-.warning-text p {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 500;
-  color: #374151;
-  line-height: 1.5;
-}
-
 /* Responsive Design */
+@media (min-width: 1024px) {
+  .modal-container {
+    max-width: 750px;
+    width: 80%;
+  }
+  
+  .form-row {
+    align-items: flex-end;
+  }
+}
+
 @media (max-width: 768px) {
   .modal-container {
     width: 95%;
     max-height: 95vh;
+    max-width: 650px;
   }
   
   .modal-form {
-    padding: 16px;
+    padding: 16px 20px 20px 20px;
   }
   
   .form-row {
@@ -258,28 +239,30 @@
   
   .modal-footer {
     flex-direction: column-reverse;
+    gap: 12px;
   }
   
   .btn-confirm,
   .btn-cancel {
     width: 100%;
   }
-
-  /* Delete mode responsive */
-  .warning-section {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 12px;
-  }
 }
 
 @media (max-width: 480px) {
+  .modal-container {
+    width: 98%;
+    max-width: none;
+  }
+  
   .modal-header {
-    padding: 12px 16px;
+    padding: 14px 16px;
   }
   
   .modal-header h2 {
     font-size: 1rem;
+  }
+  
+  .modal-form {
+    padding: 12px 16px 16px 16px;
   }
 }

@@ -172,3 +172,17 @@ body {
 .pagination button:hover {
   background-color: #f2f2f2;
 }
+
+/* Clickable cell styling */
+.clickable-cell {
+  cursor: pointer;
+  color: #0d47a1;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.clickable-cell:hover {
+  background-color: #e3f2fd;
+  color: #0b3c91;
+  text-decoration: underline;
+}

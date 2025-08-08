@@ -1,0 +1,267 @@
+/* ScheduleManagement.css */
+.schedule-management {
+  min-height: 100vh;
+  background: #f8f9fa;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.schedule-content {
+  padding: 20px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 20px 0;
+}
+
+.content-header h2 {
+  font-size: 1.6rem;
+  color: #2d3748;
+  margin: 0;
+  font-weight: 600;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.btn-register {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-leave {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  color: white;
+}
+
+.btn-leave:hover {
+  background: linear-gradient(135deg, #ee5a24, #ff6b6b);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(238, 90, 36, 0.3);
+}
+
+.btn-makeup {
+  background: linear-gradient(135deg, #00b894, #00a085);
+  color: white;
+}
+
+.btn-makeup:hover {
+  background: linear-gradient(135deg, #00a085, #00b894);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3);
+}
+
+.schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.schedule-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid #667eea;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.schedule-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px 15px 25px;
+  background: linear-gradient(135deg, #f8f9ff 0%, #e6f2ff 100%);
+  border-bottom: 1px solid #e1e8ed;
+}
+
+.schedule-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.type-icon {
+  font-size: 1.4rem;
+}
+
+.schedule-title h3 {
+  margin: 0;
+  color: #1a202c;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.status-badge {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.pending {
+  background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+  color: #e17055;
+}
+
+.status-badge.approved {
+  background: linear-gradient(135deg, #a8e6cf, #88d8a3);
+  color: #00b894;
+}
+
+.status-badge.rejected {
+  background: linear-gradient(135deg, #ffcccb, #ff7675);
+  color: #d63031;
+}
+
+.card-body {
+  padding: 20px 25px;
+}
+
+.schedule-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+}
+
+.info-icon {
+  font-size: 1rem;
+  width: 20px;
+  text-align: center;
+  color: #2d3748;
+  filter: grayscale(100%);
+}
+
+.info-text {
+  color: #4a5568;
+  font-weight: 500;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #718096;
+  font-size: 1.1rem;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  gap: 20px;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e1e8ed;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .schedule-header {
+    padding: 20px 20px;
+  }
+  
+  .header-content h1 {
+    font-size: 1.8rem;
+  }
+  
+  .schedule-content {
+    padding: 20px;
+  }
+  
+  .content-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+  
+  .action-buttons {
+    width: 100%;
+    justify-content: stretch;
+  }
+  
+  .btn-register {
+    flex: 1;
+    justify-content: center;
+  }
+  
+  .schedule-card {
+    margin: 0 -10px;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+  
+  .schedule-title h3 {
+    font-size: 1rem;
+    font-weight: 700;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-content h1 {
+    font-size: 1.5rem;
+  }
+  
+  .current-date {
+    font-size: 1rem;
+  }
+  
+  .content-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .card-header,
+  .card-body {
+    padding: 15px 18px;
+  }
+}

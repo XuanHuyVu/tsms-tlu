@@ -1,0 +1,202 @@
+.department-detail-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.department-detail-modal {
+  background-color: #ffffff;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 720px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Header */
+.department-detail-header {
+  background-color: #0d47a1;
+  color: white;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.department-detail-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.department-detail-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  font-weight: bold;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.department-detail-close:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+/* Content */
+.department-detail-content {
+  padding: 20px;
+}
+
+.department-detail-section {
+  margin-bottom: 32px;
+}
+
+.department-detail-section h3 {
+  color: #0d47a1;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #e3f2fd;
+  padding-bottom: 8px;
+}
+
+/* Basic info grid */
+.department-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.department-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.department-detail-item label {
+  color: #333;
+  font-size: 14px;
+}
+
+.department-detail-item span {
+  background-color: #f8f9fa;
+  color: #666;
+  font-size: 14px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+/* Tables */
+.department-teachers-table,
+.department-subjects-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.department-teachers-table th,
+.department-subjects-table th,
+.department-teachers-table td,
+.department-subjects-table td {
+  padding: 12px 8px;
+  text-align: left;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.department-teachers-table th,
+.department-subjects-table th {
+  background-color: #f8f9fa;
+  color: #495057;
+  font-weight: bold;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.department-teachers-table tr:hover,
+.department-subjects-table tr:hover {
+  background-color: #f8f9fa;
+}
+
+.department-teachers-table td:first-child,
+.department-subjects-table td:first-child {
+  text-align: center;
+  font-weight: bold;
+  width: 60px;
+}
+
+/* No data */
+.no-data {
+  color: #6c757d;
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  margin-top: 8px;
+}
+
+/* Footer */
+.department-detail-footer {
+  background-color: #f8f9fa;
+  padding: 12px 20px;
+  border-top: 1px solid #e9ecef;
+  text-align: right;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+.btn-close {
+  background-color: #0d47a1;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.btn-close:hover {
+  background-color: #5a6268;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .department-detail-modal {
+    width: 95%;
+    margin: 20px;
+  }
+
+  .department-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .department-teachers-table,
+  .department-subjects-table {
+    font-size: 12px;
+  }
+
+  .department-teachers-table th,
+  .department-subjects-table th,
+  .department-teachers-table td,
+  .department-subjects-table td {
+    padding: 8px 4px;
+  }
+}

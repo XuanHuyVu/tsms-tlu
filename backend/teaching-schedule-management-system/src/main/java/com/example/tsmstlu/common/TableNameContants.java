@@ -11,4 +11,5 @@ public class TableNameContants {
     public static final String TEACHER = "teachers";
     public static final String STUDENT = "students";
     public static final String ROOM = "rooms";
+    public static final String SUBJECT = "subjects";
 }

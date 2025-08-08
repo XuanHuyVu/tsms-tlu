@@ -10,6 +10,10 @@ import com.example.tsmstlu.dto.room.RoomDto;
 import com.example.tsmstlu.dto.room.RoomListDto;
 import com.example.tsmstlu.dto.room.RoomUpdateDto;
 import com.example.tsmstlu.dto.semester.SemesterDto;
+import com.example.tsmstlu.dto.subject.SubjectCreateDto;
+import com.example.tsmstlu.dto.subject.SubjectDto;
+import com.example.tsmstlu.dto.subject.SubjectListDto;
+import com.example.tsmstlu.dto.subject.SubjectUpdateDto;
 import com.example.tsmstlu.dto.teacher.*;
 import com.example.tsmstlu.dto.user.UserCreateDto;
 import com.example.tsmstlu.dto.user.UserDto;
@@ -47,7 +51,6 @@ public interface MapperUtils {
     TeacherDto toTeacherDetailDto(TeacherEntity entity);
     TeacherEntity toTeacherEntity(TeacherCreateDto dto);
     TeacherEntity toTeacherEntity(TeacherUpdateDto dto);
-
     TeacherUpdateDto toTeacherUpdateDto(TeacherEntity entity);
     TeacherCreateDto toTeacherCreateDto(TeacherDto entity);
 
@@ -62,4 +65,12 @@ public interface MapperUtils {
      RoomEntity toRoomEntity(RoomUpdateDto dto);
      void copyEntity(RoomUpdateDto dto, @MappingTarget RoomEntity entity);
 
+     //Subject
+     SubjectListDto toSubjectListDto(SubjectEntity entity);
+     SubjectDto toSubjectDetailDto(SubjectEntity entity);
+     SubjectCreateDto toSubjectCreateDto(SubjectEntity entity);
+     SubjectUpdateDto toSubjectUpdateDto(SubjectEntity entity);
+     SubjectEntity toSubjectEntity(SubjectCreateDto dto);
+     SubjectEntity toSubjectEntity(SubjectUpdateDto dto);
+     void copyEntity(SubjectUpdateDto dto, @MappingTarget SubjectEntity entity);
 }

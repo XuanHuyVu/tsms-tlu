@@ -23,57 +23,78 @@ const DepartmentList = () => {
     fetchDepartmentsWithCounts();
   }, []);
 
+  const applyFilter = (list, term) => {
+    if (!term?.trim()) return list;
+    const t = term.toLowerCase();
+    return list.filter(
+      (dep) =>
+        dep.name?.toLowerCase().includes(t) ||
+        dep.faculty?.name?.toLowerCase().includes(t)
+    );
+  };
+
   const fetchDepartmentsWithCounts = async () => {
     try {
       const deps = await DepartmentApi.department.getAll();
       const teachers = await getAllTeachers();
 
       const withCounts = deps.map((dep) => {
-        const teacherCount = teachers.filter(
-          (t) => t.department?.name === dep.name
-        ).length;
-        // Nếu BE trả sẵn subjectCount, dùng dep.subjectCount, ngược lại 0
-        const subjectCount = dep.subjectCount ?? 0;
+        const teacherCount = teachers.filter((t) => {
+          if (t.department?.id && dep.id) return t.department.id === dep.id;
+          return t.department?.name === dep.name;
+        }).length;
 
+        const subjectCount = dep.subjectCount ?? 0;
         return { ...dep, teacherCount, subjectCount };
       });
 
       setDepartments(withCounts);
-      setFilteredDepartments(withCounts);
+      setFilteredDepartments(applyFilter(withCounts, searchTerm));
     } catch (err) {
-      console.error("Lỗi khi tải dữ liệu bộ môn:", err);
+      console.error("Lỗi khi tải dữ liệu bộ môn:", err?.response?.data || err);
     }
   };
 
   useEffect(() => {
-    if (!searchTerm.trim()) {
-      setFilteredDepartments(departments);
-    } else {
-      const term = searchTerm.toLowerCase();
-      setFilteredDepartments(
-        departments.filter(
-          (dep) =>
-            dep.name.toLowerCase().includes(term) ||
-            dep.faculty?.name.toLowerCase().includes(term)
-        )
-      );
-    }
+    setFilteredDepartments(applyFilter(departments, searchTerm));
   }, [searchTerm, departments]);
 
-  const handleFormSuccess = async (data) => {
-    const payload = { ...data, faculty: { id: data.facultyId } };
-    delete payload.facultyId;
+  // ✅ nhận payload phẳng { code, name, facultyId:number, description }
+  const handleFormSuccess = async (payload) => {
     try {
-      if (editingDepartment) {
-        await DepartmentApi.department.update(editingDepartment.id, payload);
+      let savedDep;
+      if (editingDepartment?.id) {
+        savedDep = await DepartmentApi.department.update(editingDepartment.id, payload);
       } else {
-        await DepartmentApi.department.create(payload);
+        savedDep = await DepartmentApi.department.create(payload);
       }
+
       setShowForm(false);
       setEditingDepartment(null);
-      await fetchDepartmentsWithCounts();
+
+      // tính lại counts cho record vừa lưu
+      const teachers = await getAllTeachers();
+      const teacherCount = teachers.filter((t) => {
+        if (t.department?.id && savedDep.id) return t.department.id === savedDep.id;
+        return t.department?.name === savedDep.name;
+      }).length;
+      const subjectCount = savedDep.subjectCount ?? 0;
+
+      // đưa record lên đầu danh sách + đồng bộ filter theo từ khoá hiện tại
+      setDepartments((prev) => {
+        const next = [
+          { ...savedDep, teacherCount, subjectCount },
+          ...prev.filter((d) => d.id !== savedDep.id),
+        ];
+        setFilteredDepartments(applyFilter(next, searchTerm));
+        return next;
+      });
     } catch (err) {
-      console.error("Lỗi khi lưu bộ môn:", err);
+      console.error(
+        "Lỗi khi lưu bộ môn:",
+        err?.response?.status,
+        err?.response?.data || err
+      );
     }
   };
 
@@ -86,9 +107,13 @@ const DepartmentList = () => {
     if (!departmentToDelete) return;
     try {
       await DepartmentApi.department.delete(departmentToDelete.id);
-      await fetchDepartmentsWithCounts();
+      setDepartments((prev) => {
+        const next = prev.filter((d) => d.id !== departmentToDelete.id);
+        setFilteredDepartments(applyFilter(next, searchTerm));
+        return next;
+      });
     } catch (err) {
-      console.error("Lỗi khi xóa bộ môn:", err);
+      console.error("Lỗi khi xóa bộ môn:", err?.response?.data || err);
     } finally {
       setDepartmentToDelete(null);
       setShowDeleteModal(false);
@@ -99,18 +124,21 @@ const DepartmentList = () => {
     try {
       const full = await DepartmentApi.department.getById(dep.id);
       const teachers = await getAllTeachers();
-      const listTeachers = teachers.filter((t) => t.department?.name === dep.name);
+      const listTeachers = teachers.filter((t) => {
+        if (t.department?.id && dep.id) return t.department.id === dep.id;
+        return t.department?.name === dep.name;
+      });
 
       setSelectedDepartment({
         ...full,
         teacherCount: listTeachers.length,
         subjectCount: full.subjectCount ?? 0,
         teachers: listTeachers,
-        subjects: full.subjects ?? [],  // if BE returns subjects array
+        subjects: full.subjects ?? [],
       });
       setShowDetail(true);
     } catch (err) {
-      console.error("Lỗi khi tải chi tiết đầy đủ:", err);
+      console.error("Lỗi khi tải chi tiết đầy đủ:", err?.response?.data || err);
     }
   };
 

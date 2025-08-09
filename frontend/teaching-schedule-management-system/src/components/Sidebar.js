@@ -52,7 +52,7 @@ const Sidebar = () => {
             </span>
           </div>
           <ul className={`submenu ${openMenus.hocPhan ? 'open' : ''}`}>
-            <li><NavLink to="/mon-hoc" className="submenu-link">MÔN HỌC</NavLink></li>
+            <li><NavLink to="/subjects" className="submenu-link">MÔN HỌC</NavLink></li>
             <li><NavLink to="/lop-hoc-phan" className="submenu-link">LỚP HỌC PHẦN</NavLink></li>
           </ul>
         </li>

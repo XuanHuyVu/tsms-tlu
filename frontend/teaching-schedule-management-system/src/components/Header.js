@@ -25,6 +25,8 @@ const Header = () => {
         return 'QUẢN LÝ HỌC KỲ';
       case '/rooms':
         return 'QUẢN LÝ PHÒNG HỌC';
+      case '/subjects':
+        return 'QUẢN LÝ MÔN HỌC';
       default:
         return 'QUẢN LÝ HỆ THỐNG';
     }

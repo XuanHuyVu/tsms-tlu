@@ -22,7 +22,7 @@ const Header = () => {
       case '/teacher-dashboard/attendance':
         return 'GHI NHẬN GIỜ DẠY';
       case '/teacher-dashboard/statistics':
-        return 'THỐNG KÊ';
+        return 'THỐNG KÊ GIỜ DẠY';
       default:
         return 'TRANG CHỦ';
     }

@@ -36,7 +36,7 @@ const SidebarTeacher = () => {
         {/* THỐNG KÊ */}
         <li>
           <NavLink to="/teacher-dashboard/statistics" className="menu-link-standalone">
-            THỐNG KÊ
+            THỐNG KÊ GIỜ DẠY
           </NavLink>
         </li>
       </ul>

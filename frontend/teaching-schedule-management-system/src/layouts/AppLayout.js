@@ -7,6 +7,7 @@ import StudentDashboard from '../features/student/dashboard/StudentDashboard';
 import TeacherList from '../features/admin/teachers/TeacherList';
 import AccountList from '../features/admin/accounts/AccountList';
 import DepartmentList from '../features/admin/departments/DepartmentList';
+import FacultyList from '../features/admin/faculties/FacultyList';
 import Header from '../components/Header';
 import '../styles/AppLayout.css';
 import TeacherLayout from "./TeacherLayout";
@@ -34,6 +35,8 @@ function AppLayout() {
                 <Route path="/departments" element={<div><DepartmentList /></div>} />
                 <Route path="/semesters" element={<div><SemesterList /></div>} />
                 <Route path="/rooms" element={<div><RoomList /></div>} />
+                <Route path="/faculties" element={<div><FacultyList /></div>} />
+                {/* Thêm các route khác tại đây */}
                 <Route path="*" element={<Dashboard />} />
               </Routes>
             </div>

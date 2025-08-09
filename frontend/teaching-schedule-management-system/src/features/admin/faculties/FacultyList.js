@@ -31,10 +31,19 @@ const FacultyList = () => {
 
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchFacultiesWithCounts();
-  }, []);
+  // --- helpers ---
+  const applyFilter = (list, term) => {
+    if (!term?.trim()) return list;
+    const t = term.toLowerCase();
+    return list.filter(
+      (f) =>
+        f.name?.toLowerCase().includes(t) ||
+        f.code?.toLowerCase().includes(t) ||
+        f.deanName?.toLowerCase().includes(t)
+    );
+  };
 
+  // --- initial load with counts ---
   const fetchFacultiesWithCounts = async () => {
     setLoading(true);
     try {
@@ -51,34 +60,26 @@ const FacultyList = () => {
       });
 
       setFaculties(withCounts);
-      setFilteredFaculties(withCounts);
+      setFilteredFaculties(applyFilter(withCounts, searchTerm));
     } catch (err) {
-      console.error("Lỗi khi tải danh sách khoa:", err);
+      console.error("Lỗi khi tải danh sách khoa:", err?.response?.data || err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Lọc theo từ khóa
   useEffect(() => {
-    if (!searchTerm.trim()) {
-      setFilteredFaculties(faculties);
-      return;
-    }
-    const term = searchTerm.toLowerCase();
-    setFilteredFaculties(
-      faculties.filter(
-        (f) =>
-          f.name?.toLowerCase().includes(term) ||
-          f.code?.toLowerCase().includes(term) ||
-          f.deanName?.toLowerCase().includes(term)
-      )
-    );
+    fetchFacultiesWithCounts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Re-filter when search or list changes
+  useEffect(() => {
+    setFilteredFaculties(applyFilter(faculties, searchTerm));
   }, [searchTerm, faculties]);
 
-  // === Handlers có stopPropagation để tránh bị chặn click bởi event cha ===
-  const handleAddClick = useCallback((e) => {
-    e?.stopPropagation?.();
+  // --- handlers ---
+  const handleAddClick = useCallback(() => {
     setEditingFaculty(null);
     setShowForm(true);
   }, []);
@@ -104,7 +105,7 @@ const FacultyList = () => {
       });
       setShowDetail(true);
     } catch (err) {
-      console.error("Lỗi khi tải chi tiết khoa:", err);
+      console.error("Lỗi khi tải chi tiết khoa:", err?.response?.data || err);
     }
   }, []);
 
@@ -124,27 +125,52 @@ const FacultyList = () => {
     if (!facultyToDelete) return;
     try {
       await deleteFaculty(facultyToDelete.id);
-      await fetchFacultiesWithCounts();
+      setFaculties((prev) => {
+        const next = prev.filter((f) => f.id !== facultyToDelete.id);
+        setFilteredFaculties(applyFilter(next, searchTerm));
+        return next;
+      });
     } catch (err) {
-      console.error("Lỗi khi xóa khoa:", err);
+      console.error("Lỗi khi xóa khoa:", err?.response?.data || err);
     } finally {
       setFacultyToDelete(null);
       setShowDeleteModal(false);
     }
   };
 
+  // Nhận payload phẳng từ FacultyForm (ví dụ: { code, name, deanName, ... })
+  // Sau khi tạo/sửa xong -> record nhảy lên đầu + tính lại counts tức thời
   const handleFormSuccess = async (formData) => {
     try {
+      let savedFaculty;
       if (editingFaculty) {
-        await updateFaculty(editingFaculty.id, formData);
+        savedFaculty = await updateFaculty(editingFaculty.id, formData);
       } else {
-        await createFaculty(formData);
+        savedFaculty = await createFaculty(formData);
       }
+
       setShowForm(false);
       setEditingFaculty(null);
-      await fetchFacultiesWithCounts();
+
+      // Tính lại đếm cho faculty vừa lưu
+      const [teachers, departments] = await Promise.all([
+        getAllTeachers(),
+        DepartmentApi.department.getAll(),
+      ]);
+      const teacherCount = teachers.filter((t) => t.facultyId === savedFaculty.id).length;
+      const departmentCount = departments.filter((d) => d.faculty?.id === savedFaculty.id).length;
+
+      // Đưa record lên đầu + đồng bộ filter theo từ khoá hiện tại
+      setFaculties((prev) => {
+        const next = [
+          { ...savedFaculty, teacherCount, departmentCount },
+          ...prev.filter((f) => f.id !== savedFaculty.id),
+        ];
+        setFilteredFaculties(applyFilter(next, searchTerm));
+        return next;
+      });
     } catch (err) {
-      console.error("Lỗi khi lưu khoa:", err);
+      console.error("Lỗi khi lưu khoa:", err?.response?.status, err?.response?.data || err);
     }
   };
 
@@ -175,10 +201,10 @@ const FacultyList = () => {
           type="button"
           className="add-button"
           onClick={handleAddClick}
-          onKeyDown={(e) => e.key === "Enter" && handleAddClick(e)}
+          onKeyDown={(e) => e.key === "Enter" && handleAddClick()}
         >
           Thêm khoa
-        </button>
+        </button>   
 
         <div className="search-container">
           <input

@@ -1,3 +1,4 @@
+// src/features/admin/departments/DepartmentDetail.js
 import React from "react";
 import "../../../styles/DepartmentDetail.css";
 
@@ -11,83 +12,34 @@ const DepartmentDetail = ({ open, department, onClose }) => {
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="dep-title"
       >
-        {/* Header */}
+        {/* Header (đứng yên) */}
         <div className="department-detail-header">
-          <h2 id="dep-title">THÔNG TIN BỘ MÔN</h2>
-          <button
-            className="department-detail-close"
-            onClick={onClose}
-            aria-label="Đóng"
-          >
-            ×
-          </button>
+          <h2>CHI TIẾT BỘ MÔN</h2>
+          <button className="department-detail-close" onClick={onClose}>×</button>
         </div>
 
-        {/* Content scrollable */}
-        <div className="department-detail-content">
+        {/* Body (cuộn) */}
+        <div className="department-detail-body">
           {/* Thông tin cơ bản */}
           <div className="department-detail-section basic-info">
             <h3>Thông tin cơ bản</h3>
-
             <div className="basic-info-grid">
               <div className="basic-info-item">
-                <label htmlFor="dep-name">Tên bộ môn:</label>
-                <input
-                  id="dep-name"
-                  type="text"
-                  value={department.name || ""}
-                  disabled
-                />
+                <label>Tên bộ môn:</label>
+                <input type="text" value={department.name || ""} disabled />
               </div>
-
               <div className="basic-info-item">
-                <label htmlFor="dep-faculty">Khoa:</label>
-                <input
-                  id="dep-faculty"
-                  type="text"
-                  value={department.faculty?.name || ""}
-                  disabled
-                />
+                <label>Khoa:</label>
+                <input type="text" value={department.faculty?.name || ""} disabled />
               </div>
-
-              <div className="basic-info-item basic-info-item--full">
-                <label htmlFor="dep-desc">Mô tả:</label>
-                <textarea
-                  id="dep-desc"
-                  value={department.description || ""}
-                  disabled
-                  rows={6}
-                />
-              </div>
-
               <div className="basic-info-item">
-                <label htmlFor="dep-teachers">Số lượng giảng viên:</label>
-                <input
-                  id="dep-teachers"
-                  type="number"
-                  value={
-                    department.teacherCount ??
-                    department.teachers?.length ??
-                    0
-                  }
-                  disabled
-                />
+                <label>Số lượng giảng viên:</label>
+                <input type="number" value={department.teacherCount ?? 0} disabled />
               </div>
-
               <div className="basic-info-item">
-                <label htmlFor="dep-subjects">Số lượng môn học:</label>
-                <input
-                  id="dep-subjects"
-                  type="number"
-                  value={
-                    department.subjectCount ??
-                    department.subjects?.length ??
-                    0
-                  }
-                  disabled
-                />
+                <label>Số lượng môn học:</label>
+                <input type="number" value={department.subjectCount ?? 0} disabled />
               </div>
             </div>
           </div>
@@ -95,69 +47,61 @@ const DepartmentDetail = ({ open, department, onClose }) => {
           {/* Danh sách giảng viên */}
           <div className="department-detail-section">
             <h3>Danh sách giảng viên</h3>
-            {department.teachers?.length > 0 ? (
-              <table className="department-teachers-table">
-                <thead>
-                  <tr>
-                    <th>STT</th>
-                    <th>Mã giảng viên</th>
-                    <th>Họ tên</th>
-                    <th>Email</th>
-                    <th>SĐT</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {department.teachers.map((t, i) => (
-                    <tr key={t.id || i}>
-                      <td>{i + 1}</td>
-                      <td>{t.teacherCode}</td>
-                      <td>{t.fullName}</td>
-                      <td>{t.email}</td>
-                      <td>{t.phoneNumber}</td>
+            {department.teachers?.length ? (
+              <div className="table-scroll">
+                <table className="department-teachers-table">
+                  <thead>
+                    <tr>
+                      <th>STT</th><th>Mã GV</th><th>Họ tên</th><th>Email</th><th>SĐT</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <p className="no-data">Chưa có giảng viên</p>
-            )}
+                  </thead>
+                  <tbody>
+                    {department.teachers.map((t, i) => (
+                      <tr key={t.id || i}>
+                        <td>{i + 1}</td>
+                        <td>{t.teacherCode || t.code}</td>
+                        <td>{t.fullName || t.name}</td>
+                        <td>{t.email}</td>
+                        <td>{t.phoneNumber}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : <p className="no-data">Chưa có giảng viên</p>}
           </div>
 
           {/* Danh sách môn học */}
           <div className="department-detail-section">
             <h3>Danh sách môn học</h3>
-            {department.subjects?.length > 0 ? (
-              <table className="department-subjects-table">
-                <thead>
-                  <tr>
-                    <th>STT</th>
-                    <th>Mã môn học</th>
-                    <th>Tên môn học</th>
-                    <th>Số tín chỉ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {department.subjects.map((s, i) => (
-                    <tr key={s.id || i}>
-                      <td>{i + 1}</td>
-                      <td>{s.subjectCode}</td>
-                      <td>{s.subjectName}</td>
-                      <td>{s.credits}</td>
+            {department.subjects?.length ? (
+              <div className="table-scroll">
+                <table className="department-subjects-table">
+                  <thead>
+                    <tr>
+                      <th>STT</th><th>Mã môn học</th><th>Tên môn học</th><th>Tín chỉ</th><th>Loại MH</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <p className="no-data">Chưa có môn học</p>
-            )}
+                  </thead>
+                  <tbody>
+                    {department.subjects.map((s, i) => (
+                      <tr key={s.id || i}>
+                        <td>{i + 1}</td>
+                        <td>{s.code || s.subjectCode}</td>
+                        <td>{s.name || s.subjectName}</td>
+                        <td>{s.credits}</td>
+                        <td>{s.type}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : <p className="no-data">Chưa có môn học</p>}
           </div>
         </div>
 
-        {/* Footer */}
+        {/* Footer (đứng yên) */}
         <div className="department-detail-footer">
-          <button className="btn-back" onClick={onClose}>
-            Quay lại
-          </button>
+          <button className="btn-back" onClick={onClose}>Quay lại</button>
         </div>
       </div>
     </div>

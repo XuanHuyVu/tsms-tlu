@@ -1,5 +1,5 @@
 // src/features/admin/departments/DepartmentList.js
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { FaEdit, FaTrash, FaInfoCircle, FaSearch } from "react-icons/fa";
 import DepartmentForm from "./DepartmentForm";
 import DepartmentDetail from "./DepartmentDetail";
@@ -8,135 +8,183 @@ import DepartmentApi from "../../../api/DepartmentApi";
 import { getAllTeachers } from "../../../api/TeacherApi";
 import "../../../styles/DepartmentList.css";
 
+const norm = (v) => (v ?? "").toString().trim().toLowerCase();
+const teacherInDept = (t, dep) => {
+  const d = t?.department || {};
+  return (
+    (d.id && dep?.id && String(d.id) === String(dep.id)) ||
+    (d.code && dep?.code && norm(d.code) === norm(dep.code)) ||
+    (d.name && dep?.name && norm(d.name) === norm(dep.name))
+  );
+};
+
 const DepartmentList = () => {
   const [departments, setDepartments] = useState([]);
-  const [filteredDepartments, setFilteredDepartments] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [filtered, setFiltered] = useState([]);
+  const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [editingDepartment, setEditingDepartment] = useState(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [departmentToDelete, setDepartmentToDelete] = useState(null);
-  const [selectedDepartment, setSelectedDepartment] = useState(null);
-  const [showDetail, setShowDetail] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [showDelete, setShowDelete] = useState(false);
+  const [toDelete, setToDelete] = useState(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [selected, setSelected] = useState(null);
 
   useEffect(() => {
-    fetchDepartmentsWithCounts();
+    loadDepartments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const applyFilter = (list, term) => {
     if (!term?.trim()) return list;
-    const t = term.toLowerCase();
+    const t = norm(term);
     return list.filter(
-      (dep) =>
-        dep.name?.toLowerCase().includes(t) ||
-        dep.faculty?.name?.toLowerCase().includes(t)
+      (d) => norm(d.name).includes(t) || norm(d.faculty?.name).includes(t)
     );
   };
 
-  const fetchDepartmentsWithCounts = async () => {
+  const loadDepartments = async () => {
     try {
+      console.log("%c[DEBUG] DepartmentList LOAD", "color:#22c55e;font-weight:700");
       const deps = await DepartmentApi.department.getAll();
-      const teachers = await getAllTeachers();
+      const tRaw = await getAllTeachers().catch(() => []);
+      const teachers = Array.isArray(tRaw) ? tRaw : tRaw?.content || [];
 
-      const withCounts = deps.map((dep) => {
-        const teacherCount = teachers.filter((t) => {
-          if (t.department?.id && dep.id) return t.department.id === dep.id;
-          return t.department?.name === dep.name;
-        }).length;
+      console.groupCollapsed("%c[DEBUG] RAW LISTS", "color:#0ea5e9;font-weight:700");
+      console.log("Departments:", deps.length, deps);
+      console.log("Teachers:", teachers.length, teachers.slice(0, 10));
+      console.groupEnd();
 
-        const subjectCount = dep.subjectCount ?? 0;
-        return { ...dep, teacherCount, subjectCount };
+      // lấy subjects theo từng bộ môn + log rõ ràng
+      const subjectsPerDept = await Promise.all(
+        deps.map((dep) => DepartmentApi.department.getSubjectsByDepartment(dep))
+      );
+
+      const enriched = deps.map((dep, i) => {
+        const listTeachers = teachers.filter((t) => teacherInDept(t, dep));
+        const listSubjects = subjectsPerDept[i] || [];
+
+        console.groupCollapsed(
+          `%c[DEBUG] MATCH → ${dep.name} (#${dep.id})`,
+          "color:#a855f7;font-weight:700"
+        );
+        console.log("teachersOfDept (%d):", listTeachers.length, listTeachers);
+        console.log("subjectsOfDept (%d):", listSubjects.length, listSubjects);
+        console.groupEnd();
+
+        return {
+          ...dep,
+          teacherCount: listTeachers.length,
+          subjectCount: listSubjects.length,
+          __teachers: listTeachers, // giữ tạm để xem chi tiết nhanh (không bắt buộc)
+          __subjects: listSubjects,
+        };
       });
 
-      setDepartments(withCounts);
-      setFilteredDepartments(applyFilter(withCounts, searchTerm));
+      setDepartments(enriched);
+      setFiltered(applyFilter(enriched, search));
     } catch (err) {
       console.error("Lỗi khi tải dữ liệu bộ môn:", err?.response?.data || err);
     }
   };
 
   useEffect(() => {
-    setFilteredDepartments(applyFilter(departments, searchTerm));
-  }, [searchTerm, departments]);
+    setFiltered(applyFilter(departments, search));
+  }, [search, departments]);
 
-  // ✅ nhận payload phẳng { code, name, facultyId:number, description }
   const handleFormSuccess = async (payload) => {
     try {
-      let savedDep;
-      if (editingDepartment?.id) {
-        savedDep = await DepartmentApi.department.update(editingDepartment.id, payload);
-      } else {
-        savedDep = await DepartmentApi.department.create(payload);
-      }
+      const saved = editing?.id
+        ? await DepartmentApi.department.update(editing.id, payload)
+        : await DepartmentApi.department.create(payload);
 
       setShowForm(false);
-      setEditingDepartment(null);
+      setEditing(null);
 
       // tính lại counts cho record vừa lưu
-      const teachers = await getAllTeachers();
-      const teacherCount = teachers.filter((t) => {
-        if (t.department?.id && savedDep.id) return t.department.id === savedDep.id;
-        return t.department?.name === savedDep.name;
-      }).length;
-      const subjectCount = savedDep.subjectCount ?? 0;
+      const [tRaw, subs] = await Promise.all([
+        getAllTeachers().catch(() => []),
+        DepartmentApi.department.getSubjectsByDepartment(saved),
+      ]);
+      const teachers = Array.isArray(tRaw) ? tRaw : tRaw?.content || [];
+      const listTeachers = teachers.filter((t) => teacherInDept(t, saved));
+      const listSubjects = subs || [];
 
-      // đưa record lên đầu danh sách + đồng bộ filter theo từ khoá hiện tại
+      console.group(
+        `%c[DEBUG] AFTER SAVE → ${saved.name}`,
+        "color:#eab308;font-weight:700"
+      );
+      console.log("teachersOfDept (%d):", listTeachers.length, listTeachers);
+      console.log("subjectsOfDept (%d):", listSubjects.length, listSubjects);
+      console.groupEnd();
+
       setDepartments((prev) => {
         const next = [
-          { ...savedDep, teacherCount, subjectCount },
-          ...prev.filter((d) => d.id !== savedDep.id),
+          {
+            ...saved,
+            teacherCount: listTeachers.length,
+            subjectCount: listSubjects.length,
+            __teachers: listTeachers,
+            __subjects: listSubjects,
+          },
+          ...prev.filter((d) => d.id !== saved.id),
         ];
-        setFilteredDepartments(applyFilter(next, searchTerm));
+        setFiltered(applyFilter(next, search));
         return next;
       });
     } catch (err) {
-      console.error(
-        "Lỗi khi lưu bộ môn:",
-        err?.response?.status,
-        err?.response?.data || err
-      );
+      console.error("Lỗi khi lưu bộ môn:", err?.response?.status, err?.response?.data || err);
     }
   };
 
   const handleDeleteClick = (dep) => {
-    setDepartmentToDelete(dep);
-    setShowDeleteModal(true);
+    setToDelete(dep);
+    setShowDelete(true);
   };
 
   const confirmDelete = async () => {
-    if (!departmentToDelete) return;
+    if (!toDelete) return;
     try {
-      await DepartmentApi.department.delete(departmentToDelete.id);
+      await DepartmentApi.department.delete(toDelete.id);
       setDepartments((prev) => {
-        const next = prev.filter((d) => d.id !== departmentToDelete.id);
-        setFilteredDepartments(applyFilter(next, searchTerm));
+        const next = prev.filter((d) => d.id !== toDelete.id);
+        setFiltered(applyFilter(next, search));
         return next;
       });
     } catch (err) {
       console.error("Lỗi khi xóa bộ môn:", err?.response?.data || err);
     } finally {
-      setDepartmentToDelete(null);
-      setShowDeleteModal(false);
+      setToDelete(null);
+      setShowDelete(false);
     }
   };
 
   const handleViewDetail = async (dep) => {
     try {
-      const full = await DepartmentApi.department.getById(dep.id);
-      const teachers = await getAllTeachers();
-      const listTeachers = teachers.filter((t) => {
-        if (t.department?.id && dep.id) return t.department.id === dep.id;
-        return t.department?.name === dep.name;
-      });
+      const [full, tRaw, subjects] = await Promise.all([
+        DepartmentApi.department.getById(dep.id),
+        getAllTeachers().catch(() => []),
+        DepartmentApi.department.getSubjectsByDepartment(dep),
+      ]);
+      const teachers = Array.isArray(tRaw) ? tRaw : tRaw?.content || [];
+      const listTeachers = teachers.filter((t) => teacherInDept(t, dep));
+      const listSubjects = subjects || [];
 
-      setSelectedDepartment({
+      console.group(
+        `%c[DEBUG] DETAIL → ${dep.name}`,
+        "color:#f97316;font-weight:700"
+      );
+      console.log("teachersOfDept:", listTeachers.length, listTeachers);
+      console.log("subjectsOfDept:", listSubjects.length, listSubjects);
+      console.groupEnd();
+
+      setSelected({
         ...full,
-        teacherCount: listTeachers.length,
-        subjectCount: full.subjectCount ?? 0,
         teachers: listTeachers,
-        subjects: full.subjects ?? [],
+        teacherCount: listTeachers.length,
+        subjects: listSubjects,
+        subjectCount: listSubjects.length,
       });
-      setShowDetail(true);
+      setDetailOpen(true);
     } catch (err) {
       console.error("Lỗi khi tải chi tiết đầy đủ:", err?.response?.data || err);
     }
@@ -148,24 +196,24 @@ const DepartmentList = () => {
         <DepartmentForm
           onClose={() => {
             setShowForm(false);
-            setEditingDepartment(null);
+            setEditing(null);
           }}
-          editData={editingDepartment}
+          editData={editing}
           onSuccess={handleFormSuccess}
         />
       )}
 
       <DepartmentDetail
-        open={showDetail}
-        department={selectedDepartment}
-        onClose={() => setShowDetail(false)}
+        open={detailOpen}
+        department={selected}
+        onClose={() => setDetailOpen(false)}
       />
 
       <div className="teacher-header">
         <button
           className="add-button"
           onClick={() => {
-            setEditingDepartment(null);
+            setEditing(null);
             setShowForm(true);
           }}
         >
@@ -176,8 +224,8 @@ const DepartmentList = () => {
             type="text"
             placeholder="Tìm kiếm"
             className="search-input"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
           <FaSearch className="search-icon" />
         </div>
@@ -196,14 +244,14 @@ const DepartmentList = () => {
           </tr>
         </thead>
         <tbody>
-          {filteredDepartments.map((dep, idx) => (
+          {filtered.map((dep, idx) => (
             <tr key={dep.id}>
               <td>{idx + 1}</td>
               <td>{dep.code}</td>
               <td>{dep.name}</td>
               <td>{dep.faculty?.name || "Chưa xác định"}</td>
-              <td>{dep.teacherCount}</td>
-              <td>{dep.subjectCount}</td>
+              <td>{dep.teacherCount ?? 0}</td>
+              <td>{dep.subjectCount ?? 0}</td>
               <td className="actions">
                 <FaInfoCircle
                   className="icon info"
@@ -215,7 +263,7 @@ const DepartmentList = () => {
                   className="icon edit"
                   title="Chỉnh sửa"
                   onClick={() => {
-                    setEditingDepartment(dep);
+                    setEditing(dep);
                     setShowForm(true);
                   }}
                   style={{ cursor: "pointer", marginRight: 8 }}
@@ -234,8 +282,8 @@ const DepartmentList = () => {
 
       <div className="footer">
         <div>
-          Hiển thị {filteredDepartments.length} kết quả
-          {searchTerm && ` (lọc từ ${departments.length})`}
+          Hiển thị {filtered.length} kết quả
+          {search && ` (lọc từ ${departments.length})`}
         </div>
         <div className="pagination">
           <select defaultValue="10">
@@ -243,17 +291,15 @@ const DepartmentList = () => {
             <option value="25">25</option>
             <option value="50">50</option>
           </select>
-          <span>
-            Từ 1 đến {Math.min(filteredDepartments.length, 10)} bản ghi
-          </span>
+          <span>Từ 1 đến {Math.min(filtered.length, 10)} bản ghi</span>
           <button disabled>&lt;</button>
           <button disabled>&gt;</button>
         </div>
       </div>
 
       <DeleteConfirmModal
-        isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
+        isOpen={showDelete}
+        onClose={() => setShowDelete(false)}
         onConfirm={confirmDelete}
         title="XÓA BỘ MÔN"
         message="Bạn có chắc chắn muốn xóa bộ môn này không?"

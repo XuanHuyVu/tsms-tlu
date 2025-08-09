@@ -1,224 +1,216 @@
 // src/features/admin/faculties/FacultyList.js
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { FaEdit, FaTrash, FaInfoCircle, FaSearch } from "react-icons/fa";
 import {
-  getAllFaculties,
   getFacultyById,
   createFaculty,
   updateFaculty,
   deleteFaculty,
-} from "../../../api/FacultiesApi";
-import DepartmentApi from "../../../api/DepartmentApi";
-import { getAllTeachers } from "../../../api/TeacherApi";
+  getFacultiesWithCountsByName,
+  getTeachersByFacultyName,
+  getDepartmentsByFacultyName,
+} from "../../../api/FacultyApi";
 import DeleteConfirmModal from "../../../components/DeleteConfirmModal";
 import FacultyForm from "./FacultyForm";
 import FacultyDetail from "./FacultyDetail";
 import "../../../styles/FacultyList.css";
 
+const norm = (v) => (v ?? "").toString().trim().toLowerCase();
+
 const FacultyList = () => {
   const [faculties, setFaculties] = useState([]);
-  const [filteredFaculties, setFilteredFaculties] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [filtered, setFiltered] = useState([]);
+  const [search, setSearch] = useState("");
 
   const [showForm, setShowForm] = useState(false);
-  const [editingFaculty, setEditingFaculty] = useState(null);
+  const [editing, setEditing] = useState(null);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [facultyToDelete, setFacultyToDelete] = useState(null);
+  const [toDelete, setToDelete] = useState(null);
 
   const [showDetail, setShowDetail] = useState(false);
-  const [selectedFaculty, setSelectedFaculty] = useState(null);
+  const [selected, setSelected] = useState(null);
 
-  const [loading, setLoading] = useState(false);
+  const applyFilter = useMemo(
+    () => (list, term) => {
+      if (!term?.trim()) return list;
+      const t = norm(term);
+      return list.filter(
+        (f) =>
+          norm(f.name).includes(t) ||
+          norm(f.code).includes(t) ||
+          norm(f.deanName).includes(t)
+      );
+    },
+    []
+  );
 
-  // --- helpers ---
-  const applyFilter = (list, term) => {
-    if (!term?.trim()) return list;
-    const t = term.toLowerCase();
-    return list.filter(
-      (f) =>
-        f.name?.toLowerCase().includes(t) ||
-        f.code?.toLowerCase().includes(t) ||
-        f.deanName?.toLowerCase().includes(t)
-    );
-  };
-
-  // --- initial load with counts ---
-  const fetchFacultiesWithCounts = async () => {
-    setLoading(true);
+  const initialLoad = async () => {
     try {
-      const [facus, teachers, departments] = await Promise.all([
-        getAllFaculties(),
-        getAllTeachers(),
-        DepartmentApi.department.getAll(),
-      ]);
-
-      const withCounts = facus.map((f) => {
-        const teacherCount = teachers.filter((t) => t.facultyId === f.id).length;
-        const departmentCount = departments.filter((d) => d.faculty?.id === f.id).length;
-        return { ...f, teacherCount, departmentCount };
-      });
-
-      setFaculties(withCounts);
-      setFilteredFaculties(applyFilter(withCounts, searchTerm));
+      const rows = await getFacultiesWithCountsByName();
+      setFaculties(rows || []);
+      setFiltered(applyFilter(rows || [], search));
     } catch (err) {
-      console.error("Lỗi khi tải danh sách khoa:", err?.response?.data || err);
-    } finally {
-      setLoading(false);
+      // ignore
     }
   };
 
   useEffect(() => {
-    fetchFacultiesWithCounts();
+    initialLoad();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Re-filter when search or list changes
   useEffect(() => {
-    setFilteredFaculties(applyFilter(faculties, searchTerm));
-  }, [searchTerm, faculties]);
+    setFiltered(applyFilter(faculties, search));
+  }, [search, faculties, applyFilter]);
 
-  // --- handlers ---
-  const handleAddClick = useCallback(() => {
-    setEditingFaculty(null);
-    setShowForm(true);
-  }, []);
-
-  const handleInfoClick = useCallback(async (e, fac) => {
-    e?.stopPropagation?.();
+  const handleInfoClick = async (fac) => {
     try {
       const [full, teachers, departments] = await Promise.all([
         getFacultyById(fac.id),
-        getAllTeachers(),
-        DepartmentApi.department.getAll(),
+        getTeachersByFacultyName(fac.name),
+        getDepartmentsByFacultyName(fac.name),
       ]);
-
-      const teacherList = teachers.filter((t) => t.facultyId === fac.id);
-      const departmentList = departments.filter((d) => d.faculty?.id === fac.id);
-
-      setSelectedFaculty({
+      setSelected({
         ...full,
-        teacherCount: teacherList.length,
-        departmentCount: departmentList.length,
-        teachers: teacherList,
-        departments: departmentList,
+        teachers,
+        departments,
+        teacherCount: teachers.length,
+        departmentCount: departments.length,
       });
       setShowDetail(true);
-    } catch (err) {
-      console.error("Lỗi khi tải chi tiết khoa:", err?.response?.data || err);
-    }
-  }, []);
-
-  const handleEditClick = useCallback((e, fac) => {
-    e?.stopPropagation?.();
-    setEditingFaculty(fac);
-    setShowForm(true);
-  }, []);
-
-  const handleDeleteClick = useCallback((e, fac) => {
-    e?.stopPropagation?.();
-    setFacultyToDelete(fac);
-    setShowDeleteModal(true);
-  }, []);
-
-  const confirmDelete = async () => {
-    if (!facultyToDelete) return;
-    try {
-      await deleteFaculty(facultyToDelete.id);
-      setFaculties((prev) => {
-        const next = prev.filter((f) => f.id !== facultyToDelete.id);
-        setFilteredFaculties(applyFilter(next, searchTerm));
-        return next;
-      });
-    } catch (err) {
-      console.error("Lỗi khi xóa khoa:", err?.response?.data || err);
-    } finally {
-      setFacultyToDelete(null);
-      setShowDeleteModal(false);
+    } catch {
+      // ignore
     }
   };
 
-  // Nhận payload phẳng từ FacultyForm (ví dụ: { code, name, deanName, ... })
-  // Sau khi tạo/sửa xong -> record nhảy lên đầu + tính lại counts tức thời
-  const handleFormSuccess = async (formData) => {
+  // THÊM: đẩy lên đầu ngay; SỬA: giữ vị trí; sau đó vá lại count/id thật ở nền
+  const handleFormSuccess = async (payload) => {
     try {
-      let savedFaculty;
-      if (editingFaculty) {
-        savedFaculty = await updateFaculty(editingFaculty.id, formData);
-      } else {
-        savedFaculty = await createFaculty(formData);
-      }
+      const isEdit = !!editing?.id;
+      const apiRes = isEdit
+        ? await updateFaculty(editing.id, payload)
+        : await createFaculty(payload);
 
-      setShowForm(false);
-      setEditingFaculty(null);
+      // fallback nếu API trả thiếu field
+      const optimistic = {
+        id: apiRes?.id ?? `temp_${Date.now()}`,
+        code: apiRes?.code ?? payload.code ?? "",
+        name: apiRes?.name ?? payload.name ?? "",
+        deanName: apiRes?.deanName ?? payload.deanName ?? "",
+      };
 
-      // Tính lại đếm cho faculty vừa lưu
-      const [teachers, departments] = await Promise.all([
-        getAllTeachers(),
-        DepartmentApi.department.getAll(),
-      ]);
-      const teacherCount = teachers.filter((t) => t.facultyId === savedFaculty.id).length;
-      const departmentCount = departments.filter((d) => d.faculty?.id === savedFaculty.id).length;
-
-      // Đưa record lên đầu + đồng bộ filter theo từ khoá hiện tại
       setFaculties((prev) => {
-        const next = [
-          { ...savedFaculty, teacherCount, departmentCount },
-          ...prev.filter((f) => f.id !== savedFaculty.id),
-        ];
-        setFilteredFaculties(applyFilter(next, searchTerm));
+        const idx = prev.findIndex((x) => x.id === optimistic.id);
+        let next;
+        if (isEdit && idx !== -1) {
+          const { teacherCount = 0, departmentCount = 0 } = prev[idx] || {};
+          next = [...prev];
+          next[idx] = { ...optimistic, teacherCount, departmentCount };
+        } else {
+          next = [{ ...optimistic, teacherCount: 0, departmentCount: 0 }, ...prev];
+        }
+        setFiltered(applyFilter(next, search));
         return next;
       });
-    } catch (err) {
-      console.error("Lỗi khi lưu khoa:", err?.response?.status, err?.response?.data || err);
+
+      setShowForm(false);
+      setEditing(null);
+
+      // vá lại count + id thật (nếu cần)
+      Promise.all([
+        getTeachersByFacultyName(optimistic.name).catch(() => []),
+        getDepartmentsByFacultyName(optimistic.name).catch(() => []),
+        getFacultiesWithCountsByName().catch(() => []),
+      ]).then(([teachers, departments, allFacs]) => {
+        const real = Array.isArray(allFacs)
+          ? allFacs.find(
+              (f) =>
+                (optimistic.code && f.code === optimistic.code) ||
+                norm(f.name) === norm(optimistic.name)
+            )
+          : null;
+
+        setFaculties((prev) => {
+          const idx = prev.findIndex((x) => x.id === optimistic.id);
+          if (idx === -1) return prev;
+          const next = [...prev];
+          next[idx] = {
+            ...(real || next[idx]),
+            code: (real?.code ?? next[idx].code) || "",
+            name: (real?.name ?? next[idx].name) || "",
+            deanName: real?.deanName ?? next[idx].deanName ?? "",
+            teacherCount: teachers.length,
+            departmentCount: departments.length,
+          };
+          setFiltered(applyFilter(next, search));
+          return next;
+        });
+      });
+    } catch {
+      // ignore
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!toDelete) return;
+    try {
+      await deleteFaculty(toDelete.id);
+      setFaculties((prev) => {
+        const next = prev.filter((f) => f.id !== toDelete.id);
+        setFiltered(applyFilter(next, search));
+        return next;
+      });
+    } catch {
+      // ignore
+    } finally {
+      setToDelete(null);
+      setShowDeleteModal(false);
     }
   };
 
   return (
     <div className="teacher-container">
-      {/* FORM (modal) */}
       {showForm && (
         <FacultyForm
-          editData={editingFaculty}
+          editData={editing}
           onClose={() => {
             setShowForm(false);
-            setEditingFaculty(null);
+            setEditing(null);
           }}
           onSuccess={handleFormSuccess}
         />
       )}
 
-      {/* DETAIL (modal) */}
       <FacultyDetail
         open={showDetail}
-        faculty={selectedFaculty}
+        faculty={selected}
         onClose={() => setShowDetail(false)}
       />
 
-      {/* Header */}
       <div className="teacher-header">
         <button
-          type="button"
           className="add-button"
-          onClick={handleAddClick}
-          onKeyDown={(e) => e.key === "Enter" && handleAddClick()}
+          onClick={() => {
+            setEditing(null);
+            setShowForm(true);
+          }}
         >
           Thêm khoa
-        </button>   
+        </button>
 
         <div className="search-container">
           <input
             type="text"
             placeholder="Tìm kiếm"
             className="search-input"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
           <FaSearch className="search-icon" />
         </div>
       </div>
 
-      {/* Bảng */}
       <table className="account-table">
         <thead>
           <tr>
@@ -227,64 +219,55 @@ const FacultyList = () => {
             <th>Tên khoa</th>
             <th>Trưởng khoa</th>
             <th>Số lượng giảng viên</th>
-            <th>Số lượng ngành</th>
+            <th>Số lượng bộ môn</th>
             <th>Thao tác</th>
           </tr>
         </thead>
         <tbody>
-          {!loading &&
-            filteredFaculties.map((f, idx) => (
-              <tr key={f.id}>
-                <td>{idx + 1}</td>
-                <td>{f.code}</td>
-                <td>{f.name}</td>
-                <td>{f.deanName || "Chưa cập nhật"}</td>
-                <td>{f.teacherCount ?? 0}</td>
-                <td>{f.departmentCount ?? 0}</td>
-                <td className="actions">
-                  <button
-                    type="button"
-                    className="icon-btn info"
-                    title="Chi tiết"
-                    onClick={(e) => handleInfoClick(e, f)}
-                    onKeyDown={(e) => e.key === "Enter" && handleInfoClick(e, f)}
-                    aria-label={`Xem chi tiết khoa ${f.name}`}
-                  >
-                    <FaInfoCircle />
-                  </button>
-                  <button
-                    type="button"
-                    className="icon-btn edit"
-                    title="Chỉnh sửa"
-                    onClick={(e) => handleEditClick(e, f)}
-                    onKeyDown={(e) => e.key === "Enter" && handleEditClick(e, f)}
-                    aria-label={`Chỉnh sửa khoa ${f.name}`}
-                  >
-                    <FaEdit />
-                  </button>
-                  <button
-                    type="button"
-                    className="icon-btn delete"
-                    title="Xóa"
-                    onClick={(e) => handleDeleteClick(e, f)}
-                    onKeyDown={(e) => e.key === "Enter" && handleDeleteClick(e, f)}
-                    aria-label={`Xóa khoa ${f.name}`}
-                  >
-                    <FaTrash />
-                  </button>
-                </td>
-              </tr>
-            ))}
-
-          {loading && (
-            <tr>
-              <td colSpan="7" style={{ textAlign: "center", padding: 20 }}>
-                Đang tải...
+          {filtered.map((f, i) => (
+            <tr key={f.id}>
+              <td>{i + 1}</td>
+              <td>{f.code}</td>
+              <td>{f.name}</td>
+              <td>{f.deanName || "Chưa cập nhật"}</td>
+              <td>{f.teacherCount ?? 0}</td>
+              <td>{f.departmentCount ?? 0}</td>
+              <td className="actions">
+                <button
+                  className="icon-btn info"
+                  title="Chi tiết"
+                  onClick={() => handleInfoClick(f)}
+                  aria-label={`Xem chi tiết khoa ${f.name}`}
+                >
+                  <FaInfoCircle />
+                </button>
+                <button
+                  className="icon-btn edit"
+                  title="Chỉnh sửa"
+                  onClick={() => {
+                    setEditing(f);
+                    setShowForm(true);
+                  }}
+                  aria-label={`Chỉnh sửa khoa ${f.name}`}
+                >
+                  <FaEdit />
+                </button>
+                <button
+                  className="icon-btn delete"
+                  title="Xóa"
+                  onClick={() => {
+                    setToDelete(f);
+                    setShowDeleteModal(true);
+                  }}
+                  aria-label={`Xóa khoa ${f.name}`}
+                >
+                  <FaTrash />
+                </button>
               </td>
             </tr>
-          )}
+          ))}
 
-          {!loading && filteredFaculties.length === 0 && (
+          {filtered.length === 0 && (
             <tr>
               <td colSpan="7" style={{ textAlign: "center", padding: 20 }}>
                 Không có dữ liệu
@@ -294,11 +277,10 @@ const FacultyList = () => {
         </tbody>
       </table>
 
-      {/* Footer */}
       <div className="footer">
         <div>
-          Hiển thị {filteredFaculties.length} kết quả
-          {searchTerm && ` (lọc từ ${faculties.length})`}
+          Hiển thị {filtered.length} kết quả
+          {search && ` (lọc từ ${faculties.length})`}
         </div>
         <div className="pagination">
           <select defaultValue="10">
@@ -306,13 +288,12 @@ const FacultyList = () => {
             <option value="25">25</option>
             <option value="50">50</option>
           </select>
-          <span>Từ 1 đến {Math.min(filteredFaculties.length, 10)} bản ghi</span>
+          <span>Từ 1 đến {Math.min(filtered.length, 10)} bản ghi</span>
           <button disabled>&lt;</button>
           <button disabled>&gt;</button>
         </div>
       </div>
 
-      {/* Modal xác nhận xóa */}
       <DeleteConfirmModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}

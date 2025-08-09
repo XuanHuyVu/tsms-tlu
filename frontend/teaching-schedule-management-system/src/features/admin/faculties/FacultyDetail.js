@@ -1,101 +1,127 @@
 import React from "react";
+import "../../../styles/FacultyDetail.css";
 
 const FacultyDetail = ({ open, faculty, onClose }) => {
-  if (!open) return null;
-
-  const departments = faculty?.departments ?? [];
-  const teachers = faculty?.teachers ?? [];
+  if (!open || !faculty) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal large">
-        <div className="modal-header">
-          <h3>Chi tiết khoa</h3>
-          <button onClick={onClose} className="close-btn">×</button>
+    <div className="faculty-detail-overlay" onClick={onClose}>
+      <div
+        className="faculty-detail-modal"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="fac-title"
+      >
+        {/* Header (cố định) */}
+        <div className="faculty-detail-header">
+          <h2 id="fac-title">CHI TIẾT KHOA</h2>
+          <button className="faculty-detail-close" onClick={onClose}>×</button>
         </div>
 
-        <div className="detail-grid">
-          <div>
-            <p><b>Mã khoa:</b> {faculty?.code}</p>
-            <p><b>Tên khoa:</b> {faculty?.name}</p>
-            <p><b>Trưởng khoa:</b> {faculty?.deanName || "Chưa cập nhật"}</p>
-            <p><b>Mô tả:</b> {faculty?.description || "-"}</p>
-          </div>
+        {/* Body (cuộn) */}
+        <div className="faculty-detail-body">
+          {/* Thông tin cơ bản */}
+          <div className="faculty-detail-section basic-info">
+            <h3>Thông tin cơ bản</h3>
+            <div className="basic-info-grid">
+              <div className="basic-info-item">
+                <label>Tên khoa:</label>
+                <input type="text" value={faculty.name || ""} disabled />
+              </div>
 
-          <div className="stats">
-            <div className="stat-card">
-              <div className="stat-value">{faculty?.teacherCount ?? 0}</div>
-              <div className="stat-label">Giảng viên</div>
+              <div className="basic-info-item">
+                <label>Mã khoa:</label>
+                <input type="text" value={faculty.code || ""} disabled />
+              </div>
+              <div className="basic-info-item">
+                <label>Số lượng giảng viên:</label>
+                <input type="number" value={faculty.teacherCount ?? faculty.teachers?.length ?? 0} disabled />
+              </div>
+
+              <div className="basic-info-item">
+                <label>Số lượng bộ môn:</label>
+                <input type="number" value={faculty.departmentCount ?? faculty.departments?.length ?? 0} disabled />
+              </div>
+
+              {faculty.description ? (
+                <div className="basic-info-item basic-info-item--full">
+                  <label>Mô tả:</label>
+                  <textarea value={faculty.description} disabled rows={4} />
+                </div>
+              ) : null}
             </div>
-            <div className="stat-card">
-              <div className="stat-value">{faculty?.departmentCount ?? 0}</div>
-              <div className="stat-label">Ngành/Bộ môn</div>
-            </div>
+          </div>
+
+          {/* Danh sách giảng viên */}
+          <div className="faculty-detail-section">
+            <h3>Danh sách giảng viên</h3>
+            {faculty.teachers?.length ? (
+              <div className="table-scroll">
+                <table className="faculty-teachers-table">
+                  <thead>
+                    <tr>
+                      <th>STT</th>
+                      <th>Mã GV</th>
+                      <th>Họ tên</th>
+                      <th>Email</th>
+                      <th>SĐT</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {faculty.teachers.map((t, i) => (
+                      <tr key={t.id || i}>
+                        <td>{i + 1}</td>
+                        <td>{t.teacherCode || t.code}</td>
+                        <td>{t.fullName || t.name}</td>
+                        <td>{t.email || "-"}</td>
+                        <td>{t.phoneNumber || "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="no-data">Chưa có giảng viên</p>
+            )}
+          </div>
+
+          {/* Danh sách bộ môn */}
+          <div className="faculty-detail-section">
+            <h3>Danh sách bộ môn</h3>
+            {faculty.departments?.length ? (
+              <div className="table-scroll">
+                <table className="faculty-departments-table">
+                  <thead>
+                    <tr>
+                      <th>STT</th>
+                      <th>Mã bộ môn</th>
+                      <th>Tên bộ môn</th>
+                      <th>Mô tả</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {faculty.departments.map((d, i) => (
+                      <tr key={d.id || i}>
+                        <td>{i + 1}</td>
+                        <td>{d.code}</td>
+                        <td>{d.name}</td>
+                        <td>{d.description || "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="no-data">Chưa có bộ môn</p>
+            )}
           </div>
         </div>
 
-        <div className="split">
-          <div className="panel">
-            <h4>Danh sách ngành/bộ môn</h4>
-            <table className="account-table">
-              <thead>
-                <tr>
-                  <th>STT</th>
-                  <th>Mã</th>
-                  <th>Tên</th>
-                </tr>
-              </thead>
-              <tbody>
-                {departments.map((d, i) => (
-                  <tr key={d.id}>
-                    <td>{i + 1}</td>
-                    <td>{d.code}</td>
-                    <td>{d.name}</td>
-                  </tr>
-                ))}
-                {!departments.length && (
-                  <tr>
-                    <td colSpan="3" style={{ textAlign: "center" }}>
-                      Chưa có dữ liệu
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="panel">
-            <h4>Danh sách giảng viên</h4>
-            <table className="account-table">
-              <thead>
-                <tr>
-                  <th>STT</th>
-                  <th>Họ tên</th>
-                  <th>Email</th>
-                  <th>Trạng thái</th>
-                </tr>
-              </thead>
-              <tbody>
-                {teachers.map((t, i) => (
-                  <tr key={t.id}>
-                    <td>{i + 1}</td>
-                    <td>{t.fullName || `${t.firstName ?? ""} ${t.lastName ?? ""}`}</td>
-                    <td>{t.email}</td>
-                    <td>{t.status}</td>
-                  </tr>
-                ))}
-                {!teachers.length && (
-                  <tr>
-                    <td colSpan="4" style={{ textAlign: "center" }}>
-                      Chưa có dữ liệu
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+        {/* Footer (cố định) */}
+        <div className="faculty-detail-footer">
+          <button className="btn-back" onClick={onClose}>Quay lại</button>
         </div>
-
       </div>
     </div>
   );

@@ -77,78 +77,72 @@ const TeachingHoursTracking = () => {
   }
 
   return (
-    <div className="teaching-hours-tracking">
-      <div className="schedule-content-wrapper">
-        <div className="schedule-content">
-          <div className="content-header">
-            <h2>Danh sách giờ dạy</h2>
+    <>
+      <div className="content-header">
+        <h2>Danh sách giờ dạy</h2>
+      </div>
+      <div className="schedule-list">
+        {schedules.length === 0 ? (
+          <div className="empty-state">
+            <p>Không có lịch dạy nào</p>
           </div>
-
-          <div className="schedule-list">
-            {schedules.length === 0 ? (
-              <div className="empty-state">
-                <p>Không có lịch dạy nào</p>
-              </div>
-            ) : (
-              schedules.map((schedule) => (
-                <div key={schedule.id} className="schedule-card">
-                  <div className="card-left-accent"></div>
-                  <div className="card-content">
-                    <div className="card-header">
-                      <div className="schedule-title">
-                        <h3>{schedule.title}</h3>
-                      </div>
-                      <div className="card-header-actions">
-                        {schedule.status === 'completed' && getStatusBadge(schedule.status, schedule.statusText)}
-                        {schedule.status === 'pending' && (
-                          <button 
-                            className="confirm-btn"
-                            onClick={() => handleConfirm(schedule.id)}
-                          >
-                            Xác nhận
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="card-body">
-                      <div className="schedule-info">
-                        <div className="info-row">
-                          <FaCalendarAlt className="info-icon" />
-                          <span className="info-text">{schedule.date}</span>
-                        </div>
-                        <div className="info-row">
-                          <FaBook className="info-icon" />
-                          <span className="info-text">{schedule.type}</span>
-                          <FaMapMarkerAlt className="info-icon" style={{ marginLeft: "12px" }} />
-                          <span className="info-text">{schedule.room}</span>
-                        </div>
-                        <div className="info-row">
-                          <FaClock className="info-icon" />
-                          <span className="info-text">{schedule.time}</span>
-                        </div>
-                        {schedule.status === 'completed' && (
-                          <div className="info-row">
-                            <FaCheckCircle className="info-icon status-icon" style={{ color: '#10b981' }} />
-                            <span className="info-text status-text">{schedule.statusText}</span>
-                          </div>
-                        )}
-                        {schedule.status === 'pending' && (
-                          <div className="info-row">
-                            <FaHourglassHalf className="info-icon pending-icon" style={{ color: '#f59e0b' }} />
-                            <span className="info-text pending-text">Chờ xác nhận</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+        ) : (
+          schedules.map((schedule) => (
+            <div key={schedule.id} className="schedule-card">
+              <div className="card-left-accent"></div>
+              <div className="card-content">
+                <div className="card-header">
+                  <div className="schedule-title">
+                    <h3>{schedule.title}</h3>
+                  </div>
+                  <div className="card-header-actions">
+                    {schedule.status === 'completed' && getStatusBadge(schedule.status, schedule.statusText)}
+                    {schedule.status === 'pending' && (
+                      <button 
+                        className="confirm-btn"
+                        onClick={() => handleConfirm(schedule.id)}
+                      >
+                        Xác nhận
+                      </button>
+                    )}
                   </div>
                 </div>
-              ))
-            )}
-          </div>
-        </div>
+                <div className="card-body">
+                  <div className="schedule-info">
+                    <div className="info-row">
+                      <FaCalendarAlt className="info-icon" />
+                      <span className="info-text">{schedule.date}</span>
+                    </div>
+                    <div className="info-row">
+                      <FaBook className="info-icon" />
+                      <span className="info-text">{schedule.type}</span>
+                      <FaMapMarkerAlt className="info-icon" style={{ marginLeft: "12px" }} />
+                      <span className="info-text">{schedule.room}</span>
+                    </div>
+                    <div className="info-row">
+                      <FaClock className="info-icon" />
+                      <span className="info-text">{schedule.time}</span>
+                    </div>
+                    {schedule.status === 'completed' && (
+                      <div className="info-row">
+                        <FaCheckCircle className="info-icon status-icon" style={{ color: '#10b981' }} />
+                        <span className="info-text status-text">{schedule.statusText}</span>
+                      </div>
+                    )}
+                    {schedule.status === 'pending' && (
+                      <div className="info-row">
+                        <FaHourglassHalf className="info-icon pending-icon" style={{ color: '#f59e0b' }} />
+                        <span className="info-text pending-text">Chờ xác nhận</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
-    </div>
+    </>
   );
 };
 

@@ -25,6 +25,7 @@
   align-items: center;
   margin-bottom: 10px;
   padding: 0 0 20px 0;
+  margin-top: 56px; /* Để tránh bị che bởi header cố định */
 }
 
 .content-header h2 {

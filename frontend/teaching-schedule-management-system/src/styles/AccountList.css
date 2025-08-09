@@ -1,4 +1,3 @@
-/* Tổng thể layout */
 body {
   font-family: Arial, sans-serif;
   background-color: #eaf0ff;
@@ -7,15 +6,13 @@ body {
 }
 
 .container {
-  padding: 20px 0px; /* Giảm padding trái phải từ 20px xuống 16px */
+  padding: 20px 0px;
   min-height: 100vh;
   max-width: 1200px;
   margin: 0 auto;
   display: flex;
-  flex-direction: column; /* Thêm flex để footer có thể stick bottom */
+  flex-direction: column;
 }
-
-
 
 /* Form Thêm + Tìm kiếm */
 .form-card.compact {
@@ -91,41 +88,37 @@ body {
   border-bottom: 1px solid #e0e0e0;
 }
 
-/* Styling cho cột thao tác */
 .account-table th:last-child,
 .account-table td:last-child {
-  width: 120px; /* Độ rộng cố định cho cột thao tác */
-  text-align: center; /* Căn giữa */
-  padding: 10px 8px; /* Giảm padding hai bên */
+  text-align: center;
+  width: 160px;
 }
 
+/* Hover */
 .account-table tbody tr:hover {
   background-color: #f3f7ff;
 }
 
+/* Icon thao tác */
 .actions {
   display: flex;
-  justify-content: space-evenly; /* Chia đều khoảng cách */
+  justify-content: center;
   align-items: center;
-  gap: 32px; /* Tăng gap từ 24px lên 32px để icon cách xa nhau hơn nữa */
-  padding: 12px 30px; /* Tăng padding ngang để có thêm không gian */
-  min-width: 180px; /* Tăng width để có thêm chỗ cho icon */
-  height: 50px; /* Chiều cao cố định để thẳng hàng */
+  gap: 50px;
+  height: 48px;
 }
 
 .icon {
   cursor: pointer;
-  font-size: 24px; /* Tăng lên 24px và bỏ padding */
-  padding: 0; /* Bỏ hoàn toàn padding để icon thực sự to */
-  border-radius: 0; /* Bỏ border-radius */
-  transition: color 0.2s ease; /* Chỉ transition màu thôi */
-  display: flex; /* Đảm bảo icon căn giữa */
+  font-size: 20px;
+  display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.2s ease;
 }
 
 .icon:hover {
-  transform: scale(1.1); /* Hiệu ứng phóng to khi hover thay vì background */
+  transform: scale(1.2);
 }
 
 .icon.info {
@@ -140,10 +133,10 @@ body {
   color: #e53935;
 }
 
-/* Footer phân trang */
+/* Footer */
 .footer {
-  margin-top: auto; /* Đẩy footer xuống cuối */
-  margin-bottom: 20px; /* Thêm khoảng cách với đáy */
+  margin-top: auto;
+  margin-bottom: 20px;
   padding: 12px 1px;
   display: flex;
   justify-content: space-between;
@@ -171,18 +164,4 @@ body {
 
 .pagination button:hover {
   background-color: #f2f2f2;
-}
-
-/* Clickable cell styling */
-.clickable-cell {
-  cursor: pointer;
-  color: #0d47a1;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.clickable-cell:hover {
-  background-color: #e3f2fd;
-  color: #0b3c91;
-  text-decoration: underline;
 }

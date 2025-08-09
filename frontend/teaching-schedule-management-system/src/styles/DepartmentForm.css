@@ -1,74 +1,72 @@
-.department-form-modal {
+/* Overlay che màn hình */
+.department-form-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex; align-items: center; justify-content: center;
   z-index: 9999;
-  padding-top: 100px;
 }
 
-/* Form container */
-.form-grid.no-card {
-  background: white;
-  padding: 24px;
-  border-radius: 10px;
+/* Card chính */
+.department-form-card {
+  background: #fff;
   width: 600px;
-  max-width: 95%;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+/* Header */
+.department-form-header {
+  background-color: #0d47a1;
+  color: #fff;
+  padding: 16px 24px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.department-form-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+.department-form-close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+}
+.department-form-close:hover {
+  background: rgba(255,255,255,0.1);
+  border-radius: 50%;
+}
+
+/* Body (form) */
+.department-form-body {
+  padding: 24px;
+}
+.department-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px 20px;
-  position: relative;
-  margin-top: 0;       /* ✅ xóa khoảng trắng */
-  padding-top: 0;      /* ✅ xóa khoảng trắng */
+  gap: 20px;
 }
 
-/* Title */
-.form-title {
+/* full-width textarea */
+.form-group.full-width {
   grid-column: span 2;
-  background-color: #0d47a1;
-  color: white;
-  font-size: 18px;
-  font-weight: 600;
-  padding: 14px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  margin: 0 -24px 24px -24px;  /* ✅ giữ tiêu đề sát mép trên */
 }
 
-/* Close button */
-.close {
-  cursor: pointer;
-  font-size: 24px;
-  font-weight: bold;
-  transition: opacity 0.2s ease;
-}
-.close:hover {
-  opacity: 0.7;
-}
-
-/* Inputs & labels */
+/* mỗi input/select/textarea */
 .form-group {
-  display: flex;
-  flex-direction: column;
+  display: flex; flex-direction: column;
 }
 .form-group label {
-  font-weight: normal;
+  font-weight: bold;
+  margin-bottom: 6px;
   font-size: 14px;
-  margin-bottom: 4px;
 }
 .form-group label span {
   color: red;
@@ -76,74 +74,62 @@
 .form-group input,
 .form-group select,
 .form-group textarea {
-  padding: 8px 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  padding: 10px;
   font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+}
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #aaa;
+}
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
 }
 
-/* Dropdown */
-.form-group select {
-  padding: 8px 30px 8px 10px;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 8px center;
-  background-size: 16px;
-}
-.form-group select option[value=""] {
-  color: #999;
-}
-
-/* Actions */
-.form-actions {
-  grid-column: span 2;
+/* Footer nút */
+.department-form-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-  margin-top: 12px;
+  gap: 10px;
+  padding: 16px 24px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
 }
-
+.submit-btn,
+.cancel-btn {
+  padding: 8px 20px;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: none;
+}
 .submit-btn {
   background-color: #0d47a1;
   color: white;
-  border: none;
-  padding: 8px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  min-width: 100px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: background-color 0.2s ease;
 }
-.submit-btn:hover:not(:disabled) {
-  background-color: #1565c0;
+.submit-btn:hover {
+  background-color: #07418c;
 }
-.submit-btn:disabled {
-  background-color: #9ca3af;
-  cursor: not-allowed;
+.cancel-btn {
+  background-color: #f1f1f1;
+  color: #333;
+}
+.cancel-btn:hover {
+  background-color: #ddd;
 }
 
-.cancel-btn {
-  background-color: #f3f4f6;
-  color: #374151;
-  border: 1px solid #d1d5db;
-  padding: 8px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  min-width: 100px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: background-color 0.2s ease;
-}
-.cancel-btn:hover:not(:disabled) {
-  background-color: #e5e7eb;
-}
-.cancel-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+/* Responsive */
+@media (max-width: 900px) {
+  .department-form-card {
+    width: 95%;
+  }
+  .department-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .form-group.full-width {
+    grid-column: span 1;
+  }
 }

@@ -1,8 +1,11 @@
+// src/features/admin/departments/DepartmentList.js
 import React, { useState, useEffect } from "react";
 import { FaEdit, FaTrash, FaInfoCircle, FaSearch } from "react-icons/fa";
 import DepartmentForm from "./DepartmentForm";
 import DepartmentDetail from "./DepartmentDetail";
 import DeleteConfirmModal from "../../../components/DeleteConfirmModal";
+import DepartmentApi from "../../../api/DepartmentApi";
+import { getAllTeachers } from "../../../api/TeacherApi";
 import "../../../styles/DepartmentList.css";
 
 const DepartmentList = () => {
@@ -17,99 +20,61 @@ const DepartmentList = () => {
   const [showDetail, setShowDetail] = useState(false);
 
   useEffect(() => {
-    const dummyData = [
-      {
-        id: 1,
-        code: "PM01",
-        name: "Công nghệ phần mềm",
-        facultyId: 2,
-        faculty: "Công nghệ thông tin",
-        lecturers: 12,
-        subjects: 8,
-        teachers: [],
-        subjectsList: [],
-      },
-      {
-        id: 2,
-        code: "HTTT02",
-        name: "Hệ thống thông tin",
-        facultyId: 2,
-        faculty: "Công nghệ thông tin",
-        lecturers: 10,
-        subjects: 5,
-        teachers: [],
-        subjectsList: [],
-      },
-      {
-        id: 3,
-        code: "TUD03",
-        name: "Toán ứng dụng",
-        facultyId: 3,
-        faculty: "Khoa học tự nhiên",
-        lecturers: 8,
-        subjects: 4,
-        teachers: [],
-        subjectsList: [],
-      },
-    ];
-    setDepartments(dummyData);
-    setFilteredDepartments(dummyData);
+    fetchDepartmentsWithCounts();
   }, []);
+
+  const fetchDepartmentsWithCounts = async () => {
+    try {
+      const deps = await DepartmentApi.department.getAll();
+      const teachers = await getAllTeachers();
+
+      const withCounts = deps.map((dep) => {
+        const teacherCount = teachers.filter(
+          (t) => t.department?.name === dep.name
+        ).length;
+        // Nếu BE trả sẵn subjectCount, dùng dep.subjectCount, ngược lại 0
+        const subjectCount = dep.subjectCount ?? 0;
+
+        return { ...dep, teacherCount, subjectCount };
+      });
+
+      setDepartments(withCounts);
+      setFilteredDepartments(withCounts);
+    } catch (err) {
+      console.error("Lỗi khi tải dữ liệu bộ môn:", err);
+    }
+  };
 
   useEffect(() => {
     if (!searchTerm.trim()) {
       setFilteredDepartments(departments);
     } else {
-      const filtered = departments.filter((dep) =>
-        dep.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        dep.faculty.toLowerCase().includes(searchTerm.toLowerCase())
+      const term = searchTerm.toLowerCase();
+      setFilteredDepartments(
+        departments.filter(
+          (dep) =>
+            dep.name.toLowerCase().includes(term) ||
+            dep.faculty?.name.toLowerCase().includes(term)
+        )
       );
-      setFilteredDepartments(filtered);
     }
   }, [searchTerm, departments]);
 
-  const getFacultyNameById = (id) => {
-    const facultyMap = {
-      1: "Khoa học máy tính",
-      2: "Công nghệ thông tin",
-      3: "Khoa học tự nhiên",
-    };
-    return facultyMap[id] || "";
-  };
-
-  const handleSearch = (e) => setSearchTerm(e.target.value);
-
-  const handleAddDepartment = () => {
-    setEditingDepartment(null);
-    setShowForm(true);
-  };
-
-  const handleCloseForm = () => {
-    setShowForm(false);
-    setEditingDepartment(null);
-  };
-
-  const handleFormSuccess = (data) => {
-    if (editingDepartment) {
-      const updatedList = departments.map((dep) =>
-        dep.id === editingDepartment.id
-          ? { ...dep, ...data, faculty: getFacultyNameById(data.facultyId) }
-          : dep
-      );
-      setDepartments(updatedList);
-    } else {
-      const newDepartment = {
-        id: departments.length + 1,
-        ...data,
-        faculty: getFacultyNameById(data.facultyId),
-        lecturers: 0,
-        subjects: 0,
-        teachers: [],
-        subjectsList: [],
-      };
-      setDepartments([newDepartment, ...departments]);
+  const handleFormSuccess = async (data) => {
+    const payload = { ...data, faculty: { id: data.facultyId } };
+    delete payload.facultyId;
+    try {
+      if (editingDepartment) {
+        await DepartmentApi.department.update(editingDepartment.id, payload);
+      } else {
+        await DepartmentApi.department.create(payload);
+      }
+      setShowForm(false);
+      setEditingDepartment(null);
+      await fetchDepartmentsWithCounts();
+    } catch (err) {
+      console.error("Lỗi khi lưu bộ môn:", err);
     }
-    setShowForm(false);
   };
 
   const handleDeleteClick = (dep) => {
@@ -117,21 +82,48 @@ const DepartmentList = () => {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
-    if (departmentToDelete) {
-      setDepartments(departments.filter(dep => dep.id !== departmentToDelete.id));
+  const confirmDelete = async () => {
+    if (!departmentToDelete) return;
+    try {
+      await DepartmentApi.department.delete(departmentToDelete.id);
+      await fetchDepartmentsWithCounts();
+    } catch (err) {
+      console.error("Lỗi khi xóa bộ môn:", err);
+    } finally {
       setDepartmentToDelete(null);
       setShowDeleteModal(false);
     }
   };
 
+  const handleViewDetail = async (dep) => {
+    try {
+      const full = await DepartmentApi.department.getById(dep.id);
+      const teachers = await getAllTeachers();
+      const listTeachers = teachers.filter((t) => t.department?.name === dep.name);
+
+      setSelectedDepartment({
+        ...full,
+        teacherCount: listTeachers.length,
+        subjectCount: full.subjectCount ?? 0,
+        teachers: listTeachers,
+        subjects: full.subjects ?? [],  // if BE returns subjects array
+      });
+      setShowDetail(true);
+    } catch (err) {
+      console.error("Lỗi khi tải chi tiết đầy đủ:", err);
+    }
+  };
+
   return (
-    <div className="container">
+    <div className="teacher-container">
       {showForm && (
         <DepartmentForm
-          onClose={handleCloseForm}
-          onSuccess={handleFormSuccess}
+          onClose={() => {
+            setShowForm(false);
+            setEditingDepartment(null);
+          }}
           editData={editingDepartment}
+          onSuccess={handleFormSuccess}
         />
       )}
 
@@ -141,17 +133,23 @@ const DepartmentList = () => {
         onClose={() => setShowDetail(false)}
       />
 
-      <div className="form-card compact">
-        <button className="add-btn" onClick={handleAddDepartment}>
+      <div className="teacher-header">
+        <button
+          className="add-button"
+          onClick={() => {
+            setEditingDepartment(null);
+            setShowForm(true);
+          }}
+        >
           Thêm bộ môn
         </button>
         <div className="search-container">
           <input
             type="text"
-            className="search-box"
             placeholder="Tìm kiếm"
+            className="search-input"
             value={searchTerm}
-            onChange={handleSearch}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
           <FaSearch className="search-icon" />
         </div>
@@ -164,28 +162,26 @@ const DepartmentList = () => {
             <th>Mã bộ môn</th>
             <th>Tên bộ môn</th>
             <th>Khoa</th>
-            <th>Số lượng<br />giảng viên</th>
-            <th>Số lượng<br />môn học</th>
+            <th>Số lượng GV</th>
+            <th>Số lượng môn học</th>
             <th>Thao tác</th>
           </tr>
         </thead>
         <tbody>
-          {filteredDepartments.map((dep, index) => (
+          {filteredDepartments.map((dep, idx) => (
             <tr key={dep.id}>
-              <td>{index + 1}</td>
+              <td>{idx + 1}</td>
               <td>{dep.code}</td>
               <td>{dep.name}</td>
-              <td>{dep.faculty}</td>
-              <td>{dep.lecturers}</td>
-              <td>{dep.subjects}</td>
+              <td>{dep.faculty?.name || "Chưa xác định"}</td>
+              <td>{dep.teacherCount}</td>
+              <td>{dep.subjectCount}</td>
               <td className="actions">
                 <FaInfoCircle
                   className="icon info"
                   title="Chi tiết"
-                  onClick={() => {
-                    setSelectedDepartment(dep);
-                    setShowDetail(true);
-                  }}
+                  onClick={() => handleViewDetail(dep)}
+                  style={{ cursor: "pointer", marginRight: 8 }}
                 />
                 <FaEdit
                   className="icon edit"
@@ -194,11 +190,13 @@ const DepartmentList = () => {
                     setEditingDepartment(dep);
                     setShowForm(true);
                   }}
+                  style={{ cursor: "pointer", marginRight: 8 }}
                 />
                 <FaTrash
                   className="icon delete"
                   title="Xóa"
                   onClick={() => handleDeleteClick(dep)}
+                  style={{ cursor: "pointer" }}
                 />
               </td>
             </tr>
@@ -209,19 +207,19 @@ const DepartmentList = () => {
       <div className="footer">
         <div>
           Hiển thị {filteredDepartments.length} kết quả
-          {searchTerm && ` (lọc từ ${departments.length} bộ môn)`}
+          {searchTerm && ` (lọc từ ${departments.length})`}
         </div>
         <div className="pagination">
-          <select>
-            <option>10</option>
-            <option>25</option>
-            <option>50</option>
+          <select defaultValue="10">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
           </select>
           <span>
             Từ 1 đến {Math.min(filteredDepartments.length, 10)} bản ghi
           </span>
-          <button>&lt;</button>
-          <button>&gt;</button>
+          <button disabled>&lt;</button>
+          <button disabled>&gt;</button>
         </div>
       </div>
 
@@ -230,7 +228,7 @@ const DepartmentList = () => {
         onClose={() => setShowDeleteModal(false)}
         onConfirm={confirmDelete}
         title="XÓA BỘ MÔN"
-        message={`Bạn có chắc chắn muốn xóa bộ môn này không?`}
+        message="Bạn có chắc chắn muốn xóa bộ môn này không?"
       />
     </div>
   );

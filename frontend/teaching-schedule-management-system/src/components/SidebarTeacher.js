@@ -35,7 +35,7 @@ const SidebarTeacher = () => {
 
         {/* THỐNG KÊ */}
         <li>
-          <NavLink to="/teacher-dashboard/statistics" className="menu-link-standalone">
+          <NavLink to="/teacher-dashboard/teaching-stats" className="menu-link-standalone">
             THỐNG KÊ GIỜ DẠY
           </NavLink>
         </li>

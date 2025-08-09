@@ -6,6 +6,7 @@ import HeaderTeacher from "../components/HeaderTeacher";
 import TeacherDashboard from "../features/teacher/dashboard/TeacherDashboard";
 import ScheduleManagement from "../features/teacher/schedule/ScheduleManagement";
 import TeachingHoursTracking from "../features/teacher/teachingHours/TeachingHoursTracking";
+import TeachingStats from "../features/teacher/teachingStats/TeachingStats";
 
 import "../styles/TeacherLayout.css";
 
@@ -22,6 +23,7 @@ function TeacherLayout() {
             <Route path="/" element={<TeacherDashboard />} />
             <Route path="/schedule-management" element={<ScheduleManagement />} />
             <Route path="/attendance" element={<TeachingHoursTracking />} />
+            <Route path="/teaching-stats" element={<TeachingStats />} />
           </Routes>
         </div>
       </div>

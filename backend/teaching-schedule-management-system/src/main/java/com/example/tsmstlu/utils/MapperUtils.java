@@ -19,6 +19,13 @@ import com.example.tsmstlu.dto.subject.SubjectDto;
 import com.example.tsmstlu.dto.subject.SubjectListDto;
 import com.example.tsmstlu.dto.subject.SubjectUpdateDto;
 import com.example.tsmstlu.dto.teacher.*;
+import com.example.tsmstlu.dto.teaching_schedule.TeachingScheduleCreateDto;
+import com.example.tsmstlu.dto.teaching_schedule.TeachingScheduleDto;
+import com.example.tsmstlu.dto.teaching_schedule.TeachingScheduleListDto;
+import com.example.tsmstlu.dto.teaching_schedule.TeachingScheduleUpdateDto;
+import com.example.tsmstlu.dto.teaching_schedule_detail.TeachingScheduleDetailCreateDto;
+import com.example.tsmstlu.dto.teaching_schedule_detail.TeachingScheduleDetailDto;
+import com.example.tsmstlu.dto.teaching_schedule_detail.TeachingScheduleDetailUpdateDto;
 import com.example.tsmstlu.dto.user.UserCreateDto;
 import com.example.tsmstlu.dto.user.UserDto;
 import com.example.tsmstlu.entity.*;
@@ -86,5 +93,17 @@ public interface MapperUtils {
     ClassSectionEntity toClassSectionEntity(ClassSectionCreateDto dto);
     ClassSectionEntity toClassSectionEntity(ClassSectionUpdateDto dto);
     void copyEntity(ClassSectionUpdateDto dto, @MappingTarget ClassSectionEntity entity);
-}
 
+    // Teaching Schedule
+    TeachingScheduleDto toTeachingScheduleDto(TeachingScheduleEntity entity);
+    TeachingScheduleListDto toTeachingScheduleListDto(TeachingScheduleEntity entity);
+    TeachingScheduleEntity toTeachingScheduleEntity(TeachingScheduleCreateDto dto);
+    TeachingScheduleEntity toTeachingScheduleEntity(TeachingScheduleUpdateDto dto);
+    void copyEntity(TeachingScheduleUpdateDto dto, @MappingTarget TeachingScheduleEntity entity);
+
+    // Teaching Schedule Detail
+    TeachingScheduleDetailDto toTeachingScheduleDetailDto(TeachingScheduleDetailEntity entity);
+    TeachingScheduleDetailEntity toTeachingScheduleDetailEntity(TeachingScheduleDetailCreateDto dto);
+    TeachingScheduleDetailEntity toTeachingScheduleDetailEntity(TeachingScheduleDetailUpdateDto dto);
+    void copyEntity(TeachingScheduleDetailUpdateDto dto, @MappingTarget TeachingScheduleDetailEntity entity);
+}

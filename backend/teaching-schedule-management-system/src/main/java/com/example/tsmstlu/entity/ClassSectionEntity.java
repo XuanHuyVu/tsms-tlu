@@ -1,28 +1,45 @@
 package com.example.tsmstlu.entity;
 
+import com.example.tsmstlu.common.TableNameContants;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
-@Table(name = "class_sections")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ClassSectionEntity {
+@SuperBuilder
+@EqualsAndHashCode(callSuper = true)
+@Entity
+@Table(name = TableNameContants.CLASS_SECTION)
+public class ClassSectionEntity extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 100)
     private String name;
 
-    @ManyToOne
-    @JoinColumn(name = "subject_id")
-    private SubjectEntity subject;
-
-    @ManyToOne
-    @JoinColumn(name = "teacher_id")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "teacher_id", nullable = false)
     private TeacherEntity teacher;
 
-    @Column(length = 50)
-    private String room;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "subject_id", nullable = false)
+    private SubjectEntity subject;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "department_id", nullable = false)
+    private DepartmentEntity department;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "faculty_id", nullable = false)
+    private FacultyEntity faculty;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "semester_id", nullable = false)
+    private SemesterEntity semester;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "room_id", nullable = false)
+    private RoomEntity room;
 }

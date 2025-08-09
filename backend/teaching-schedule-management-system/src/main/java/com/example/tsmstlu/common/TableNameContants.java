@@ -12,4 +12,5 @@ public class TableNameContants {
     public static final String STUDENT = "students";
     public static final String ROOM = "rooms";
     public static final String SUBJECT = "subjects";
+    public static final String CLASS_SECTION = "class_sections";
 }

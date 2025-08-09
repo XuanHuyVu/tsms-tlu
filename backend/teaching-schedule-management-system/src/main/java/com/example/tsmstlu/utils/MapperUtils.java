@@ -1,39 +1,109 @@
 package com.example.tsmstlu.utils;
 
-import com.example.tsmstlu.models.SemesterEntity;
-import com.example.tsmstlu.dtos.semester.*;
-import org.mapstruct.*;
-import org.mapstruct.factory.Mappers;
+import com.example.tsmstlu.dto.class_section.ClassSectionCreateDto;
+import com.example.tsmstlu.dto.class_section.ClassSectionDto;
+import com.example.tsmstlu.dto.class_section.ClassSectionListDto;
+import com.example.tsmstlu.dto.class_section.ClassSectionUpdateDto;
+import com.example.tsmstlu.dto.department.DepartmentCreateDto;
+import com.example.tsmstlu.dto.department.DepartmentDto;
+import com.example.tsmstlu.dto.department.DepartmentListDto;
+import com.example.tsmstlu.dto.department.DepartmentUpdateDto;
+import com.example.tsmstlu.dto.faculty.FacultyDto;
+import com.example.tsmstlu.dto.room.RoomCreateDto;
+import com.example.tsmstlu.dto.room.RoomDto;
+import com.example.tsmstlu.dto.room.RoomListDto;
+import com.example.tsmstlu.dto.room.RoomUpdateDto;
+import com.example.tsmstlu.dto.semester.SemesterDto;
+import com.example.tsmstlu.dto.subject.SubjectCreateDto;
+import com.example.tsmstlu.dto.subject.SubjectDto;
+import com.example.tsmstlu.dto.subject.SubjectListDto;
+import com.example.tsmstlu.dto.subject.SubjectUpdateDto;
+import com.example.tsmstlu.dto.teacher.*;
+import com.example.tsmstlu.dto.teaching_schedule.TeachingScheduleCreateDto;
+import com.example.tsmstlu.dto.teaching_schedule.TeachingScheduleDto;
+import com.example.tsmstlu.dto.teaching_schedule.TeachingScheduleListDto;
+import com.example.tsmstlu.dto.teaching_schedule.TeachingScheduleUpdateDto;
+import com.example.tsmstlu.dto.teaching_schedule_detail.TeachingScheduleDetailCreateDto;
+import com.example.tsmstlu.dto.teaching_schedule_detail.TeachingScheduleDetailDto;
+import com.example.tsmstlu.dto.teaching_schedule_detail.TeachingScheduleDetailUpdateDto;
+import com.example.tsmstlu.dto.user.UserCreateDto;
+import com.example.tsmstlu.dto.user.UserDto;
+import com.example.tsmstlu.entity.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface MapperUtils {
-    MapperUtils INSTANCE = Mappers.getMapper(MapperUtils.class);
+    // Semester
+    SemesterDto toSemesterDto(SemesterEntity entity);
+    SemesterEntity toSemesterEntity(SemesterDto dto);
 
-    @Mapping(target = "term", source = "term", qualifiedByName = "termToString")
-    @Mapping(target = "status", source = "status", qualifiedByName = "statusToString")
-    SemesterDto toDto(SemesterEntity entity);
 
-    @Mapping(target = "term", source = "term", qualifiedByName = "stringToTerm")
-    @Mapping(target = "status", source = "status", qualifiedByName = "stringToStatus")
-    SemesterEntity toEntity(SemesterDto dto);
+    // Faculty
+    FacultyDto toFacultyDto(FacultyEntity entity);
+    FacultyEntity toFacultyEntity(FacultyDto dto);
 
-    @Named("termToString")
-    static String termToString(SemesterEntity.Term term) {
-        return term != null ? term.name() : null;
-    }
+    // Department
+    DepartmentDto toDepartmentDto(DepartmentEntity entity);
+    DepartmentListDto toDepartmentListDto(DepartmentEntity entity);
+    DepartmentEntity toDepartmentEntity(DepartmentCreateDto dto);
+    DepartmentEntity toDepartmentEntity(DepartmentUpdateDto dto);
+    void copyEntity(DepartmentUpdateDto dto, @MappingTarget DepartmentEntity entity);
 
-    @Named("stringToTerm")
-    static SemesterEntity.Term stringToTerm(String term) {
-        return term != null ? SemesterEntity.Term.valueOf(term) : null;
-    }
 
-    @Named("statusToString")
-    static String statusToString(SemesterEntity.SemesterStatus status) {
-        return status != null ? status.name() : null;
-    }
+    // User
+    UserDto toUserDto(UserEntity entity);
+    UserEntity toEntity(UserDto dto);
+    UserCreateDto toUserCreateDto(UserEntity entity);
+    UserEntity toEntity(UserCreateDto dto);
 
-    @Named("stringToStatus")
-    static SemesterEntity.SemesterStatus stringToStatus(String status) {
-        return status != null ? SemesterEntity.SemesterStatus.valueOf(status) : null;
-    }
+    // Teacher
+    TeacherListDto toTeacherListDto(TeacherEntity entity);
+    TeacherDto toTeacherDetailDto(TeacherEntity entity);
+    TeacherEntity toTeacherEntity(TeacherCreateDto dto);
+    TeacherEntity toTeacherEntity(TeacherUpdateDto dto);
+    TeacherUpdateDto toTeacherUpdateDto(TeacherEntity entity);
+    TeacherCreateDto toTeacherCreateDto(TeacherDto entity);
+
+    void copyEntity(TeacherUpdateDto dto, @MappingTarget TeacherEntity entity);
+
+     //Room
+     RoomListDto toRoomListDto(RoomEntity entity);
+     RoomDto toRoomDetailDto(RoomEntity entity);
+     RoomCreateDto toRoomCreateDto(RoomEntity entity);
+     RoomUpdateDto toRoomUpdateDto(RoomEntity entity);
+     RoomEntity toRoomEntity(RoomCreateDto dto);
+     RoomEntity toRoomEntity(RoomUpdateDto dto);
+     void copyEntity(RoomUpdateDto dto, @MappingTarget RoomEntity entity);
+
+     //Subject
+     SubjectListDto toSubjectListDto(SubjectEntity entity);
+     SubjectDto toSubjectDetailDto(SubjectEntity entity);
+     SubjectCreateDto toSubjectCreateDto(SubjectEntity entity);
+     SubjectUpdateDto toSubjectUpdateDto(SubjectEntity entity);
+     SubjectEntity toSubjectEntity(SubjectCreateDto dto);
+     SubjectEntity toSubjectEntity(SubjectUpdateDto dto);
+     void copyEntity(SubjectUpdateDto dto, @MappingTarget SubjectEntity entity);
+
+     //Class Section
+    ClassSectionListDto toClassSectionListDto(ClassSectionEntity entity);
+    ClassSectionDto toClassSectionDetailDto(ClassSectionEntity entity);
+    ClassSectionCreateDto toClassSectionCreateDto(ClassSectionEntity entity);
+    ClassSectionUpdateDto toClassSectionUpdateDto(ClassSectionEntity entity);
+    ClassSectionEntity toClassSectionEntity(ClassSectionCreateDto dto);
+    ClassSectionEntity toClassSectionEntity(ClassSectionUpdateDto dto);
+    void copyEntity(ClassSectionUpdateDto dto, @MappingTarget ClassSectionEntity entity);
+
+    // Teaching Schedule
+    TeachingScheduleDto toTeachingScheduleDto(TeachingScheduleEntity entity);
+    TeachingScheduleListDto toTeachingScheduleListDto(TeachingScheduleEntity entity);
+    TeachingScheduleEntity toTeachingScheduleEntity(TeachingScheduleCreateDto dto);
+    TeachingScheduleEntity toTeachingScheduleEntity(TeachingScheduleUpdateDto dto);
+    void copyEntity(TeachingScheduleUpdateDto dto, @MappingTarget TeachingScheduleEntity entity);
+
+    // Teaching Schedule Detail
+    TeachingScheduleDetailDto toTeachingScheduleDetailDto(TeachingScheduleDetailEntity entity);
+    TeachingScheduleDetailEntity toTeachingScheduleDetailEntity(TeachingScheduleDetailCreateDto dto);
+    TeachingScheduleDetailEntity toTeachingScheduleDetailEntity(TeachingScheduleDetailUpdateDto dto);
+    void copyEntity(TeachingScheduleDetailUpdateDto dto, @MappingTarget TeachingScheduleDetailEntity entity);
 }

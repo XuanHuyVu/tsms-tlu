@@ -81,7 +81,7 @@ const Sidebar = () => {
           </div>
           <ul className={`submenu ${openMenus.lichHoc ? 'open' : ''}`}>
             <li><NavLink to="/thoi-khoa-bieu" className="submenu-link">THỜI KHÓA BIỂU</NavLink></li>
-            <li><NavLink to="/lich-thay-doi" className="submenu-link">LỊCH THAY ĐỔI</NavLink></li>
+            <li><NavLink to="/schedulechanges" className="submenu-link">LỊCH THAY ĐỔI</NavLink></li>
             <li><NavLink to="/semesters" className="submenu-link">HỌC KỲ</NavLink></li>
           </ul>
         </li>

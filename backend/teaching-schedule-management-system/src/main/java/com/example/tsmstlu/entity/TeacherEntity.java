@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -44,4 +45,5 @@ public class TeacherEntity extends BaseEntity{
     private FacultyEntity faculty;
 
     private String status;
+
 }

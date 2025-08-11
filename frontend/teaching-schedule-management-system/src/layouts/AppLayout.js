@@ -16,6 +16,7 @@ import RoomList from '../features/admin/rooms/RoomList';
 import SubjectList from '../features/admin/subjects/SubjectList';
 import ClassSectionList from '../features/admin/class_sections/ClassSectionList';
 import ScheduleChangeList from '../features/admin/schedulechanges/ScheduleChangeList';
+import TeachingScheduleList from '../features/admin/teaching_schedules/TeachingScheduleList';
 function AppLayout() {
   return (
     <Routes>
@@ -42,6 +43,7 @@ function AppLayout() {
                 <Route path="/subjects" element={<div><SubjectList /></div>} />
                 <Route path="/class-sections" element={<div><ClassSectionList /></div>} />
                 <Route path="/schedulechanges" element={<div><ScheduleChangeList /></div>} />
+                <Route path="/teaching-schedules" element={<div><TeachingScheduleList /></div>} />
                 {/* Thêm các route khác tại đây */}
                 <Route path="*" element={<Dashboard />} />
               </Routes>

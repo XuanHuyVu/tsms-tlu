@@ -13,7 +13,7 @@ const EditScheduleModal = ({ isOpen, onClose, onSubmit, scheduleData }) => {
     room: "",
     type: "",
     content: "",
-    materials: null
+    materials: null,
   });
 
   // Convert department display to value
@@ -46,7 +46,7 @@ const EditScheduleModal = ({ isOpen, onClose, onSubmit, scheduleData }) => {
         room: scheduleData.room?.replace(/\s-\s/g, "-") || "",
         type: convertToTypeValue(scheduleData.type) || "",
         content: scheduleData.content || "",
-        materials: null
+        materials: null,
       });
     }
   }, [isOpen, scheduleData]);
@@ -58,7 +58,7 @@ const EditScheduleModal = ({ isOpen, onClose, onSubmit, scheduleData }) => {
     const dateMatch = dayText.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
     if (dateMatch) {
       const [, day, month, year] = dateMatch;
-      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
     }
     return "";
   };
@@ -84,32 +84,39 @@ const EditScheduleModal = ({ isOpen, onClose, onSubmit, scheduleData }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleFileChange = (e) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      materials: e.target.files[0]
+      materials: e.target.files[0],
     }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Kiểm tra validation
-    if (!formData.course || !formData.department || !formData.faculty || 
-        !formData.date || !formData.period || !formData.room || !formData.type) {
+    if (
+      !formData.course ||
+      !formData.department ||
+      !formData.faculty ||
+      !formData.date ||
+      !formData.period ||
+      !formData.room ||
+      !formData.type
+    ) {
       alert("Vui lòng điền đầy đủ các trường bắt buộc!");
       return;
     }
-    
+
     // Gọi hàm onSubmit từ parent component với ID của schedule
     onSubmit({ ...formData, id: scheduleData.id });
-    
+
     // Đóng modal
     onClose();
   };
@@ -124,7 +131,7 @@ const EditScheduleModal = ({ isOpen, onClose, onSubmit, scheduleData }) => {
       room: "",
       type: "",
       content: "",
-      materials: null
+      materials: null,
     });
     onClose();
   };
@@ -155,9 +162,15 @@ const EditScheduleModal = ({ isOpen, onClose, onSubmit, scheduleData }) => {
                 required
               >
                 <option value="">-Chọn lớp học phần-</option>
-                <option value="CSE423_001">Lập trình phân tán-2-24 (CSE423_001)</option>
-                <option value="CSE481_002">Công nghệ phần mềm-2-24 (CSE481_002)</option>
-                <option value="CSE350_003">Cơ sở dữ liệu-2-24 (CSE350_003)</option>
+                <option value="CSE423_001">
+                  Lập trình phân tán-2-24 (CSE423_001)
+                </option>
+                <option value="CSE481_002">
+                  Công nghệ phần mềm-2-24 (CSE481_002)
+                </option>
+                <option value="CSE350_003">
+                  Cơ sở dữ liệu-2-24 (CSE350_003)
+                </option>
               </select>
             </div>
           </div>
@@ -294,7 +307,7 @@ const EditScheduleModal = ({ isOpen, onClose, onSubmit, scheduleData }) => {
                   id="materials"
                   name="materials"
                   onChange={handleFileChange}
-                  style={{ display: 'none' }}
+                  style={{ display: "none" }}
                   accept=".pdf,.doc,.docx,.ppt,.pptx"
                 />
                 <label htmlFor="materials" className="file-upload-label">

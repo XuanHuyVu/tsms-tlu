@@ -3,7 +3,13 @@ import React, { useState } from "react";
 import { FaTimes, FaUpload, FaExclamationTriangle } from "react-icons/fa";
 import "../../../styles/CreateScheduleModal.css";
 
-const CreateScheduleModal = ({ isOpen, onClose, onSubmit, mode = "create", scheduleData = null }) => {
+const CreateScheduleModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  mode = "create",
+  scheduleData = null,
+}) => {
   const [formData, setFormData] = useState({
     course: "",
     department: "",
@@ -13,43 +19,50 @@ const CreateScheduleModal = ({ isOpen, onClose, onSubmit, mode = "create", sched
     room: "",
     type: "",
     content: "",
-    materials: null
+    materials: null,
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleFileChange = (e) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      materials: e.target.files[0]
+      materials: e.target.files[0],
     }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (mode === "delete") {
       // Xử lý xóa
       onSubmit(scheduleData);
       return;
     }
-    
+
     // Kiểm tra validation cho mode create
-    if (!formData.course || !formData.department || !formData.faculty || 
-        !formData.date || !formData.period || !formData.room || !formData.type) {
+    if (
+      !formData.course ||
+      !formData.department ||
+      !formData.faculty ||
+      !formData.date ||
+      !formData.period ||
+      !formData.room ||
+      !formData.type
+    ) {
       alert("Vui lòng điền đầy đủ các trường bắt buộc!");
       return;
     }
-    
+
     // Gọi hàm onSubmit từ parent component
     onSubmit(formData);
-    
+
     // Reset form
     setFormData({
       course: "",
@@ -60,7 +73,7 @@ const CreateScheduleModal = ({ isOpen, onClose, onSubmit, mode = "create", sched
       room: "",
       type: "",
       content: "",
-      materials: null
+      materials: null,
     });
   };
 
@@ -74,7 +87,7 @@ const CreateScheduleModal = ({ isOpen, onClose, onSubmit, mode = "create", sched
       room: "",
       type: "",
       content: "",
-      materials: null
+      materials: null,
     });
     onClose();
   };
@@ -104,10 +117,18 @@ const CreateScheduleModal = ({ isOpen, onClose, onSubmit, mode = "create", sched
             </div>
 
             <div className="modal-footer">
-              <button type="button" className="btn-confirm" onClick={handleSubmit}>
+              <button
+                type="button"
+                className="btn-confirm"
+                onClick={handleSubmit}
+              >
                 Xác nhận
               </button>
-              <button type="button" className="btn-cancel" onClick={handleCancel}>
+              <button
+                type="button"
+                className="btn-cancel"
+                onClick={handleCancel}
+              >
                 Hủy bỏ
               </button>
             </div>
@@ -143,9 +164,15 @@ const CreateScheduleModal = ({ isOpen, onClose, onSubmit, mode = "create", sched
                 required
               >
                 <option value="">-Chọn lớp học phần-</option>
-                <option value="CSE423_001">Lập trình phân tán-2-24 (CSE423_001)</option>
-                <option value="CSE481_002">Công nghệ phần mềm-2-24 (CSE481_002)</option>
-                <option value="CSE350_003">Cơ sở dữ liệu-2-24 (CSE350_003)</option>
+                <option value="CSE423_001">
+                  Lập trình phân tán-2-24 (CSE423_001)
+                </option>
+                <option value="CSE481_002">
+                  Công nghệ phần mềm-2-24 (CSE481_002)
+                </option>
+                <option value="CSE350_003">
+                  Cơ sở dữ liệu-2-24 (CSE350_003)
+                </option>
               </select>
             </div>
           </div>
@@ -282,7 +309,7 @@ const CreateScheduleModal = ({ isOpen, onClose, onSubmit, mode = "create", sched
                   id="materials"
                   name="materials"
                   onChange={handleFileChange}
-                  style={{ display: 'none' }}
+                  style={{ display: "none" }}
                   accept=".pdf,.doc,.docx,.ppt,.pptx"
                 />
                 <label htmlFor="materials" className="file-upload-label">

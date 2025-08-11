@@ -7,7 +7,7 @@ body {
 
 /* Tổng thể layout */
 .teacher-container {
-  padding: 20px 10px;
+  padding: 10px 10px;
   min-height: 100vh;
   display: flex;
   flex-direction: column;

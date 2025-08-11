@@ -15,6 +15,7 @@ import SemesterList from '../features/admin/semesters/SemesterList';
 import RoomList from '../features/admin/rooms/RoomList';
 import SubjectList from '../features/admin/subjects/SubjectList';
 import ClassSectionList from '../features/admin/class_sections/ClassSectionList';
+import ScheduleChangeList from '../features/admin/schedulechanges/ScheduleChangeList';
 function AppLayout() {
   return (
     <Routes>
@@ -40,6 +41,7 @@ function AppLayout() {
                 <Route path="/faculties" element={<div><FacultyList /></div>} />
                 <Route path="/subjects" element={<div><SubjectList /></div>} />
                 <Route path="/class-sections" element={<div><ClassSectionList /></div>} />
+                <Route path="/schedulechanges" element={<div><ScheduleChangeList /></div>} />
                 {/* Thêm các route khác tại đây */}
                 <Route path="*" element={<Dashboard />} />
               </Routes>

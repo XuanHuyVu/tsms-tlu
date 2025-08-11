@@ -11,7 +11,7 @@
 
 /* Modal card */
 .csf-modal {
-  width: min(500px, 96vw);
+  width: min(750px, 96vw);
   background: #fff;
   border-radius: 10px;
   box-shadow: 0 20px 60px rgba(0,0,0,.2);

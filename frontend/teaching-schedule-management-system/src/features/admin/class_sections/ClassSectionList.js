@@ -119,16 +119,15 @@ const ClassSectionList = () => {
         <button className="class-section-add-btn" onClick={onCreateClick}>
           Thêm lớp học phần
         </button>
-
-        <div>
+        <div className="search-container">
           <input
             type="text"
             placeholder="Tìm kiếm"
-            className="class-section-search-input"
+            className="search-input"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <FaSearch className="class-section-search-icon" />
+          <FaSearch className="search-icon" />
         </div>
       </div>
 

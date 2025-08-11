@@ -4,7 +4,6 @@ import lombok.Data;
 
 @Data
 public class TeachingScheduleDetailResponseDto {
-    private String dayOfWeek;
     private String teachingDate;
     private String periodStart;
     private String periodEnd;

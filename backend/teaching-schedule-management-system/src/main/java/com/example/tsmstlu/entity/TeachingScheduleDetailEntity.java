@@ -22,9 +22,6 @@ public class TeachingScheduleDetailEntity extends BaseEntity {
     @JoinColumn(name = "schedule_id", nullable = false)
     private TeachingScheduleEntity schedule;
 
-    @Column(name = "day_of_week", nullable = false)
-    private String dayOfWeek;
-
     @Column(name = "teaching_date", nullable = false)
     private String teachingDate;
 

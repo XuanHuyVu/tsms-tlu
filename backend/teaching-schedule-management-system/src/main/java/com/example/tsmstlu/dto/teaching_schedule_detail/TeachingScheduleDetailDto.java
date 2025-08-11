@@ -5,7 +5,6 @@ import lombok.Data;
 @Data
 public class TeachingScheduleDetailDto {
     private Long id;
-    private String dayOfWeek;
     private String teachingDate;
     private String periodStart;
     private String periodEnd;

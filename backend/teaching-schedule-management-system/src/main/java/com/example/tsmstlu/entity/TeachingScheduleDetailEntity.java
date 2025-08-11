@@ -25,7 +25,14 @@ public class TeachingScheduleDetailEntity extends BaseEntity {
     @Column(name = "day_of_week", nullable = false)
     private String dayOfWeek;
 
-    private String period;
-    private String duration;
+    @Column(name = "teaching_date", nullable = false)
+    private String teachingDate;
+
+    @Column(name = "period_start", nullable = false)
+    private String periodStart;
+
+    @Column(name = "period_end", nullable = false)
+    private String periodEnd;
+
     private String type;
 }

@@ -12,10 +12,7 @@ import java.util.List;
 @Data
 public class TeachingScheduleDto {
     private Long id;
-    private TeacherResponseDto teacher;
     private ClassSectionResponseDto classSection;
-    private SemesterResponseDto semester;
-    private RoomResponseDto room;
     private String note;
     private List<TeachingScheduleDetailResponseDto> details;
 }

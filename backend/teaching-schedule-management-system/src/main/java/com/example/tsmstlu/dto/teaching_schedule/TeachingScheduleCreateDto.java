@@ -8,10 +8,7 @@ import java.util.List;
 
 @Data
 public class TeachingScheduleCreateDto {
-    private Long teacherId;
     private Long classSectionId;
-    private Long semesterId;
-    private Long roomId;
     private String note;
     private List<TeachingScheduleDetailCreateDto> details;
 }

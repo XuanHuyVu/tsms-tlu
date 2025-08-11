@@ -19,10 +19,7 @@ public class TeachingScheduleServiceImpl implements TeachingScheduleService {
 
     private final TeachingScheduleRepository teachingScheduleRepository;
     private final MapperUtils mapperUtils;
-    private final TeacherRepository teacherRepository;
     private final ClassSectionRepository classSectionRepository;
-    private final RoomRepository roomRepository;
-    private final SemesterRepository semesterRepository;
 
     @Override
     public List<TeachingScheduleListDto> getAll() {
@@ -44,28 +41,14 @@ public class TeachingScheduleServiceImpl implements TeachingScheduleService {
     public TeachingScheduleDto create(TeachingScheduleCreateDto dto) {
         TeachingScheduleEntity schedule = mapperUtils.toTeachingScheduleEntity(dto);
 
-        if(dto.getTeacherId() != null) {
-            TeacherEntity entity = teacherRepository.findById(dto.getTeacherId())
-                    .orElseThrow(() -> new RuntimeException("Teacher not found"));
-            schedule.setTeacher(entity);
-        }
-
         if(dto.getClassSectionId() != null) {
             ClassSectionEntity classSection = classSectionRepository.findById(dto.getClassSectionId())
                     .orElseThrow(() -> new RuntimeException("Class section not found"));
             schedule.setClassSection(classSection);
-        }
 
-        if(dto.getRoomId() != null) {
-            RoomEntity room = roomRepository.findById(dto.getRoomId())
-                    .orElseThrow(() -> new RuntimeException("Room not found"));
-            schedule.setRoom(room);
-        }
-
-        if(dto.getSemesterId() != null) {
-            SemesterEntity semester = semesterRepository.findById(dto.getSemesterId())
-                    .orElseThrow(() -> new RuntimeException("Semester not found"));
-            schedule.setSemester(semester);
+            schedule.setRoom(classSection.getRoom());
+            schedule.setSemester(classSection.getSemester());
+            schedule.setTeacher(classSection.getTeacher());
         }
 
         schedule.setDetails(dto.getDetails().stream()
@@ -88,28 +71,14 @@ public class TeachingScheduleServiceImpl implements TeachingScheduleService {
 
         mapperUtils.copyEntity(dto, schedule);
 
-        if(dto.getTeacherId() != null) {
-            TeacherEntity entity = teacherRepository.findById(dto.getTeacherId())
-                    .orElseThrow(() -> new RuntimeException("Teacher not found"));
-            schedule.setTeacher(entity);
-        }
-
         if(dto.getClassSectionId() != null) {
             ClassSectionEntity classSection = classSectionRepository.findById(dto.getClassSectionId())
                     .orElseThrow(() -> new RuntimeException("Class section not found"));
             schedule.setClassSection(classSection);
-        }
 
-        if(dto.getRoomId() != null) {
-            RoomEntity room = roomRepository.findById(dto.getRoomId())
-                    .orElseThrow(() -> new RuntimeException("Room not found"));
-            schedule.setRoom(room);
-        }
-
-        if(dto.getSemesterId() != null) {
-            SemesterEntity semester = semesterRepository.findById(dto.getSemesterId())
-                    .orElseThrow(() -> new RuntimeException("Semester not found"));
-            schedule.setSemester(semester);
+            schedule.setRoom(classSection.getRoom());
+            schedule.setSemester(classSection.getSemester());
+            schedule.setTeacher(classSection.getTeacher());
         }
 
         schedule.getDetails().clear();

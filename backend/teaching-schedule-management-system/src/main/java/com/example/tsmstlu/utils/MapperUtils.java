@@ -13,6 +13,7 @@ import com.example.tsmstlu.dto.room.RoomCreateDto;
 import com.example.tsmstlu.dto.room.RoomDto;
 import com.example.tsmstlu.dto.room.RoomListDto;
 import com.example.tsmstlu.dto.room.RoomUpdateDto;
+import com.example.tsmstlu.dto.schedule_change.*;
 import com.example.tsmstlu.dto.semester.SemesterDto;
 import com.example.tsmstlu.dto.subject.SubjectCreateDto;
 import com.example.tsmstlu.dto.subject.SubjectDto;
@@ -106,4 +107,12 @@ public interface MapperUtils {
     TeachingScheduleDetailEntity toTeachingScheduleDetailEntity(TeachingScheduleDetailCreateDto dto);
     TeachingScheduleDetailEntity toTeachingScheduleDetailEntity(TeachingScheduleDetailUpdateDto dto);
     void copyEntity(TeachingScheduleDetailUpdateDto dto, @MappingTarget TeachingScheduleDetailEntity entity);
+
+    //schedule change
+    ScheduleChangeDto toScheduleChangeListDto(ScheduleChangeEntity entity);
+    ClassCancelDto toClassCancelDto(ScheduleChangeEntity entity);
+    ScheduleChangeEntity toScheduleChangeEntity(ClassCancelCreateDto dto);
+    MakeUpClassDto toMakeUpClassDto(ScheduleChangeEntity entity);
+    ScheduleChangeEntity toScheduleChangeEntity(MakeUpClassCreateDto dto);
+
 }

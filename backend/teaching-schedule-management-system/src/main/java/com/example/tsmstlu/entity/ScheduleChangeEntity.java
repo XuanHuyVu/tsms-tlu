@@ -1,45 +1,46 @@
-package com.example.tsmstlu.entity;
+    package com.example.tsmstlu.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
-import java.util.Date;
+    import com.example.tsmstlu.common.TableNameContants;
+    import jakarta.persistence.*;
+    import lombok.*;
+    import lombok.experimental.SuperBuilder;
+    import java.util.Date;
 
-@Table(name = "schedule_changes")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class ScheduleChangeEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @SuperBuilder
+    @EqualsAndHashCode(callSuper = true)
+    @Entity
+    @Table(name = TableNameContants.SCHEDULE_CHANGE)
+    public class ScheduleChangeEntity extends BaseEntity{
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "teaching_schedule_id")
-    private TeachingScheduleEntity teachingSchedule;
+        @ManyToOne(optional = false)
+        @JoinColumn(name = "teaching_schedule_id")
+        private TeachingScheduleEntity teachingSchedule;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ChangeType type;
+        private String type;
+        private String reason;
 
-    private Date newDate;
-    private String newRoom;
-    private String reason;
+        @Column(name = "lecture_content")
+        private String lectureContent;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date updatedAt = new Date();
+        @Column(name = "new_date")
+        private Date newDate;
 
-    public enum ChangeType {
-        HUY("Hủy"),
-        BU("Bù");
+        @ManyToOne(optional = true)
+        @JoinColumn(name = "new_room_id")
+        private RoomEntity newRoom;
 
-        private final String label;
+        @Column(name = "file_url")
+        private String fileUrl;
 
-        ChangeType(String label) {
-            this.label = label;
-        }
+        @Column(name = "new_period_start")
+        private String newPeriodStart;
 
-        public String getLabel() {
-            return label;
-        }
+        @Column(name = "new_period_end")
+        private String newPeriodEnd;
     }
-}

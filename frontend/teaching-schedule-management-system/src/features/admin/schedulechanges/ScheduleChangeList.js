@@ -128,40 +128,45 @@ const ScheduleChangeList = () => {
             <th>Thao tác</th>
           </tr>
         </thead>
-        <tbody>
-          {changes.length > 0 ? (
-            changes.map((item, index) => {
-              const details = item.details || [{}];
-              return details.map((detail, idx) => (
-                <tr key={`${item.id}-${idx}`}>
-                  <td>{(page - 1) * pageSize + index + 1}</td>
-                  <td>-</td>
-                  <td>{item.classSection?.teacher?.fullName || "-"}</td>
-                  <td>{item.classSection?.name || "-"}</td>
-                  <td>
-                    {detail.teachingDate
-                      ? dayjs(detail.teachingDate).format("DD/MM/YYYY")
-                      : "-"}
-                  </td>
-                  <td className="actions">
-                    <FaInfoCircle className="icon info" title="Chi tiết" />
-                    <FaRegCheckSquare
-                      className="icon check"
-                      title="Duyệt"
-                      onClick={() => handleApproval(item.id)}
-                    />
-                  </td>
-                </tr>
-              ));
-            })
-          ) : (
-            <tr>
-              <td colSpan="6" style={{ textAlign: "center" }}>
-                Không có dữ liệu
-              </td>
-            </tr>
-          )}
-        </tbody>
+          <tbody>
+            {changes.length > 0 ? (
+              changes.flatMap((item, index) =>
+                (item.details && item.details.length > 0
+                  ? item.details.map((detail, idx) => (
+                      <tr key={`${item.id}-${idx}`}>
+                        <td>{(page - 1) * pageSize + index + 1}</td>
+                        <td>{item.type || "-"}</td>
+                        <td>{item.classSection?.teacher?.fullName || "-"}</td>
+                        <td>{item.classSection?.name || "-"}</td>
+                        <td>
+                          {detail.teachingDate
+                            ? dayjs(detail.teachingDate).format("DD/MM/YYYY")
+                            : "-"}
+                        </td>
+
+                        {/* Action buttons */}
+                        <td className="actions">
+                          <FaInfoCircle className="icon info" title="Chi tiết" />
+                          <FaRegCheckSquare
+                            className="icon check"
+                            title="Duyệt"
+                            onClick={() => handleApproval(item.id)}
+                          />
+                        </td>
+                      </tr>
+                    ))
+                  : [])
+              )
+            ) : (
+              <tr>
+                <td colSpan="6" style={{ textAlign: "center" }}>
+                  Không có dữ liệu
+                </td>
+              </tr>
+            )}
+          </tbody>
+
+
         </table>
 
       <div className="footer">

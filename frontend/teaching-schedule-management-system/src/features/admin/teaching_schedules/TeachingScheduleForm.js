@@ -1,76 +1,26 @@
-import React, { useEffect, useRef, useState } from "react";
+/*  TeachingScheduleForm.jsx  */
+import React, { useEffect, useState } from "react";
 import { FaTimes, FaTrash } from "react-icons/fa";
 import ClassSectionApi from "../../../api/ClassSectionApi";
 import TeachingScheduleApi from "../../../api/TeachingScheduleApi";
 import "../../../styles/TeachingScheduleForm.css";
 
-// ====== constants ======
+/* ---------- hằng số ---------- */
 const PERIODS = Array.from({ length: 12 }, (_, i) => `Tiết ${i + 1}`);
 const TYPES = ["Lý thuyết", "Thực hành"];
-const EMPTY = {
-  classSectionId: "",
-  note: "",
-  details: [{ teachingDate: "", periodStart: "", periodEnd: "", type: "" }],
+const EMPTY   = { classSectionId: "", note: "", details: [] };
+
+/* ---------- helper ---------- */
+const addDays = (isoStr, n) => {
+  const d = new Date(isoStr);
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);          // YYYY-MM-DD
 };
-
-// ====== small util ======
-const pickClassSection = (obj) => (obj?.classSection ? obj.classSection : obj);
-
-// ====== Custom dropdown: only caret opens ======
-function CustomSelect({ value, onChangeValue, options, placeholder = "Chọn", disabled = false }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const onClickOutside = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-    };
-    document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
-  }, []);
-
-  return (
-    <div className={`csf-dropdown ${disabled ? "is-disabled" : ""}`} ref={ref}>
-      <div className="csf-dropdown-display">
-        <span className={value ? "" : "is-placeholder"}>{value || placeholder}</span>
-        <button
-          type="button"
-          className="csf-dropdown-caret"
-          onClick={() => !disabled && setOpen((o) => !o)}
-          aria-label="Mở lựa chọn"
-        >
-          ▾
-        </button>
-      </div>
-
-      {open && !disabled && (
-        <ul className="csf-dropdown-list">
-          <li
-            className={!value ? "is-selected" : ""}
-            onClick={() => {
-              onChangeValue("");
-              setOpen(false);
-            }}
-          >
-            {placeholder}
-          </li>
-          {options.map((opt) => (
-            <li
-              key={opt}
-              className={value === opt ? "is-selected" : ""}
-              onClick={() => {
-                onChangeValue(opt);
-                setOpen(false);
-              }}
-            >
-              {opt}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
+const weekDayVi = (isoStr) => {
+  if (!isoStr) return "";
+  const day = new Date(isoStr).getDay();        // 0‑6
+  return ["Chủ nhật","Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6","Thứ 7"][day];
+};
 
 export default function TeachingScheduleForm({
   open = true,
@@ -78,89 +28,59 @@ export default function TeachingScheduleForm({
   onSuccess,
   editData = null,
 }) {
+  /* ---------- state ---------- */
   const [payload, setPayload] = useState(EMPTY);
-  const [saving, setSaving] = useState(false);
-
+  const [saving,  setSaving]  = useState(false);
   const [classSections, setClassSections] = useState([]);
   const [selectedClass, setSelectedClass] = useState(null);
-  const [infoLoading, setInfoLoading] = useState(false);
 
-  // ===== load data =====
+  /* ---------- load lớp học phần + editData ---------- */
   useEffect(() => {
     if (!open) return;
-    console.log("[TSForm] OPEN", { open, editData });
-
     (async () => {
       try {
-        const list = await ClassSectionApi.getAll();
-        const arr = Array.isArray(list) ? list : list?.content || [];
-        setClassSections(arr);
-        console.log("[TSForm] ClassSectionApi.getAll ->", arr);
+        const res = await ClassSectionApi.getAll();
+        setClassSections(Array.isArray(res) ? res : res?.content ?? []);
 
         if (editData) {
-          const cs = pickClassSection(editData);
-          const id = String(cs?.id ?? editData.classSectionId ?? "");
+          const cs = editData.classSection ?? editData;
           setPayload({
-            classSectionId: id,
+            classSectionId: String(cs.id),
             note: editData.note || "",
-            details:
-              editData.details?.length
-                ? editData.details.map((d) => ({
-                    teachingDate: d.teachingDate || d.date || "",
-                    periodStart: d.periodStart || d.lessonStart || "",
-                    periodEnd: d.periodEnd || d.lessonEnd || "",
-                    type: d.type || d.scheduleTypeName || "",
-                  }))
-                : [{ teachingDate: "", periodStart: "", periodEnd: "", type: "" }],
+            details: editData.details.map((d) => ({
+              teachingDate: d.teachingDate,
+              periodStart: d.periodStart,
+              periodEnd: d.periodEnd,
+              type: d.type,
+              repeat: false,
+              repeatCount: 1,
+            })),
           });
-
-          if (cs?.department?.name) setSelectedClass(cs);
-          else if (id) {
-            console.log("[TSForm] edit -> fetch class-section detail id =", id);
-            setInfoLoading(true);
-            try {
-              const detail = await ClassSectionApi.getById(id);
-              console.log("[TSForm] detail =", detail);
-              setSelectedClass(detail);
-            } finally {
-              setInfoLoading(false);
-            }
-          }
+          setSelectedClass(cs);
         } else {
           setPayload(EMPTY);
           setSelectedClass(null);
         }
-      } catch (err) {
-        console.error("[TSForm] Load error =", err);
+      } catch (e) {
+        console.error("[TSForm] init error", e);
       }
     })();
   }, [open, editData]);
 
-  // ===== handlers =====
-  const onChange = (field) => async (e) => {
-    const value = e.target.value;
-    console.log("[TSForm] onChange", field, value);
-    setPayload((p) => ({ ...p, [field]: value }));
-
-    if (field === "classSectionId") {
-      setSelectedClass(null);
-      if (!value) return;
-      try {
-        setInfoLoading(true);
-        console.log("[TSForm] fetch class-section detail id =", value);
-        const detail = await ClassSectionApi.getById(value);
-        console.log("[TSForm] detail =", detail);
-        setSelectedClass(detail);
-      } catch (err) {
-        console.error("[TSForm] fetch detail error =", err);
-      } finally {
-        setInfoLoading(false);
-      }
+  /* ---------- common change ---------- */
+  const onChange = (k) => (e) => {
+    const v = e.target.value;
+    setPayload((p) => ({ ...p, [k]: v }));
+    if (k === "classSectionId") {
+      const found = (classSections || []).find((x) => String(x.id) === v);
+      setSelectedClass(found ?? null);
     }
   };
 
-  const onDetailChangeValue = (idx, field, value) => {
-    console.log("[TSForm] detail change", { idx, field, value });
+  /* ---------- detail change ---------- */
+  const changeDetail = (idx, field) => (e) => {
+    const value =
+      e.target.type === "checkbox" ? e.target.checked : e.target.value;
     setPayload((p) => {
       const details = [...p.details];
       details[idx] = { ...details[idx], [field]: value };
@@ -168,241 +88,273 @@ export default function TeachingScheduleForm({
     });
   };
 
-  const onDetailInput = (idx, field) => (e) =>
-    onDetailChangeValue(idx, field, e.target.value);
-
-  const addDetail = () => {
-    console.log("[TSForm] addDetail");
+  const addDetail = () =>
     setPayload((p) => ({
       ...p,
       details: [
         ...p.details,
-        { teachingDate: "", periodStart: "", periodEnd: "", type: "" },
+        {
+          teachingDate: "",
+          periodStart: "",
+          periodEnd: "",
+          type: "",
+          repeat: false,
+          repeatCount: 1,
+        },
       ],
     }));
-  };
 
-  const removeDetail = (idx) => {
-    console.log("[TSForm] removeDetail", idx);
+  const removeDetail = (idx) =>
     setPayload((p) => ({
       ...p,
       details: p.details.filter((_, i) => i !== idx),
     }));
-  };
 
-  // ===== validate & submit =====
+  /* ---------- submit ---------- */
   const requiredOk =
     payload.classSectionId &&
-    payload.details.length > 0 &&
+    payload.details.length &&
     payload.details.every(
       (d) => d.teachingDate && d.periodStart && d.periodEnd && d.type
     );
 
-  const submit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("[TSForm] SUBMIT payload =", payload, "requiredOk =", requiredOk);
     if (!requiredOk || saving) return;
+
+    /* xây detailList với repeat */
+    const detailList = [];
+    payload.details.forEach((d) => {
+      const weeks = d.repeat ? Math.max(1, Number(d.repeatCount) || 1) : 1;
+      for (let i = 0; i < weeks; i++) {
+        detailList.push({
+          teachingDate: addDays(d.teachingDate, 7 * i),
+          periodStart: d.periodStart,
+          periodEnd:   d.periodEnd,
+          type: d.type,
+        });
+      }
+    });
 
     const body = {
       classSectionId: Number(payload.classSectionId),
-      note: payload.note?.trim() || "",
-      details: payload.details.map(({ teachingDate, periodStart, periodEnd, type }) => ({
-        teachingDate,
-        periodStart,
-        periodEnd,
-        type,
-      })),
+      note: payload.note.trim(),
+      details: detailList,
     };
 
     setSaving(true);
     try {
-      const saved = editData?.id
-        ? await TeachingScheduleApi.update(editData.id, body)
-        : await TeachingScheduleApi.create(body);
-      console.log("[TSForm] save OK =", saved);
+      let saved;
+      if (editData?.id) {
+        saved = await TeachingScheduleApi.update(editData.id, body);
+      } else {
+        saved = await TeachingScheduleApi.create(body);
+      }
       onSuccess?.(saved);
       onClose?.();
     } catch (err) {
-      console.error("[TSForm] save error =", err);
+      console.error("[TSForm] save error", err);
       alert("Không thể lưu lịch giảng dạy!");
     } finally {
       setSaving(false);
     }
   };
 
+  /* ---------- render ---------- */
   if (!open) return null;
 
-  // ===== derived display =====
-  const teacherName = selectedClass?.teacher?.fullName || "";
-  const subjectName = selectedClass?.subject?.name || "";
-  const deptName = selectedClass?.department?.name || "";
-  const facultyName = selectedClass?.faculty?.name || "";
-  const semesterText = selectedClass?.semester?.academicYear || "";
-  const roomName = selectedClass?.room?.name || "";
+  const readonly = {
+    teacher:
+      selectedClass?.teacher?.fullName ?? selectedClass?.lecturerName ?? "",
+    subject:
+      selectedClass?.subject?.name ?? selectedClass?.subjectName ?? "",
+    dept:
+      selectedClass?.department?.name ?? selectedClass?.departmentName ?? "",
+    faculty:
+      selectedClass?.faculty?.name ?? selectedClass?.facultyName ?? "",
+    semester:
+      selectedClass?.semester?.academicYear ?? selectedClass?.semester ?? "",
+    room:
+      selectedClass?.room?.name ?? selectedClass?.room ?? "",
+  };
 
-  // ===== view =====
   return (
     <div
-      className="csf-overlay"
-      onClick={() => {
-        console.log("[TSForm] overlay -> close");
-        onClose?.();
-      }}
+      className="tsf-overlay"
+      onClick={() => onClose?.()}
     >
-      <div className="csf-modal" onClick={(e) => e.stopPropagation()}>
-        {/* Header (fixed) */}
-        <div className="csf-header">
+      <div className="tsf-modal" onClick={(e) => e.stopPropagation()}>
+        {/* ===== Header ===== */}
+        <div className="tsf-header">
           <h3>{editData ? "SỬA LỊCH GIẢNG DẠY" : "THÊM LỊCH GIẢNG DẠY MỚI"}</h3>
-          <button
-            className="csf-close"
-            type="button"
-            onClick={() => {
-              console.log("[TSForm] click close");
-              onClose?.();
-            }}
-          >
+          <button className="tsf-close" onClick={() => onClose?.()}>
             <FaTimes />
           </button>
         </div>
 
-        {/* Body (scrollable) */}
-        <form className="csf-body" onSubmit={submit}>
+        {/* ===== Body ===== */}
+        <form className="tsf-body" onSubmit={handleSubmit}>
           {/* Lớp học phần */}
-          <div className="csf-field">
-            <label>
-              Lớp học phần <span className="csf-required">*</span>
-            </label>
-            <div className="csf-select-wrap">
-              <select
-                value={payload.classSectionId}
-                onChange={onChange("classSectionId")}
-              >
-                <option value="">-- Chọn học phần --</option>
-                {classSections.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-              <span className="csf-caret">▾</span>
+          <div className="tsf-field">
+            <label>Lớp học phần *</label>
+            <select
+              value={payload.classSectionId}
+              onChange={onChange("classSectionId")}
+            >
+              <option value="">-- Chọn học phần --</option>
+              {classSections.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Thông tin readonly */}
+          <div className="tsf-row">
+            <div className="tsf-field">
+              <label>Khoa *</label>
+              <input value={readonly.faculty} disabled />
+            </div>
+            <div className="tsf-field">
+              <label>Bộ môn *</label>
+              <input value={readonly.dept} disabled />
+            </div>
+          </div>
+          <div className="tsf-row">
+            <div className="tsf-field">
+              <label>Giảng viên *</label>
+              <input value={readonly.teacher} disabled />
+            </div>
+            <div className="tsf-field">
+              <label>Học kỳ *</label>
+              <input value={readonly.semester} disabled />
+            </div>
+          </div>
+          <div className="tsf-row">
+            <div className="tsf-field">
+              <label>Môn học *</label>
+              <input value={readonly.subject} disabled />
+            </div>
+            <div className="tsf-field">
+              <label>Phòng *</label>
+              <input value={readonly.room} disabled />
             </div>
           </div>
 
-          {/* readonly info */}
-          <div className="csf-row">
-            <div className="csf-field">
-              <label>Khoa phụ trách: <span className="csf-required">*</span></label>
-              <input disabled value={infoLoading ? "Đang tải..." : facultyName} />
-            </div>
-            <div className="csf-field">
-              <label>Bộ môn: <span className="csf-required">*</span></label>
-              <input disabled value={infoLoading ? "Đang tải..." : deptName} />
-            </div>
-          </div>
-
-          <div className="csf-row">
-            <div className="csf-field">
-              <label>Giảng viên phụ trách: <span className="csf-required">*</span></label>
-              <input disabled value={infoLoading ? "Đang tải..." : teacherName} />
-            </div>
-            <div className="csf-field">
-              <label>Học kỳ: <span className="csf-required">*</span></label>
-              <input disabled value={infoLoading ? "Đang tải..." : semesterText} />
-            </div>
-          </div>
-
-          <div className="csf-row">
-            <div className="csf-field">
-              <label>Môn học: <span className="csf-required">*</span></label>
-              <input disabled value={infoLoading ? "Đang tải..." : subjectName} />
-            </div>
-            <div className="csf-field">
-              <label>Phòng: <span className="csf-required">*</span></label>
-              <input disabled value={infoLoading ? "Đang tải..." : roomName} />
-            </div>
-          </div>
-
-          <div className="csf-divider" />
-
-          {/* note */}
-          <div className="csf-field">
-            <label>Mô tả:</label>
+          {/* Ghi chú */}
+          <div className="tsf-field">
+            <label>Mô tả</label>
             <textarea
               value={payload.note}
-              onChange={(e) => setPayload((p) => ({ ...p, note: e.target.value }))}
+              onChange={onChange("note")}
               placeholder="Nhập mô tả"
             />
           </div>
 
-          <div className="csf-divider" />
-
-          {/* section header */}
-          <div className="csf-section-header">
-            <h4 className="csf-section-title">Chi tiết lịch học</h4>
-            <button type="button" className="csf-add-detail" onClick={addDetail}>
-              + Thêm buổi học
-            </button>
-          </div>
-
-          {/* detail rows */}
+          {/* ===== Chi tiết ===== */}
+          <h4>Chi tiết lịch học</h4>
           {payload.details.map((d, idx) => (
-            <div className="csf-detail-row" key={idx}>
+            <div className="tsf-row detail-row" key={idx}>
+              {/* Ngày */}
               <input
                 type="date"
-                className="csf-control csf-date"
                 value={d.teachingDate}
-                onChange={onDetailInput(idx, "teachingDate")}
-                placeholder="mm/dd/yyyy"
+                onChange={changeDetail(idx, "teachingDate")}
               />
+              {/* hiển thị thứ */}
+              <span style={{ minWidth: 72, textAlign: "center" }}>
+                {weekDayVi(d.teachingDate)}
+              </span>
 
-              <CustomSelect
+              {/* Tiết */}
+              <select
                 value={d.periodStart}
-                onChangeValue={(val) => onDetailChangeValue(idx, "periodStart", val)}
-                options={PERIODS}
-                placeholder="Tiết bắt đầu"
-              />
+                onChange={changeDetail(idx, "periodStart")}
+              >
+                <option value="">Tiết bắt đầu</option>
+                {PERIODS.map((p) => (
+                  <option key={`ps-${p}`} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
 
-              <CustomSelect
+              <select
                 value={d.periodEnd}
-                onChangeValue={(val) => onDetailChangeValue(idx, "periodEnd", val)}
-                options={PERIODS}
-                placeholder="Tiết kết thúc"
-              />
+                onChange={changeDetail(idx, "periodEnd")}
+              >
+                <option value="">Tiết kết thúc</option>
+                {PERIODS.map((p) => (
+                  <option key={`pe-${p}`} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
 
-              <CustomSelect
-                value={d.type}
-                onChangeValue={(val) => onDetailChangeValue(idx, "type", val)}
-                options={TYPES}
-                placeholder="Loại"
-              />
+              {/* Loại */}
+              <select value={d.type} onChange={changeDetail(idx, "type")}>
+                <option value="">Loại</option>
+                {TYPES.map((t) => (
+                  <option key={`t-${t}`}>{t}</option>
+                ))}
+              </select>
 
+              {/* Lặp lại? */}
+              <label style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <input
+                  type="checkbox"
+                  checked={d.repeat}
+                  onChange={changeDetail(idx, "repeat")}
+                />
+                Lặp lại
+              </label>
+              {d.repeat && (
+                <input
+                  type="number"
+                  min={1}
+                  style={{ width: 60 }}
+                  value={d.repeatCount}
+                  onChange={changeDetail(idx, "repeatCount")}
+                  title="Số tuần"
+                />
+              )}
+
+              {/* Xóa */}
               <button
                 type="button"
-                className="csf-icon-btn csf-icon-btn--danger"
+                className="btn-delete"
                 onClick={() => removeDetail(idx)}
-                title="Xoá buổi"
-                aria-label="Xoá buổi"
               >
                 <FaTrash />
               </button>
             </div>
           ))}
 
-          {/* actions */}
-          <div className="csf-actions">
-            <button type="submit" className="csf-primary" disabled={!requiredOk || saving}>
-              {saving ? "Đang lưu..." : "Xác nhận"}
+          <button
+            type="button"
+            className="btn-add-detail"
+            onClick={addDetail}
+          >
+            + Thêm buổi học
+          </button>
+
+          {/* ===== Actions ===== */}
+          <div className="tsf-actions">
+            <button
+              type="submit"
+              className="tsf-primary"
+              disabled={!requiredOk || saving}
+            >
+              {saving ? "Đang lưu…" : "Xác nhận"}
             </button>
             <button
               type="button"
-              className="csf-outline"
-              onClick={() => {
-                console.log("[TSForm] cancel");
-                onClose?.();
-              }}
+              className="tsf-outline"
+              onClick={() => onClose?.()}
               disabled={saving}
             >
-              Hủy bỏ
+              Huỷ bỏ
             </button>
           </div>
         </form>

@@ -29,6 +29,10 @@ const Header = () => {
         return 'QUẢN LÝ MÔN HỌC';
       case '/schedulechanges':
         return 'QUẢN LÝ LỊCH THAY ĐỔI';
+      case '/class-sections':
+        return 'QUẢN LÝ LỚP HỌC PHẦN';
+      case '/majors':
+        return 'QUẢN LÝ NGÀNH HỌC';
       default:
         return 'QUẢN LÝ HỆ THỐNG';
     }

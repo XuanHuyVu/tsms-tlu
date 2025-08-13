@@ -9,6 +9,10 @@ import com.example.tsmstlu.dto.department.DepartmentDto;
 import com.example.tsmstlu.dto.department.DepartmentListDto;
 import com.example.tsmstlu.dto.department.DepartmentUpdateDto;
 import com.example.tsmstlu.dto.faculty.FacultyDto;
+import com.example.tsmstlu.dto.major.MajorCreateDto;
+import com.example.tsmstlu.dto.major.MajorDto;
+import com.example.tsmstlu.dto.major.MajorListDto;
+import com.example.tsmstlu.dto.major.MajorUpdateDto;
 import com.example.tsmstlu.dto.room.RoomCreateDto;
 import com.example.tsmstlu.dto.room.RoomDto;
 import com.example.tsmstlu.dto.room.RoomListDto;
@@ -114,5 +118,12 @@ public interface MapperUtils {
     ScheduleChangeEntity toScheduleChangeEntity(ClassCancelCreateDto dto);
     MakeUpClassDto toMakeUpClassDto(ScheduleChangeEntity entity);
     ScheduleChangeEntity toScheduleChangeEntity(MakeUpClassCreateDto dto);
+
+    // major
+    MajorListDto toMajorListDto(MajorEntity entity);
+    MajorDto toMajorDto(MajorEntity entity);
+    MajorEntity toMajorEntity(MajorCreateDto dto);
+    MajorEntity toMajorEntity(MajorUpdateDto dto);
+    void copyEntity(MajorUpdateDto dto, @MappingTarget MajorEntity entity);
 
 }

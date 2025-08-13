@@ -1,5 +1,5 @@
-/* Overlay */
-.csf-overlay {
+/* ========== Overlay (click ra ngoài để đóng) ========== */
+.tsf-overlay{
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,.35);
@@ -9,322 +9,141 @@
   z-index: 1000;
 }
 
-/* Modal as column -> header fixed, body scroll */
-.csf-modal {
+/* ========== Modal ========== */
+.tsf-modal{
   width: min(750px, 96vw);
-  max-height: 90vh;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.2);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  background:#fff;
+  border-radius:10px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
+  display:flex;
+  flex-direction:column;
+  max-height:90vh;   /* chỉ thân cuộn, header sticky */
+  overflow:hidden;
 }
 
-/* Header (fixed) */
-.csf-header {
-  background: #1f3f94;
-  color: #fff;
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex: 0 0 auto;
+/* Header sticky – luôn bấm được nút X */
+.tsf-header{
+  background:#1f3f94;
+  color:#fff;
+  padding:12px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position: sticky;
+  top:0;
+  z-index:2;
 }
-.csf-header h3 {
-  margin: 0;
-  font-size: 20px;
-  letter-spacing: .3px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-.csf-close {
-  border: 0;
-  background: transparent;
-  color: #fff;
-  font-size: 18px;
-  cursor: pointer;
+.tsf-header h3{ margin:0; font-size:20px; font-weight:700; text-transform:uppercase; }
+.tsf-close{
+  border:0;
+  background:transparent;
+  color:#fff;
+  font-size:18px;
+  cursor:pointer;
 }
 
-/* Body (scrollable area) */
-.csf-body {
-  padding: 18px 20px 10px;
-  overflow: auto;
-  flex: 1 1 auto;
+/* Body cuộn */
+.tsf-body{
+  padding:18px 20px 10px;
+  overflow:auto;
+  flex:1;
 }
 
-/* 2-column grid rows */
-.csf-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-  margin-bottom: 14px;
+/* Lưới 2 cột */
+.tsf-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+  margin-bottom:14px;
 }
 
-.csf-field label {
-  display: inline-block;
-  margin-bottom: 6px;
-  color: #111827;
-  font-weight: 600;
+/* Field */
+.tsf-field label{
+  display:inline-block;
+  margin-bottom:6px;
+  color:#111827;
+  font-weight:600;
 }
-.csf-required { color: #e11d48; }
-
-.csf-field input,
-.csf-field select,
-.csf-field textarea {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #cfd8e3;
-  font-size: 14px;
-  outline: none;
-  background: #fff;
-  color: #111827;
-  transition: border-color .15s ease, box-shadow .15s ease;
+.tsf-field input,
+.tsf-field select,
+.tsf-field textarea{
+  width:100%;
+  padding:10px 12px;
+  border-radius:8px;
+  border:1px solid #cfd8e3;
+  font-size:14px;
+  outline:none;
+  background:#fff;
+  color:#111827;
+  transition:border-color .15s, box-shadow .15s;
 }
-.csf-field input:disabled { background: #f3f4f6; color: #6b7280; }
-.csf-field input:focus,
-.csf-field select:focus,
-.csf-field textarea:focus {
-  border-color: #94b3ff;
-  box-shadow: 0 0 0 3px rgba(13,71,161,.1);
-}
-
-/* Select caret */
-.csf-select-wrap { position: relative; }
-.csf-select-wrap select {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-}
-.csf-caret {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  color: #6b7280;
-  font-size: 14px;
+.tsf-field input:disabled{ background:#f3f4f6; color:#6b7280; }
+.tsf-field input:focus,
+.tsf-field select:focus,
+.tsf-field textarea:focus{
+  border-color:#94b3ff;
+  box-shadow:0 0 0 3px rgba(13,71,161,.1);
 }
 
-/* Divider */
-.csf-divider {
-  height: 1px;
-  background: #e5e7eb;
-  margin: 14px 0 12px;
+/* Chi tiết lịch học */
+.tsf-row.detail-row{
+  grid-template-columns: 1fr 1fr 1fr 1fr auto; /* date | start | end | type | trash */
+  gap:12px;
+  align-items:center;
 }
 
-/* Section header: title + add button on same row */
-.csf-section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
+/* Nút xoá/ thêm chi tiết */
+.btn-delete{
+  border:0;
+  background:#f3f4f6;
+  color:#111827;
+  padding:8px 10px;
+  border-radius:8px;
+  cursor:pointer;
 }
-.csf-section-title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: #111827;
-}
+.btn-delete:hover{ background:#e5e7eb; }
 
-/* Detail row */
-.csf-detail-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr auto;
-  gap: 12px;
-  margin-bottom: 10px;
+.btn-add-detail{
+  background:#1f3f94;
+  color:#fff;
+  border:0;
+  padding:8px 14px;
+  border-radius:8px;
+  font-weight:700;
+  cursor:pointer;
+  margin:6px 0 8px;
 }
-.csf-icon-btn {
-  border: 0;
-  background: #f3f4f6;
-  color: #111827;
-  padding: 8px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  min-width: 40px;
-}
-.csf-icon-btn:hover { background: #e5e7eb; }
-
-/* Add button */
-.csf-add-detail {
-  background: #1f3f94;
-  color: #fff;
-  border: 0;
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.csf-add-detail:hover { background: #17337a; }
+.btn-add-detail:hover{ background:#17337a; }
 
 /* Actions */
-.csf-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-  padding: 12px 0 6px;
+.tsf-actions{
+  display:flex;
+  gap:12px;
+  justify-content:flex-end;
+  padding-bottom:12px;
 }
-.csf-primary {
-  background: #1f3f94;
-  color: #fff;
-  border: 0;
-  padding: 10px 18px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 700;
-  transition: background .15s ease;
+.tsf-primary{
+  background:#1f3f94;
+  color:#fff;
+  border:0;
+  padding:10px 18px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:700;
 }
-.csf-primary:disabled { opacity: .6; cursor: not-allowed; }
-.csf-primary:hover:not(:disabled) { background: #17337a; }
-.csf-outline {
-  background: #fff;
-  color: #111827;
-  border: 1px solid #cfd8e3;
-  padding: 10px 18px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
+.tsf-primary:disabled{ opacity:.6; cursor:not-allowed; }
+.tsf-outline{
+  background:#fff;
+  color:#111827;
+  border:1px solid #cfd8e3;
+  padding:10px 18px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
 }
-.csf-outline:hover { background: #f8fafc; }
 
 /* Responsive */
-@media (max-width: 720px) {
-  .csf-row { grid-template-columns: 1fr; }
-  .csf-detail-row { grid-template-columns: 1fr; }
+@media (max-width: 720px){
+  .tsf-row{ grid-template-columns:1fr; }
+  .tsf-row.detail-row{ grid-template-columns:1fr; }
 }
-/* ==== Pretty controls for detail row ==== */
-
-:root {
-  --csf-border: #d5dbe7;
-  --csf-border-focus: #94b3ff;
-  --csf-ring: rgba(13,71,161,.14);
-  --csf-bg: #ffffff;
-  --csf-bg-muted: #f6f7fb;
-  --csf-text: #0f172a;
-  --csf-placeholder: #9aa3b2;
-}
-
-.csf-detail-row {
-  grid-template-columns: 1.1fr 1fr 1fr 1fr auto; /* date hơi rộng hơn 1 chút */
-  align-items: center;
-}
-
-/* Base control */
-.csf-control {
-  height: 40px;
-  padding: 8px 12px;
-  border: 1px solid var(--csf-border);
-  border-radius: 10px;
-  background: var(--csf-bg);
-  color: var(--csf-text);
-  font-size: 14px;
-  line-height: 1.2;
-  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
-  box-shadow: 0 1px 0 rgba(0,0,0,.02);
-}
-.csf-control::placeholder { color: var(--csf-placeholder); }
-
-.csf-control:hover {
-  border-color: #b9c5da;
-  background: #fff;
-}
-.csf-control:focus {
-  border-color: var(--csf-border-focus);
-  box-shadow: 0 0 0 4px var(--csf-ring);
-  outline: none;
-}
-
-/* Selects share same height with custom caret */
-.csf-select { padding-right: 34px; }
-
-/* Date input align/icon */
-.csf-date {
-  /* đảm bảo đồng cỡ với select */
-  padding-right: 10px;
-}
-
-/* Trash button – tròn, nổi vừa phải */
-.csf-icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 40px;
-  width: 40px;
-  border-radius: 10px;
-  border: 1px solid var(--csf-border);
-  background: var(--csf-bg-muted);
-  color: #0b2540;
-  transition: background .15s ease, border-color .15s ease, transform .05s ease;
-}
-.csf-icon-btn:hover {
-  background: #e9eef8;
-  border-color: #c8d1e4;
-}
-.csf-icon-btn:active { transform: scale(.98); }
-
-.csf-icon-btn--danger { color: #0b2540; }
-.csf-icon-btn--danger:hover { background: #fee2e2; border-color: #fecaca; }
-.csf-icon-btn--danger svg { width: 16px; height: 16px; }
-
-/* Make caret a bit darker for aesthetics */
-.csf-caret { color: #6d7a90; }
-/* ===== Scrollable modal body ===== */
-.csf-modal {
-  width: min(750px, 96vw);
-  max-height: 90vh;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.2);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-.csf-header { flex: 0 0 auto; }
-.csf-body   { flex: 1 1 auto; overflow: auto; }
-
-/* ===== Pretty controls from previous step ===== */
-:root{
-  --csf-border:#d5dbe7; --csf-border-focus:#94b3ff; --csf-ring:rgba(13,71,161,.14);
-  --csf-bg:#fff; --csf-bg-muted:#f6f7fb; --csf-text:#0f172a; --csf-placeholder:#9aa3b2;
-}
-.csf-control{
-  height:40px;padding:8px 12px;border:1px solid var(--csf-border);border-radius:10px;
-  background:var(--csf-bg);color:var(--csf-text);font-size:14px;transition:border-color .15s,box-shadow .15s;
-}
-.csf-control:focus{border-color:var(--csf-border-focus);box-shadow:0 0 0 4px var(--csf-ring);outline:none;}
-.csf-detail-row{grid-template-columns:1.1fr 1fr 1fr 1fr auto;align-items:center;}
-
-/* ===== Custom dropdown (only caret opens) ===== */
-.csf-dropdown{position:relative;width:100%;}
-.csf-dropdown.is-disabled{opacity:.6;pointer-events:none;}
-.csf-dropdown-display{
-  display:flex;align-items:center;justify-content:space-between;gap:8px;
-  padding:8px 10px;height:40px;border:1px solid var(--csf-border);border-radius:10px;
-  background:#fff;color:var(--csf-text);box-shadow:0 1px 0 rgba(0,0,0,.02);
-}
-.csf-dropdown-display .is-placeholder{color:var(--csf-placeholder);}
-.csf-dropdown-caret{
-  border:0;background:transparent;cursor:pointer;font-size:14px;color:#6d7a90;
-  padding:0 2px;line-height:1;
-}
-.csf-dropdown-list{
-  position:absolute;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid var(--csf-border);
-  border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.08);list-style:none;margin:0;padding:6px 0;z-index:25;
-  max-height:220px;overflow:auto;
-}
-.csf-dropdown-list li{
-  padding:8px 12px;cursor:pointer;font-size:14px;color:#0f172a;
-}
-.csf-dropdown-list li:hover{background:#f3f4f6;}
-.csf-dropdown-list li.is-selected{background:#eef2ff;color:#1f3f94;font-weight:600;}
-
-/* ===== Icon button ===== */
-.csf-icon-btn{
-  display:inline-flex;align-items:center;justify-content:center;height:40px;width:40px;border-radius:10px;
-  border:1px solid var(--csf-border);background:var(--csf-bg-muted);color:#0b2540;transition:background .15s,border-color .15s,transform .05s;
-}
-.csf-icon-btn:hover{background:#e9eef8;border-color:#c8d1e4;}
-.csf-icon-btn:active{transform:scale(.98);}
-.csf-icon-btn--danger:hover{background:#fee2e2;border-color:#fecaca;}

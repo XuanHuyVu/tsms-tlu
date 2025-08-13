@@ -2,60 +2,89 @@ import axiosInstance from "./axiosInstance";
 
 const BASE = "/admin/teaching-schedules";
 
-// ===== CRUD =====
-export const getAllTeachingSchedules = async (params) => {
-  console.log("[TSApi] getAllTeachingSchedules params =", params);
-  const res = await axiosInstance.get(BASE, { params });
-  console.log("[TSApi] getAllTeachingSchedules res =", res.data);
-  return res.data;
+/* --------------- CRUD --------------- */
+export const getAllTeachingSchedules = async (params = {}) =>
+  (await axiosInstance.get(BASE, { params })).data;
+
+export const getTeachingScheduleById = async (id) =>
+  (await axiosInstance.get(`${BASE}/${id}`)).data;
+
+export const createTeachingSchedule = async (data) =>
+  (await axiosInstance.post(BASE, data)).data;
+
+export const updateTeachingSchedule = async (id, data) =>
+  (await axiosInstance.put(`${BASE}/${id}`, data)).data;
+
+export const deleteTeachingSchedule = async (id) =>
+  (await axiosInstance.delete(`${BASE}/${id}`)).data;
+
+/* ---------- map -> row ---------- */
+const toRow = (o) => {
+  const row = {
+    id: o.id,
+    lecturerName:
+      o.teacher?.fullName || o.classSection?.teacher?.fullName || "",
+    classCode: o.classSection?.name || "",
+    subjectName: o.subject?.name || o.classSection?.subject?.name || "",
+    semester:
+      o.semester?.academicYear ||
+      o.classSection?.semester?.academicYear ||
+      "",
+    room: o.room?.name || o.classSection?.room?.name || "",
+    sessions: Array.isArray(o.details) ? o.details.length : 0,
+  };
+  console.log("[toRow]", row);         // 👉 log từng row
+  return row;
 };
 
-export const getTeachingScheduleById = async (id) => {
-  console.log("[TSApi] getTeachingScheduleById id =", id);
-  const res = await axiosInstance.get(`${BASE}/${id}`);
-  console.log("[TSApi] getTeachingScheduleById res =", res.data);
-  return res.data;
-};
-
-export const createTeachingSchedule = async (data) => {
-  console.log("[TSApi] createTeachingSchedule payload =", data);
-  const res = await axiosInstance.post(BASE, data);
-  console.log("[TSApi] createTeachingSchedule res =", res.data);
-  return res.data;
-};
-
-export const updateTeachingSchedule = async (id, data) => {
-  console.log("[TSApi] updateTeachingSchedule id =", id, " payload =", data);
-  const res = await axiosInstance.put(`${BASE}/${id}`, data);
-  console.log("[TSApi] updateTeachingSchedule res =", res.data);
-  return res.data;
-};
-
-export const deleteTeachingSchedule = async (id) => {
-  console.log("[TSApi] deleteTeachingSchedule id =", id);
-  const res = await axiosInstance.delete(`${BASE}/${id}`);
-  console.log("[TSApi] deleteTeachingSchedule res =", res.data);
-  return res.data;
-};
-
-// ===== Pagination fetch =====
+/* ------------- fetchPage ----------- */
 export const fetchPage = async ({
   page = 0,
   size = 10,
   search = "",
   sort = "id,asc",
 } = {}) => {
-  console.log("[TSApi] fetchPage args =", { page, size, search, sort });
-  const data = await getAllTeachingSchedules({ page, size, search, sort });
-  const mapped = {
-    content: data.content || [],
-    totalElements: data.totalElements || 0,
-    totalPages: data.totalPages || 0,
-    page: data.number ?? page,
-    size: data.size ?? size,
+  const raw = await getAllTeachingSchedules({ page, size, search, sort });
+  console.log("[API] raw =", raw);
+
+  if (Array.isArray(raw)) {
+    const kw = search.trim().toLowerCase();
+    const filtered = kw
+      ? raw.filter((r) =>
+          [
+            r.teacher?.fullName,
+            r.classSection?.teacher?.fullName,
+            r.classSection?.name,
+            r.subject?.name,
+            r.classSection?.subject?.name,
+          ]
+            .filter(Boolean)
+            .some((v) => v.toLowerCase().includes(kw))
+        )
+      : raw;
+
+    return {
+      content: filtered.slice(page * size, page * size + size).map(toRow),
+      totalElements: filtered.length,
+      totalPages: Math.max(1, Math.ceil(filtered.length / size)),
+      page,
+      size,
+    };
+  }
+
+  const content = (raw.content ?? raw.items ?? []).map(toRow);
+  const totalElements = raw.totalElements ?? raw.total ?? content.length;
+  const totalPages =
+    raw.totalPages ??
+    Math.max(1, Math.ceil(totalElements / (raw.size ?? size)));
+
+  return {
+    content,
+    totalElements,
+    totalPages,
+    page: raw.number ?? page,
+    size: raw.size ?? size,
   };
-  console.log("[TSApi] fetchPage mapped =", mapped);
-  return mapped;
 };
 
 export default {

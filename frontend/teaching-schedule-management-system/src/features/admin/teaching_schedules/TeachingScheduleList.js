@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import TeachingScheduleApi from "../../../api/TeachingScheduleApi";
 import { FaSearch, FaInfoCircle, FaPen, FaTrash } from "react-icons/fa";
 import "../../../styles/DepartmentList.css";
@@ -6,6 +6,7 @@ import TeachingScheduleForm from "./TeachingScheduleForm";
 import TeachingScheduleDetail from "./TeachingScheduleDetail";
 
 export default function TeachingScheduleList() {
+  /* ---------- STATE ---------- */
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
@@ -14,130 +15,199 @@ export default function TeachingScheduleList() {
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  /* pop-up flags */
   const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState(null);
+  const [editing, setEditing] = useState(null);      // null = “Thêm”
   const [showDetail, setShowDetail] = useState(false);
-  const [selected, setSelected] = useState(null);
+  const [detailId, setDetailId] = useState(null);
 
-  const reload = async () => {
-    console.log("[TSList] reload() start");
+  /* cache id đã fetch detail */
+  const fetchedDetailIds = useRef(new Set());
+
+  /* ---------- LOAD PAGE ---------- */
+  const load = async (signal) => {
     setLoading(true);
     try {
-      const res = await TeachingScheduleApi.fetchPage({ page, size, search, sort: "id,asc" });
-      console.log("[TSList] fetchPage result =", res);
+      const res = await TeachingScheduleApi.fetchPage({
+        page,
+        size,
+        search: search.trim(),
+        sort: "id,asc",
+      });
+      if (signal?.aborted) return;
+
+      console.log("[List] page data =", res);
       setRows(res.content);
       setTotal(res.totalElements);
       setTotalPages(res.totalPages);
-    } catch (e) {
-      console.error("[TSList] reload error =", e);
+    } catch (err) {
+      if (!signal?.aborted) {
+        console.error("[List] load error", err);
+        setRows([]);
+        setTotal(0);
+        setTotalPages(0);
+      }
     } finally {
-      setLoading(false);
-      console.log("[TSList] reload() end");
+      if (!signal?.aborted) setLoading(false);
     }
   };
 
+  /* load khi page/size/search đổi */
   useEffect(() => {
-    console.log("[TSList] page/size changed =", { page, size });
-    reload();
+    const ctrl = new AbortController();
+    load(ctrl);
+    return () => ctrl.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, size]);
+  }, [page, size, search]);
 
-  const doSearch = (e) => {
-    e?.preventDefault?.();
-    console.log("[TSList] doSearch =", search);
+  /* ---------- FETCH SESSIONS (= details.length) ---------- */
+  useEffect(() => {
+    const need = rows.filter(
+      (r) => r.sessions === 0 && !fetchedDetailIds.current.has(r.id)
+    );
+    if (need.length === 0) return;
+
+    console.log("[List] need fetch details of IDs:", need.map((n) => n.id));
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const arr = await Promise.all(
+          need.map((r) =>
+            TeachingScheduleApi.getTeachingScheduleById(r.id).catch(() => null)
+          )
+        );
+        const map = {};
+        arr.forEach((d) => {
+          if (d && Array.isArray(d.details)) {
+            map[d.id] = d.details.length;
+            fetchedDetailIds.current.add(d.id);
+            console.log(`[Detail] id=${d.id} sessions=${d.details.length}`);
+          }
+        });
+        if (cancelled) return;
+        setRows((prev) =>
+          prev.map((r) => (map[r.id] ? { ...r, sessions: map[r.id] } : r))
+        );
+      } catch (e) {
+        if (!cancelled) console.error("[List] fetch details error", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [rows]);
+
+  /* ---------- HANDLERS ---------- */
+  const handleSearch = (e) => {
+    e.preventDefault();
     setPage(0);
-    reload();
   };
-
-  const fromToText = useMemo(() => {
-    const start = total === 0 ? 0 : page * size + 1;
-    const end = Math.min(total, (page + 1) * size);
-    const t = `Từ ${start} đến ${end} bản ghi`;
-    console.log("[TSList] fromToText =", t);
-    return t;
-  }, [page, size, total]);
 
   const handleDelete = async (id) => {
-    console.log("[TSList] handleDelete id =", id);
     if (!window.confirm("Xóa lịch giảng dạy này?")) return;
     await TeachingScheduleApi.delete(id);
-    if (rows.length === 1 && page > 0) setPage((p) => Math.max(0, p - 1));
-    else reload();
+    if (rows.length === 1 && page > 0) setPage((p) => p - 1);
+    else load({});
   };
 
+  /* ---------- DERIVED ---------- */
+  const rangeText = useMemo(() => {
+    const start = total === 0 ? 0 : page * size + 1;
+    const end = Math.min(total, (page + 1) * size);
+    return `Từ ${start} đến ${end} bản ghi`;
+  }, [page, size, total]);
+
+  /* ---------- UI ---------- */
   return (
     <div className="container">
+      {/* ===== POPUPS ===== */}
       {showForm && (
         <TeachingScheduleForm
-          open
-          editData={editing}
-          onClose={() => { console.log("[TSList] close form"); setShowForm(false); }}
-          onSuccess={() => { console.log("[TSList] form success"); reload(); setShowForm(false); setEditing(null); }}
+          open={showForm}           /* quan trọng: prop điều khiển hiển thị */
+          editData={editing}        /* null = thêm mới, !=null = sửa */
+          onClose={() => setShowForm(false)}
+          onSuccess={() => {
+            setShowForm(false);
+            load({});
+          }}
         />
       )}
 
       {showDetail && (
         <TeachingScheduleDetail
-          open
-          data={selected}
-          onClose={() => { console.log("[TSList] close detail"); setShowDetail(false); }}
+          open={showDetail}
+          id={detailId}
+          onClose={() => setShowDetail(false)}
         />
       )}
 
+      {/* ===== TOOLBAR ===== */}
       <div className="form-card compact">
-        <button className="add-btn" onClick={() => { console.log("[TSList] add"); setEditing(null); setShowForm(true); }}>
+        <button
+          className="add-btn"
+          onClick={() => {
+            setEditing(null);        /* Thêm mới */
+            setShowForm(true);
+          }}
+        >
           Thêm lịch dạy
         </button>
-        <form className="search-container" onSubmit={doSearch}>
+
+        <form className="search-container" onSubmit={handleSearch}>
           <input
-            type="text"
-            placeholder="Tìm kiếm"
             className="search-input"
+            placeholder="Tìm kiếm"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <FaSearch className="search-icon" onClick={doSearch} />
+          <FaSearch className="search-icon" onClick={handleSearch} />
         </form>
       </div>
 
+      {/* ===== TABLE ===== */}
       <table className="account-table">
         <thead>
           <tr>
-            <th>STT</th>
-            <th>Giảng viên</th>
-            <th>Lớp học phần</th>
-            <th>Học phần</th>
-            <th>Bộ môn</th>
-            <th>Khoa</th>
-            <th>Học kỳ</th>
-            <th>Phòng</th>
-            <th>Số buổi</th>
-            <th>Thao tác</th>
+            <th>STT</th><th>Giảng viên</th><th>Lớp</th><th>Học phần</th>
+            <th>Học kỳ</th><th>Phòng</th><th>Số buổi</th><th>Thao tác</th>
           </tr>
         </thead>
-
         <tbody>
           {loading ? (
-            <tr><td colSpan={10} style={{ padding: 16 }}>Đang tải…</td></tr>
+            <tr><td colSpan={8} style={{ padding:16 }}>Đang tải…</td></tr>
           ) : rows.length === 0 ? (
-            <tr><td colSpan={10} style={{ padding: 16 }}>Không có dữ liệu</td></tr>
+            <tr><td colSpan={8} style={{ padding:16 }}>Không có dữ liệu</td></tr>
           ) : (
-            rows.map((r, idx) => (
+            rows.map((r, i) => (
               <tr key={r.id}>
-                <td>{page * size + idx + 1}</td>
-                <td>{r?.classSection?.teacher?.fullName}</td>
-                <td>{r?.classSection?.name}</td>
-                <td>{r?.classSection?.subject?.name}</td>
-                <td>{r?.classSection?.department?.name}</td>
-                <td>{r?.classSection?.faculty?.name}</td>
-                <td>{r?.classSection?.semester?.academicYear}</td>
-                <td>{r?.classSection?.room?.name}</td>
-                <td>{r?.details?.length || 0}</td>
+                <td>{page * size + i + 1}</td>
+                <td>{r.lecturerName}</td>
+                <td>{r.classCode}</td>
+                <td>{r.subjectName}</td>
+                <td>{r.semester}</td>
+                <td>{r.room}</td>
+                <td>{r.sessions} buổi</td>
                 <td>
                   <div className="actions">
-                    <FaInfoCircle className="icon info" title="Chi tiết" onClick={() => { console.log("[TSList] info row =", r); setSelected(r); setShowDetail(true); }} />
-                    <FaPen className="icon edit" title="Sửa" onClick={() => { console.log("[TSList] edit row =", r); setEditing(r); setShowForm(true); }} />
-                    <FaTrash className="icon delete" title="Xóa" onClick={() => handleDelete(r.id)} />
+                    <FaInfoCircle
+                      className="icon info"
+                      onClick={() => {
+                        setDetailId(r.id);
+                        setShowDetail(true);
+                      }}
+                    />
+                    <FaPen
+                      className="icon edit"
+                      onClick={() => {
+                        setEditing(r);
+                        setShowForm(true);
+                      }}
+                    />
+                    <FaTrash
+                      className="icon delete"
+                      onClick={() => handleDelete(r.id)}
+                    />
                   </div>
                 </td>
               </tr>
@@ -146,15 +216,33 @@ export default function TeachingScheduleList() {
         </tbody>
       </table>
 
+      {/* ===== FOOTER ===== */}
       <div className="footer">
-        <div>Hiển thị <b>{rows.length}</b> / {total} kết quả</div>
+        <div>
+          Hiển thị <b>{rows.length}</b> / {total} kết quả
+        </div>
         <div className="pagination">
-          <select value={size} onChange={(e) => { console.log("[TSList] change size =", e.target.value); setSize(Number(e.target.value)); }}>
-            {[10, 20, 50, 100].map((n) => (<option key={n} value={n}>{n}</option>))}
+          <select
+            value={size}
+            onChange={(e) => {
+              setPage(0);
+              setSize(+e.target.value);
+            }}
+          >
+            {[10, 20, 50, 100].map((n) => (
+              <option key={n}>{n}</option>
+            ))}
           </select>
-        <span>{fromToText}</span>
-          <button disabled={page <= 0} onClick={() => { console.log("[TSList] prev page"); setPage((p) => Math.max(0, p - 1)); }}>{"<"}</button>
-          <button disabled={page + 1 >= totalPages} onClick={() => { console.log("[TSList] next page"); setPage((p) => Math.min(totalPages - 1, p + 1)); }}>{">"}</button>
+          <span>{rangeText}</span>
+          <button disabled={page <= 0} onClick={() => setPage(page - 1)}>
+            {"<"}
+          </button>
+          <button
+            disabled={page + 1 >= totalPages}
+            onClick={() => setPage(page + 1)}
+          >
+            {">"}
+          </button>
         </div>
       </div>
     </div>

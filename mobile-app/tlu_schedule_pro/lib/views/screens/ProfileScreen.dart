@@ -51,7 +51,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        "${user.fullName} (${user.studentId})",
+                        "${user.fullName} (${user.studentCode})",
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -60,7 +60,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         textAlign: TextAlign.center,
                       ),
                       Text(
-                        user.email,
+                        user.facultyName,
                         style: const TextStyle(color: Colors.white70),
                         textAlign: TextAlign.center,
                       ),
@@ -70,7 +70,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 const SizedBox(height: 10),
 
-              // Thông tin cá nhân
+                // Thông tin cá nhân
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Container(
@@ -80,27 +80,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       border: Border.all(color: Colors.grey.shade300, width: 1),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.2), // Màu shadow
-                          spreadRadius: 2, // Độ lan
-                          blurRadius: 6, // Độ mờ
-                          offset: const Offset(0, 3), // Vị trí đổ bóng
+                          color: Colors.grey.withOpacity(0.2),
+                          spreadRadius: 2,
+                          blurRadius: 6,
+                          offset: const Offset(0, 3),
                         ),
                       ],
                     ),
                     child: Column(
                       children: [
-                        _buildInfoRow(Icons.email, "Email", user.email),
-                        _buildInfoRow(Icons.calendar_today, "Ngày sinh", user.dateOfBirth),
+                        _buildInfoRow(Icons.perm_identity, "Mã sinh viên", user.studentCode),
+                        _buildInfoRow(Icons.person, "Họ tên", user.fullName),
+                        _buildInfoRow(Icons.wc, "Giới tính", user.gender),
                         _buildInfoRow(Icons.class_, "Lớp", user.className),
-                        _buildInfoRow(Icons.school, "Khoa", user.faculty),
-                        _buildInfoRow(Icons.computer, "Ngành học", user.major),
-                        _buildInfoRow(Icons.access_time, "Năm vào học", user.admissionYear.toString()),
+                        _buildInfoRow(Icons.school, "Khoa", user.facultyName),
+                        _buildInfoRow(Icons.computer, "Ngành học", user.majorName),
+                        _buildInfoRow(Icons.access_time, "Năm vào học", user.enrollmentYear.toString()),
                       ],
                     ),
                   ),
                 ),
 
-              // Tùy chọn
+                // Tùy chọn
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Column(

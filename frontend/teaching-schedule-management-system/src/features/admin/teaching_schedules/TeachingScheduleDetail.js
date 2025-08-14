@@ -1,0 +1,119 @@
+import React, { useEffect, useState } from "react";
+import { FaTimes } from "react-icons/fa";
+import TeachingScheduleApi from "../../../api/TeachingScheduleApi";
+import "../../../styles/TeachingScheduleForm.css";
+
+// Tiếng Việt thứ trong tuần
+const WEEKDAY_VI = ["Chủ nhật","Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6","Thứ 7"];
+
+export default function TeachingScheduleDetail({ open, id, onClose }) {
+  const [loading, setLoading] = useState(false);
+  const [schedule, setSchedule] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!open || !id) return;
+    let mounted = true;
+    setLoading(true);
+    setError(null);
+    TeachingScheduleApi.getTeachingScheduleById(id)
+      .then(data => {
+        if (!mounted) return;
+        setSchedule(data);
+      })
+      .catch(err => {
+        if (!mounted) return;
+        console.error("[Detail] fetch error", err);
+        setError("Không thể tải chi tiết");
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+    return () => { mounted = false; };
+  }, [open, id]);
+
+  if (!open) return null;
+
+  return (
+    <div className="tsf-overlay" onClick={onClose}>
+      <div className="tsf-modal" onClick={e => e.stopPropagation()}>
+        <div className="tsf-header">
+          <h3>Chi tiết lịch giảng dạy</h3>
+          <button className="tsf-close" onClick={onClose}><FaTimes/></button>
+        </div>
+        <div className="tsf-body">
+          {loading && <p>Đang tải chi tiết…</p>}
+          {error && <p className="error-text">{error}</p>}
+          {schedule && (
+            <div>
+              <div className="tsf-row" style={{ marginBottom: '1rem' }}>
+                <div className="tsf-field">
+                  <label>Giảng viên</label>
+                  <input type="text" value={schedule.classSection.teacher.fullName} disabled />
+                </div>
+                <div className="tsf-field">
+                  <label>Lớp học phần</label>
+                  <input type="text" value={schedule.classSection.name} disabled />
+                </div>
+              </div>
+              <div className="tsf-row" style={{ marginBottom: '1rem' }}>
+                <div className="tsf-field">
+                  <label>Học phần</label>
+                  <input type="text" value={schedule.classSection.subject.name} disabled />
+                </div>
+                <div className="tsf-field">
+                  <label>Học kỳ</label>
+                  <input type="text" value={schedule.classSection.semester.academicYear} disabled />
+                </div>
+              </div>
+              <div className="tsf-row" style={{ marginBottom: '1rem' }}>
+                <div className="tsf-field">
+                  <label>Phòng</label>
+                  <input type="text" value={schedule.classSection.room.name} disabled />
+                </div>
+                <div className="tsf-field">
+                  <label>Số buổi</label>
+                  <input type="text" value={schedule.details.length + ' buổi'} disabled />
+                </div>
+              </div>
+
+              <h4>Chi tiết buổi dạy</h4>
+              <table className="account-table">
+                <thead>
+                  <tr>
+                    <th>Thứ</th>
+                    <th>Ngày</th>
+                    <th>Tiết bắt đầu</th>
+                    <th>Tiết kết thúc</th>
+                    <th>Loại</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {schedule.details.map((d, i) => {
+                    const dow = new Date(d.teachingDate).getDay();
+                    return (
+                      <tr key={i}>
+                        <td>{WEEKDAY_VI[dow]}</td>
+                        <td>{d.teachingDate}</td>
+                        <td>{d.periodStart}</td>
+                        <td>{d.periodEnd}</td>
+                        <td>{d.type}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+
+              {schedule.note && (
+                <div className="tsf-field" style={{ marginTop: '1rem' }}>
+                  <label>Ghi chú</label>
+                  <textarea value={schedule.note} disabled rows={3} />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

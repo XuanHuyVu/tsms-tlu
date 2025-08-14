@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/teacher/make-up-class")
-@PreAuthorize("hasAuthority('TEACHER')")
+@PreAuthorize("hasRole('TEACHER')")
 public class MakeUpClassController {
 
     private final ScheduleChangeService scheduleChangeService;

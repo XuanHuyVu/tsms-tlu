@@ -19,6 +19,10 @@ import com.example.tsmstlu.dto.room.RoomListDto;
 import com.example.tsmstlu.dto.room.RoomUpdateDto;
 import com.example.tsmstlu.dto.schedule_change.*;
 import com.example.tsmstlu.dto.semester.SemesterDto;
+import com.example.tsmstlu.dto.student.StudentCreateDto;
+import com.example.tsmstlu.dto.student.StudentDto;
+import com.example.tsmstlu.dto.student.StudentListDto;
+import com.example.tsmstlu.dto.student.StudentUpdateDto;
 import com.example.tsmstlu.dto.subject.SubjectCreateDto;
 import com.example.tsmstlu.dto.subject.SubjectDto;
 import com.example.tsmstlu.dto.subject.SubjectListDto;
@@ -112,7 +116,7 @@ public interface MapperUtils {
     TeachingScheduleDetailEntity toTeachingScheduleDetailEntity(TeachingScheduleDetailUpdateDto dto);
     void copyEntity(TeachingScheduleDetailUpdateDto dto, @MappingTarget TeachingScheduleDetailEntity entity);
 
-    //schedule change
+    // schedule change
     ScheduleChangeDto toScheduleChangeListDto(ScheduleChangeEntity entity);
     ClassCancelDto toClassCancelDto(ScheduleChangeEntity entity);
     ScheduleChangeEntity toScheduleChangeEntity(ClassCancelCreateDto dto);
@@ -125,5 +129,12 @@ public interface MapperUtils {
     MajorEntity toMajorEntity(MajorCreateDto dto);
     MajorEntity toMajorEntity(MajorUpdateDto dto);
     void copyEntity(MajorUpdateDto dto, @MappingTarget MajorEntity entity);
+
+    // student
+    StudentListDto toStudentListDto(StudentEntity entity);
+    StudentDto toStudentDto(StudentEntity entity);
+    StudentEntity toStudentEntity(StudentCreateDto dto);
+    StudentEntity toStudentEntity(StudentUpdateDto dto);
+    void copyEntity(StudentUpdateDto dto, @MappingTarget StudentEntity entity);
 
 }

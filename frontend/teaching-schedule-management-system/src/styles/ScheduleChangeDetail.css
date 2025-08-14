@@ -14,6 +14,7 @@
   border-radius: 8px;
   width: 650px;
   max-width: 95%;
+  height: 500px; /* Chiều cao cố định */
   box-shadow: 0 8px 16px rgba(0,0,0,0.2);
   display: flex;
   flex-direction: column;
@@ -30,6 +31,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-shrink: 0; /* Không co khi thiếu chỗ */
 }
 
 .schedulechange-detail-header h2 {
@@ -50,6 +52,8 @@
 /* Body */
 .schedulechange-detail-body {
   padding: 20px;
+  flex: 1; /* Chiếm hết không gian trống giữa header và footer */
+  overflow-y: auto; /* Thanh cuộn khi tràn */
 }
 
 .form-grid {
@@ -108,8 +112,9 @@
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  padding: 16px 20px; /* Đồng bộ padding với body */
+  padding: 16px 20px;
   border-top: 1px solid #ddd;
+  flex-shrink: 0; /* Luôn giữ nguyên kích thước */
 }
 
 .approve-btn {

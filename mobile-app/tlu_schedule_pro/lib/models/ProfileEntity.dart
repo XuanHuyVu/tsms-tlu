@@ -1,34 +1,34 @@
 class ProfileEntity {
+  final int id;
+  final String studentCode;
   final String fullName;
-  final String studentId;
-  final String email;
-  final String dateOfBirth;
+  final String gender;
   final String className;
-  final String faculty;
-  final String major;
-  final int admissionYear;
+  final int enrollmentYear;
+  final String majorName;
+  final String facultyName;
 
   ProfileEntity({
+    required this.id,
+    required this.studentCode,
     required this.fullName,
-    required this.studentId,
-    required this.email,
-    required this.dateOfBirth,
+    required this.gender,
     required this.className,
-    required this.faculty,
-    required this.major,
-    required this.admissionYear,
+    required this.enrollmentYear,
+    required this.majorName,
+    required this.facultyName,
   });
 
   factory ProfileEntity.fromJson(Map<String, dynamic> json) {
     return ProfileEntity(
+      id: json['id'] ?? 0,
+      studentCode: json['studentCode'] ?? '',
       fullName: json['fullName'] ?? '',
-      studentId: json['studentId'] ?? '',
-      email: json['email'] ?? '',
-      dateOfBirth: json['dateOfBirth'] ?? '',
+      gender: json['gender'] ?? '',
       className: json['className'] ?? '',
-      faculty: json['faculty'] ?? '',
-      major: json['major'] ?? '',
-      admissionYear: json['admissionYear'] ?? 0,
+      enrollmentYear: json['enrollmentYear'] ?? 0,
+      majorName: json['major']?['name'] ?? '',
+      facultyName: json['faculty']?['name'] ?? '',
     );
   }
 }

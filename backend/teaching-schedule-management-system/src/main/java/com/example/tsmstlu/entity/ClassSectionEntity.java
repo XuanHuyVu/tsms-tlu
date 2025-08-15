@@ -5,6 +5,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -42,4 +45,10 @@ public class ClassSectionEntity extends BaseEntity{
     @ManyToOne(optional = false)
     @JoinColumn(name = "room_id", nullable = false)
     private RoomEntity room;
+
+    @OneToMany(mappedBy = "classSection", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<StudentClassSectionEntity> studentClassSections = new ArrayList<>();
+
+    @OneToMany(mappedBy = "classSection", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TeachingScheduleEntity> teachingSchedules = new ArrayList<>();
 }

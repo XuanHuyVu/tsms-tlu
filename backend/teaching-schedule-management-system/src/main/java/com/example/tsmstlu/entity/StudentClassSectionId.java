@@ -13,4 +13,3 @@ public class StudentClassSectionId implements Serializable {
     private Long studentId;
     private Long classSectionId;
 }
-

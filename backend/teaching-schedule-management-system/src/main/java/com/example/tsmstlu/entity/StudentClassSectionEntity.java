@@ -1,32 +1,36 @@
 package com.example.tsmstlu.entity;
 
+import com.example.tsmstlu.common.TableNameContants;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
+
 import java.util.Date;
 
-@Table(name = "student_class_sections")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class StudentClassSectionEntity {
+@SuperBuilder
+@EqualsAndHashCode(callSuper = true)
+@Entity
+@Table(name = TableNameContants.STUDENT_CLASS_SECTION)
+public class StudentClassSectionEntity extends BaseEntity{
 
     @EmbeddedId
     private StudentClassSectionId id;
 
     @ManyToOne
     @MapsId("studentId")
-    @JoinColumn(name = "student_id")
+    @JoinColumn(name = "student_id", nullable = false)
     private StudentEntity student;
 
     @ManyToOne
     @MapsId("classSectionId")
-    @JoinColumn(name = "class_section_id")
+    @JoinColumn(name = "class_section_id", nullable = false)
     private ClassSectionEntity classSection;
 
+    @Column(name = "practise_group")
     private String practiseGroup;
-
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date enrolledAt = new Date();
 }
 
 

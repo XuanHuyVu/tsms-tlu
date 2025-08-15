@@ -23,6 +23,7 @@ import com.example.tsmstlu.dto.student.StudentCreateDto;
 import com.example.tsmstlu.dto.student.StudentDto;
 import com.example.tsmstlu.dto.student.StudentListDto;
 import com.example.tsmstlu.dto.student.StudentUpdateDto;
+import com.example.tsmstlu.dto.student_class_section.StudentClassSectionCreateDto;
 import com.example.tsmstlu.dto.subject.SubjectCreateDto;
 import com.example.tsmstlu.dto.subject.SubjectDto;
 import com.example.tsmstlu.dto.subject.SubjectListDto;
@@ -137,4 +138,7 @@ public interface MapperUtils {
     StudentEntity toStudentEntity(StudentUpdateDto dto);
     void copyEntity(StudentUpdateDto dto, @MappingTarget StudentEntity entity);
 
+
+    // student-class-section
+    StudentClassSectionEntity toStudentClassSectionEntity(StudentClassSectionCreateDto dto);
 }

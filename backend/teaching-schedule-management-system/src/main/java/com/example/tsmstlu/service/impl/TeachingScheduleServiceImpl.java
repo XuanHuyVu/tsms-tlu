@@ -101,4 +101,17 @@ public class TeachingScheduleServiceImpl implements TeachingScheduleService {
         teachingScheduleRepository.deleteById(id);
         log.info("Deleted teaching schedule with id: {}", id);
     }
+
+    @Override
+    public List<TeachingScheduleDto> getTeachingScheduleByTeacherId(Long teacherId) {
+        List<TeachingScheduleEntity> schedules = teachingScheduleRepository.findByTeacherId(teacherId);
+
+        if (schedules.isEmpty()) {
+            throw new RuntimeException("No teaching schedule found for teacherId: " + teacherId);
+        }
+
+        return schedules.stream()
+                .map(mapperUtils::toTeachingScheduleDto)
+                .collect(Collectors.toList());
+    }
 }

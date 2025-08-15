@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tlu_schedule_pro/viewmodels/AuthViewModel.dart';
-import 'views/screens/SplashScreen.dart';
+import 'features/auth/viewmodels/AuthViewModel.dart';
+import 'features/auth/views/SplashScreen.dart';
 
 void main() {
   runApp(

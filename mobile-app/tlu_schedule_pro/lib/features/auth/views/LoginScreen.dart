@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../viewmodels/AuthViewModel.dart';
-import 'HomeScreen.dart';
+import '../viewmodels/AuthViewModel.dart';
+import '../../student/views/screens/schedule_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

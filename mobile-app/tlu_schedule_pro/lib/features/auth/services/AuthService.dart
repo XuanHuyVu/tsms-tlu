@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import '../models/UserEntity.dart';
+import '../../../shared/models/UserEntity.dart';
 
 class AuthService {
   static Future<UserEntity> login(String username, String password) async {

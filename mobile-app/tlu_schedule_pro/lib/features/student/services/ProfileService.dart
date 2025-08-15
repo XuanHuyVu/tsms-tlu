@@ -1,16 +1,24 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/ProfileEntity.dart';
 
 class ProfileService {
+  String get baseUrl {
+    if (kIsWeb) {
+      return 'http://localhost:8080';
+    } else {
+      return 'http://10.0.2.2:8080';
+    }
+  }
+
   Future<ProfileEntity> fetchProfile() async {
-    final uri = Uri.parse('http://192.168.0.101:8080/api/admin/students');
+    final uri = Uri.parse('$baseUrl/api/admin/students');
 
     final response = await http.get(
       uri,
       headers: {
         'Content-Type': 'application/json',
-        // Nếu cần token:
         // 'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
       },
     );

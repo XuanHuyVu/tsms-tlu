@@ -31,30 +31,4 @@ class SplashScreen extends StatelessWidget {
   }
 }
 
-// import 'package:flutter/material.dart';
-// import 'package:provider/provider.dart';
-// import '../../viewmodels/AuthViewModel.dart';
-// import 'ProfileScreen.dart'; // Thêm import cho ProfileScreen
-// import 'LoginScreen.dart';
-//
-// class SplashScreen extends StatelessWidget {
-//   const SplashScreen({super.key});
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final authViewModel = Provider.of<AuthViewModel>(context);
-//
-//     Future.delayed(Duration.zero, () {
-//       // Luôn chuyển sang ProfileScreen
-//       Navigator.pushReplacement(
-//         context,
-//         MaterialPageRoute(builder: (_) => const ProfileScreen()),
-//       );
-//     });
-//
-//     return const Scaffold(
-//       body: Center(child: CircularProgressIndicator()),
-//     );
-//   }
-// }
 

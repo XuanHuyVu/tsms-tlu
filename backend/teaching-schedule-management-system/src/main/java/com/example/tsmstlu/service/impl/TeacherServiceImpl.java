@@ -7,9 +7,11 @@ import com.example.tsmstlu.dto.teacher.TeacherUpdateDto;
 import com.example.tsmstlu.entity.DepartmentEntity;
 import com.example.tsmstlu.entity.FacultyEntity;
 import com.example.tsmstlu.entity.TeacherEntity;
+import com.example.tsmstlu.entity.UserEntity;
 import com.example.tsmstlu.repository.DepartmentRepository;
 import com.example.tsmstlu.repository.FacultyRepository;
 import com.example.tsmstlu.repository.TeacherRepository;
+import com.example.tsmstlu.repository.UserRepository;
 import com.example.tsmstlu.service.TeacherService;
 import com.example.tsmstlu.utils.MapperUtils;
 import jakarta.persistence.EntityNotFoundException;
@@ -29,6 +31,7 @@ public class TeacherServiceImpl implements TeacherService {
     private final TeacherRepository teacherRepository;
     private final DepartmentRepository departmentRepository;
     private final FacultyRepository facultyRepository;
+    private final UserRepository userRepository;
 
     @Override
    public List<TeacherListDto> getAll() {
@@ -49,6 +52,12 @@ public class TeacherServiceImpl implements TeacherService {
     public TeacherDto create(TeacherCreateDto dto) {
         TeacherEntity entity = mapper.toTeacherEntity(dto);
 
+        if(dto.getUserId() != null) {
+            UserEntity user = userRepository.findById(dto.getUserId())
+                    .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + dto.getUserId()));
+            entity.setUser(user);
+        }
+
         DepartmentEntity department = departmentRepository.findById(dto.getDepartmentId())
                 .orElseThrow(() -> new EntityNotFoundException("Department not found with id: " + dto.getDepartmentId()));
         entity.setDepartment(department);
@@ -67,6 +76,12 @@ public class TeacherServiceImpl implements TeacherService {
                 .orElseThrow(() -> new EntityNotFoundException("Teacher not found with id: " + id));
 
         mapper.copyEntity(dto, entity);
+
+        if(dto.getUserId() != null) {
+            UserEntity user = userRepository.findById(dto.getUserId())
+                    .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + dto.getUserId()));
+            entity.setUser(user);
+        }
 
         if (dto.getDepartmentId() != null) {
             DepartmentEntity department = departmentRepository.findById(dto.getDepartmentId())

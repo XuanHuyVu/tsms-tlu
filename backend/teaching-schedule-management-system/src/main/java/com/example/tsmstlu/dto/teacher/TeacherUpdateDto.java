@@ -18,6 +18,7 @@ import java.util.Date;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TeacherUpdateDto {
+    private Long userId;
     private String teacherCode;
     private String fullName;
     private String gender;

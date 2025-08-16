@@ -19,10 +19,7 @@ import com.example.tsmstlu.dto.room.RoomListDto;
 import com.example.tsmstlu.dto.room.RoomUpdateDto;
 import com.example.tsmstlu.dto.schedule_change.*;
 import com.example.tsmstlu.dto.semester.SemesterDto;
-import com.example.tsmstlu.dto.student.StudentCreateDto;
-import com.example.tsmstlu.dto.student.StudentDto;
-import com.example.tsmstlu.dto.student.StudentListDto;
-import com.example.tsmstlu.dto.student.StudentUpdateDto;
+import com.example.tsmstlu.dto.student.*;
 import com.example.tsmstlu.dto.student_class_section.StudentClassSectionCreateDto;
 import com.example.tsmstlu.dto.student_class_section.StudentClassSectionDto;
 import com.example.tsmstlu.dto.student_class_section.StudentClassSectionUpdateDto;
@@ -136,6 +133,7 @@ public interface MapperUtils {
     // student
     StudentListDto toStudentListDto(StudentEntity entity);
     StudentDto toStudentDto(StudentEntity entity);
+    StudentProfileDto toStudentProfileDto(StudentEntity entity);
     StudentEntity toStudentEntity(StudentCreateDto dto);
     StudentEntity toStudentEntity(StudentUpdateDto dto);
     void copyEntity(StudentUpdateDto dto, @MappingTarget StudentEntity entity);

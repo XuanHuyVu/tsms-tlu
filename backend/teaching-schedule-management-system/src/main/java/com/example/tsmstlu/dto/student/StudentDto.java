@@ -12,6 +12,8 @@ public class StudentDto {
     private String studentCode;
     private String fullName;
     private String gender;
+    private String email;
+    private String phoneNumber;
     private String dateOfBirth;
     private String className;
     private Integer enrollmentYear;

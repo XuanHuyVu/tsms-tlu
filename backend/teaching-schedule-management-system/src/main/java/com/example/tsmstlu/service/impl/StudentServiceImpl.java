@@ -1,9 +1,6 @@
 package com.example.tsmstlu.service.impl;
 
-import com.example.tsmstlu.dto.student.StudentCreateDto;
-import com.example.tsmstlu.dto.student.StudentDto;
-import com.example.tsmstlu.dto.student.StudentListDto;
-import com.example.tsmstlu.dto.student.StudentUpdateDto;
+import com.example.tsmstlu.dto.student.*;
 import com.example.tsmstlu.entity.FacultyEntity;
 import com.example.tsmstlu.entity.MajorEntity;
 import com.example.tsmstlu.entity.StudentEntity;
@@ -109,5 +106,19 @@ public class StudentServiceImpl implements StudentService {
         }
         studentRepository.deleteById(id);
         log.info("Deleted student with id: {}", id);
+    }
+
+    @Override
+    public StudentProfileDto getStudentProfile(Long id) {
+        StudentEntity student = studentRepository.findByUserId(id)
+                .orElseThrow(() -> new RuntimeException("Student not found with id: " + id));
+        return mapperUtils.toStudentProfileDto(student);
+    }
+
+    @Override
+    public StudentProfileDto getStudentProfileByUsername(String username) {
+        return studentRepository.findByUserUsername(username)
+                .map(mapperUtils::toStudentProfileDto)
+                .orElseThrow(() -> new RuntimeException("Student not found with username: " + username));
     }
 }

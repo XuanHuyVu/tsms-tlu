@@ -1,70 +1,82 @@
+// src/contexts/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { setAuthToken } from "../api/axiosInstance"; // ✅ import helper bạn đã viết
 
 const AuthContext = createContext();
 
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
-  if (!ctx) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
+  if (!ctx) throw new Error("useAuth must be used within an AuthProvider");
   return ctx;
 };
 
 export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [ready, setReady] = useState(false);
 
-  // Cho phép truyền rememberMe để giữ đăng nhập lâu hơn (tuỳ bạn xử lý thêm)
-  const login = (userData, rememberMe = false) => {
+  // ✅ login nhận { token, user } và set vào axiosInstance
+  const login = (data, rememberMe = false) => {
+    if (!data?.token || !data?.user) {
+      console.error("login() needs shape: { token, user }");
+      return;
+    }
     setIsLoggedIn(true);
-    setUser(userData);
+    setUser(data.user);
+    setToken(data.token);
 
     localStorage.setItem("isLoggedIn", "true");
-    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem("token", data.token);
 
-    // Token đã được đặt ở LoginPage (nếu muốn, có thể set ở đây)
-    // Nếu cần rememberMe nâng cao → có thể set thêm thời gian hết hạn, cookie...
-    if (rememberMe) {
-      localStorage.setItem("rememberMe", "true");
-    } else {
-      localStorage.removeItem("rememberMe");
-    }
+    setAuthToken(data.token); // ✅ gắn Authorization mặc định
+
+    if (rememberMe) localStorage.setItem("rememberMe", "true");
+    else localStorage.removeItem("rememberMe");
   };
 
   const logout = () => {
     setIsLoggedIn(false);
     setUser(null);
+    setToken(null);
 
+    // ✅ clear hết và tháo Authorization mặc định
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     localStorage.removeItem("rememberMe");
+    setAuthToken(null);
   };
 
-  // Khôi phục trạng thái đăng nhập từ localStorage khi khởi động
+  // ✅ Hydrate: khôi phục state + gắn token vào axiosInstance
   useEffect(() => {
     const savedLoginState = localStorage.getItem("isLoggedIn");
     const savedUser = localStorage.getItem("user");
+    const savedToken = localStorage.getItem("token");
 
-    if (savedLoginState === "true" && savedUser) {
-      try {
-        const parsed = JSON.parse(savedUser);
+    try {
+      if (savedLoginState === "true" && savedUser && savedToken) {
         setIsLoggedIn(true);
-        setUser(parsed);
-      } catch {
-        // nếu lỗi parse thì xoá để tránh crash
-        localStorage.removeItem("isLoggedIn");
-        localStorage.removeItem("user");
+        setUser(JSON.parse(savedUser));
+        setToken(savedToken);
+        setAuthToken(savedToken); // ✅ gắn lại cho axiosInstance
+      } else {
+        setAuthToken(null);
       }
+    } catch {
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      setAuthToken(null);
+    } finally {
+      setReady(true);
     }
   }, []);
 
-  const value = {
-    isLoggedIn,
-    user,
-    login,
-    logout,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ isLoggedIn, user, token, ready, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };

@@ -32,6 +32,7 @@ public class StudentEntity extends BaseEntity{
     private String fullName;
 
     private String gender;
+    private String email;
 
     @Column(name = "date_of_birth")
     private Date dateOfBirth;

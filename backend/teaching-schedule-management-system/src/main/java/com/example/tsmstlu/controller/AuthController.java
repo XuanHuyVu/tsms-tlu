@@ -3,8 +3,10 @@ package com.example.tsmstlu.controller;
 import com.example.tsmstlu.dto.user.*;
 import com.example.tsmstlu.entity.UserEntity;
 import com.example.tsmstlu.entity.TeacherEntity;
+import com.example.tsmstlu.entity.StudentEntity;
 import com.example.tsmstlu.repository.UserRepository;
 import com.example.tsmstlu.repository.TeacherRepository;
+import com.example.tsmstlu.repository.StudentRepository;
 import com.example.tsmstlu.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,7 @@ public class AuthController {
     private final JwtUtils jwtUtils;
     private final UserRepository userRepository;
     private final TeacherRepository teacherRepository;
+    private final StudentRepository studentRepository;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserLoginDto loginDto) {
@@ -38,15 +41,23 @@ public class AuthController {
         UserEntity userEntity = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // Lấy role
         String role = userDetails.getAuthorities().iterator().next().getAuthority();
 
         Long teacherId = null;
+        Long studentId = null;
         String fullName = null;
+
         if ("ROLE_TEACHER".equals(role)) {
             TeacherEntity teacher = teacherRepository.findByUserId(userEntity.getId())
                     .orElseThrow(() -> new RuntimeException("Teacher not found for user " + userEntity.getId()));
             teacherId = teacher.getId();
             fullName = teacher.getFullName();
+        } else if ("ROLE_STUDENT".equals(role)) {
+            StudentEntity student = studentRepository.findByUserId(userEntity.getId())
+                    .orElseThrow(() -> new RuntimeException("Student not found for user " + userEntity.getId()));
+            studentId = student.getId();
+            fullName = student.getFullName();
         }
 
         UserResponseDto userResponseDto = UserResponseDto.builder()
@@ -54,6 +65,7 @@ public class AuthController {
                 .username(userDetails.getUsername())
                 .role(role)
                 .teacherId(teacherId)
+                .studentId(studentId)
                 .fullName(fullName)
                 .build();
 

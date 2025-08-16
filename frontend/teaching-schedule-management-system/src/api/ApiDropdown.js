@@ -6,7 +6,7 @@ import axiosInstance from './axiosInstance';
  */
 export const getFaculties = async () => {
   try {
-    const response = await axiosInstance.get('admin/faculties');
+    const response = await axiosInstance.get('/admin/faculties');
     return response.data;
   } catch (error) {
     console.error('Lỗi khi lấy danh sách Khoa:', error);

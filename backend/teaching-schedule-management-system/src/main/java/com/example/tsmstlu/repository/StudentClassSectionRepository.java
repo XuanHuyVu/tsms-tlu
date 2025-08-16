@@ -6,11 +6,10 @@ import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-
 import java.util.List;
 
 @Repository
-public interface StudentClassSectionRepository extends JpaRepository<StudentClassSectionEntity, Long> {
+public interface StudentClassSectionRepository extends JpaRepository<StudentClassSectionEntity, StudentClassSectionId> {
     @Query("""
         select scs from StudentClassSectionEntity scs
         join fetch scs.student s

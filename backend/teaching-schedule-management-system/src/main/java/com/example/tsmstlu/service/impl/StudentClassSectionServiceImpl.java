@@ -1,16 +1,19 @@
 package com.example.tsmstlu.service.impl;
 
 import com.example.tsmstlu.dto.student_class_section.StudentClassSectionCreateDto;
+import com.example.tsmstlu.dto.student_class_section.StudentClassSectionDto;
 import com.example.tsmstlu.dto.student_class_section.StudentInClassDto;
 import com.example.tsmstlu.entity.*;
 import com.example.tsmstlu.repository.*;
 import com.example.tsmstlu.service.StudentClassSectionService;
+import com.example.tsmstlu.utils.MapperUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -20,6 +23,7 @@ public class StudentClassSectionServiceImpl implements StudentClassSectionServic
     private final StudentClassSectionRepository studentClassSectionRepository;
     private final StudentRepository studentRepository;
     private final ClassSectionRepository classSectionRepository;
+    private final MapperUtils mapper;
 
     @Override
     public List<StudentInClassDto> getStudentsInClassSection(Long classSectionId) {
@@ -36,7 +40,16 @@ public class StudentClassSectionServiceImpl implements StudentClassSectionServic
     }
 
     @Override
-    public StudentClassSectionCreateDto create(StudentClassSectionCreateDto dto) {
+    public StudentClassSectionDto getById(Long classSectionId, Long studentId) {
+        StudentClassSectionId id = new StudentClassSectionId(studentId, classSectionId);
+        StudentClassSectionEntity entity = studentClassSectionRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Student not found in this class section"));
+
+        return mapper.toStudentClassSectionDto(entity);
+    }
+
+    @Override
+    public StudentClassSectionDto create(StudentClassSectionCreateDto dto) {
         StudentEntity student = studentRepository.findById(dto.getStudentId())
                 .orElseThrow(() -> new EntityNotFoundException("Student not found with ID: " + dto.getStudentId()));
 
@@ -54,11 +67,26 @@ public class StudentClassSectionServiceImpl implements StudentClassSectionServic
         entity.setClassSection(classSection);
         entity.setPractiseGroup(dto.getPractiseGroup());
 
-        studentClassSectionRepository.save(entity);
-
+        StudentClassSectionEntity saved = studentClassSectionRepository.save(entity);
         log.info("Added student {} to class section {}", dto.getStudentId(), dto.getClassSectionId());
-        return dto;
+        return mapper.toStudentClassSectionDto(saved);
     }
+
+
+    @Override
+    public StudentClassSectionDto update(Long classSectionId, Long studentId, StudentClassSectionCreateDto dto) {
+        StudentClassSectionId id = new StudentClassSectionId(studentId, classSectionId);
+
+        StudentClassSectionEntity entity = studentClassSectionRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Student not found in this class section"));
+
+        entity.setPractiseGroup(dto.getPractiseGroup());
+
+        StudentClassSectionEntity updated = studentClassSectionRepository.save(entity);
+
+        return mapper.toStudentClassSectionDto(updated);
+    }
+
 
     @Override
     public void delete(Long classSectionId, Long studentId) {

@@ -1,18 +1,24 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import AppLayout from "./layouts/AppLayout";
-import LoginPage from "./features/auth/LoginPage";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import React from 'react';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from 'react-router-dom';
+
+import AppLayout from './layouts/AppLayout';
+import LoginPage from './features/auth/LoginPage';
+import { useAuth } from './contexts/AuthContext';
 
 function AppContent() {
-  const { isLoggedIn, isLoading, user } = useAuth();
+  const { isLoggedIn, isLoading } = useAuth();
 
-  // Hiển thị loading screen khi đang khôi phục auth state
+  // loading spinner khi AuthContext đang khởi tạo
   if (isLoading) {
     return (
       <div className="d-flex justify-content-center align-items-center vh-100">
         <div className="spinner-border text-primary" role="status">
-          <span className="sr-only">Loading...</span>
+          <span className="visually-hidden">Loading...</span>
         </div>
       </div>
     );
@@ -21,32 +27,22 @@ function AppContent() {
   return (
     <Router>
       <Routes>
-        {/* Mặc định luôn hiển thị form đăng nhập */}
-        <Route
-          path="/"
-          element={<Navigate to="/login" replace />}
-        />
+        {/* mặc định chuyển về /login */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
 
-        {/* Trang đăng nhập */}
+        {/* trang đăng nhập */}
         <Route path="/login" element={<LoginPage />} />
 
-        {/* Route chính, chỉ vào nếu đã đăng nhập */}
+        {/* mọi route còn lại – chỉ vào được khi đã login */}
         <Route
           path="/*"
-          element={
-            isLoggedIn ? <AppLayout /> : <Navigate to="/login" replace />
-          }
+          element={isLoggedIn ? <AppLayout /> : <Navigate to="/login" replace />}
         />
       </Routes>
     </Router>
   );
 }
 
-function App() {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-  );
+export default function App() {
+  return <AppContent />;
 }
-export default App;

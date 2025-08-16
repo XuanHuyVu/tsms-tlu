@@ -1,11 +1,20 @@
 // src/features/auth/LoginPage.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "../../styles/LoginPage.css";
 import { useAuth } from "../../contexts/AuthContext";
 import { authApi } from "../../api/AccountApi";
+
+// Chuẩn hoá role từ backend: ROLE_ADMIN, TEACHER, STUDENT
+const normalizeRole = (rawRole) => {
+  const r = String(rawRole || "").trim().toUpperCase();
+  if (r === "ROLE_ADMIN" || r.includes("ADMIN")) return "Admin";
+  if (r === "TEACHER" || r.includes("TEACHER")) return "Teacher";
+  if (r === "STUDENT" || r.includes("STUDENT")) return "Student";
+  return "User";
+};
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -15,164 +24,98 @@ export default function LoginPage() {
   const [usernameError, setUsernameError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { login, isLoggedIn, user, logout } = useAuth();
   const navigate = useNavigate();
 
+  // Nếu đã login → tránh vào trang login nữa (optional)
+  useEffect(() => {
+    if (isLoggedIn && user?.role) {
+      const role = user.role;
+      if (role === "Admin") navigate("/dashboard");
+      else if (role === "Teacher") navigate("/teacher-dashboard");
+      else if (role === "Student") navigate("/student-dashboard");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn]);
+
   const handleLogin = async (e) => {
     e.preventDefault();
-    
-    // Reset errors
+
+    // Reset lỗi
     setUsernameError("");
     setPasswordError("");
-    
-    let hasError = false;
-    
-    // Validate username - chỉ kiểm tra có rỗng không
+
     if (!username) {
       setUsernameError("Vui lòng nhập tên đăng nhập");
-      hasError = true;
+      return;
     }
-    
-    // Validate password
     if (!password) {
       setPasswordError("Vui lòng nhập mật khẩu");
-      hasError = true;
+      return;
     }
-    
-    if (hasError) return;
-    
+
     setIsLoading(true);
-    
     try {
       console.log("=== LOGIN DEBUG ===");
       console.log("Username:", username);
-      console.log("Password:", password);
 
-      // Sử dụng AccountApi thay vì fetch trực tiếp
-      const data = await authApi.login({
-        username: username,
-        password: password
-      });
+      // RẤT QUAN TRỌNG: Xoá token cũ trước khi login
+      localStorage.removeItem("token");
+
+      // Gọi API (backend nhận JSON { username, password })
+      const data = await authApi.login({ username, password });
+      // Kỳ vọng data:
+      // { token: "xxx", user: { id: 1, username: "admin", role: "ROLE_ADMIN" | "TEACHER" | "STUDENT" } }
 
       // Lưu token
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-        console.log("✅ Token saved to localStorage:", data.token);
+      if (data?.token) {
+        localStorage.setItem("token", data.token);
       } else {
-        console.log("❌ No token in API response");
-        // Tạo fake token cho test
-        const fakeToken = 'fake-token-' + Date.now();
-        localStorage.setItem('token', fakeToken);
-        console.log("🔧 Created fake token for testing:", fakeToken);
+        // Cho phép tạo token giả nếu backend chưa trả (debug)
+        const fake = "fake-token-" + Date.now();
+        localStorage.setItem("token", fake);
+        console.log("⚠️ API không trả token, dùng tạm:", fake);
       }
 
-      // Tạo userData từ API response
-      const apiRole = data.user?.role || "admin";
-      
-      console.log("=== ROLE NORMALIZATION DEBUG ===");
-      console.log("Original API role:", apiRole);
-      
-      // Normalize role values from backend
-      let normalizedRole = apiRole;
-      
-      console.log("Before normalization check - apiRole:", apiRole);
-      console.log("apiRole type:", typeof apiRole);
-      console.log("apiRole length:", apiRole?.length);
-      console.log("apiRole JSON:", JSON.stringify(apiRole));
-      console.log("apiRole === 'ROLE_TEACHER':", apiRole === 'ROLE_TEACHER');
-      console.log("apiRole.trim() === 'ROLE_TEACHER':", apiRole?.trim() === 'ROLE_TEACHER');
-      
-      // Force normalize for debugging
-      if (apiRole && (apiRole.includes('TEACHER') || apiRole.includes('Teacher'))) {
-        normalizedRole = 'Teacher';
-        console.log("🔧 FORCED normalization to Teacher due to TEACHER/Teacher in role");
-      } else if (apiRole && (apiRole.includes('ADMIN') || apiRole.includes('Admin'))) {
-        normalizedRole = 'Admin';
-        console.log("🔧 FORCED normalization to Admin due to ADMIN/Admin in role");
-      } else if (apiRole && (apiRole.includes('STUDENT') || apiRole.includes('Student'))) {
-        normalizedRole = 'Student';
-        console.log("🔧 FORCED normalization to Student due to STUDENT/Student in role");
-      } else {
-        switch (apiRole) {
-          case 'ROLE_ADMIN':
-            normalizedRole = 'Admin';
-            console.log("✅ Normalized to Admin");
-            break;
-          case 'ROLE_TEACHER':
-          case 'ROLE_Teacher': // Handle both cases
-            normalizedRole = 'Teacher';
-            console.log("✅ Normalized to Teacher");
-            break;
-          case 'ROLE_STUDENT':
-            normalizedRole = 'Student';
-            console.log("✅ Normalized to Student");
-            break;
-          default:
-            console.log("⚠️ No normalization applied, keeping:", apiRole);
-        }
-      }
-      
-      console.log("Normalized role:", normalizedRole);
-      
+      const role = normalizeRole(data?.user?.role);
       const userData = {
-        username: data.user?.username || username,
-        name: data.user?.name || username,
-        role: normalizedRole
+        id: data?.user?.id ?? null,
+        username: data?.user?.username ?? username,
+        // UI của bạn dùng fullName/name/username — điền đủ để tránh undefined
+        name: data?.user?.name ?? data?.user?.username ?? username,
+        fullName:
+          data?.user?.fullName ?? data?.user?.name ?? data?.user?.username ?? username,
+        role,
+        rawRole: data?.user?.role ?? null, // giữ để debug nếu cần
       };
-      
+
       console.log("Final userData:", userData);
-      
-      login(userData);
-      
-      // Điều hướng dựa trên role
-      console.log("=== NAVIGATION DEBUG ===");
-      console.log("Checking role for navigation:", userData.role);
-      
-      if (userData.role === 'Admin') {
-        console.log("🔄 Navigating to admin dashboard...");
-        navigate("/dashboard"); // Admin vào dashboard quản trị
-      } else if (userData.role === 'Teacher') {
-        console.log("🔄 Navigating to teacher-dashboard...");
-        navigate("/teacher-dashboard"); // Teacher vào dashboard giảng viên
-      } else if (userData.role === 'Student') {
-        console.log("🔄 Navigating to student-dashboard...");
-        navigate("/student-dashboard"); // Student vào dashboard sinh viên
-      } else {
-        console.log("🔄 Navigating to default dashboard...");
-        navigate("/dashboard"); // Default fallback
-      }
-      
-      console.log(`✅ Login successful, role: ${userData.role} (original: ${apiRole})`);
-      
+
+      // Lưu qua AuthContext (+ localStorage bên trong)
+      login(userData, rememberMe);
+
+      // Điều hướng theo role
+      if (role === "Admin") navigate("/dashboard");
+      else if (role === "Teacher") navigate("/teacher-dashboard");
+      else if (role === "Student") navigate("/student-dashboard");
+      else navigate("/dashboard");
+
+      console.log(`✅ Login successful. role=${role} raw=${userData.rawRole}`);
     } catch (error) {
-      console.log("=== LOGIN ERROR DEBUG ===");
-      console.log("Error object:", error);
-      console.log("Error message:", error.message);
-      console.log("Error response:", error.response?.data);
-      console.log("Error status:", error.response?.status);
-      
+      console.log("=== LOGIN ERROR DEBUG ===", error);
+      const status = error?.response?.status;
+      const backendMsg =
+        error?.response?.data?.message || error?.response?.data?.error || "";
+
       let errorMessage = "Tên đăng nhập hoặc mật khẩu không đúng";
-      
-      if (error.response) {
-        // Server responded with error status
-        switch (error.response.status) {
-          case 401:
-            errorMessage = "Tên đăng nhập hoặc mật khẩu không đúng";
-            break;
-          case 403:
-            errorMessage = "Tài khoản bị khóa hoặc không có quyền truy cập";
-            break;
-          case 500:
-            errorMessage = "Lỗi server, vui lòng thử lại sau";
-            break;
-          default:
-            errorMessage = `Lỗi ${error.response.status}: ${error.response.data?.message || 'Không thể đăng nhập'}`;
-        }
-      } else if (error.message.includes('Network Error')) {
+      if (status === 403) errorMessage = backendMsg || "Không có quyền truy cập (403).";
+      else if (status === 401) errorMessage = backendMsg || "Sai thông tin đăng nhập (401).";
+      else if (status === 500) errorMessage = backendMsg || "Lỗi server, vui lòng thử lại sau (500).";
+      else if (status) errorMessage = backendMsg || `Lỗi ${status}: Không thể đăng nhập`;
+      else if ((error?.message || "").includes("Network Error"))
         errorMessage = "Không thể kết nối đến server";
-      }
-      
+
       setUsernameError(errorMessage);
       setPasswordError(errorMessage);
     } finally {
@@ -181,13 +124,8 @@ export default function LoginPage() {
   };
 
   const handleUsernameChange = (e) => {
-    const newUsername = e.target.value;
-    setUsername(newUsername);
-    
-    // Clear error when user starts typing
-    if (usernameError) {
-      setUsernameError("");
-    }
+    setUsername(e.target.value);
+    if (usernameError) setUsernameError("");
   };
 
   const handlePasswordChange = (e) => {
@@ -195,15 +133,10 @@ export default function LoginPage() {
     if (passwordError) setPasswordError("");
   };
 
-  const handleGoToDashboard = () => {
-    navigate("/dashboard");
-  };
+  const handleGoToDashboard = () => navigate("/dashboard");
+  const handleLogout = () => logout();
 
-  const handleLogout = () => {
-    logout();
-  };
-
-  // Nếu đã đăng nhập, hiển thị thông báo và nút vào dashboard
+  // Đã đăng nhập → hiển thị trạng thái
   if (isLoggedIn) {
     return (
       <section className="vh-100">
@@ -223,31 +156,33 @@ export default function LoginPage() {
             <div className="col-md-6 col-lg-5 col-xl-4 offset-xl-1">
               <div className="card p-4 shadow rounded-3">
                 <h4 className="text-center mb-4">TSMS TLU</h4>
-                
+
                 <div className="text-center mb-4">
                   <div className="mb-3">
                     <i className="fas fa-user-check text-success" style={{ fontSize: "48px" }}></i>
                   </div>
                   <h5 className="text-success mb-2">Đã đăng nhập thành công!</h5>
-                  <p className="text-muted mb-1">Xin chào <strong>{user?.fullName || user?.username}</strong></p>
-                  <p className="text-muted small">Vai trò: <span className="badge bg-primary">{user?.role || 'User'}</span></p>
+                  <p className="text-muted mb-1">
+                    Xin chào{" "}
+                    <strong>{user?.fullName || user?.name || user?.username}</strong>
+                  </p>
+                  <p className="text-muted small">
+                    Vai trò: <span className="badge bg-primary">{user?.role || "User"}</span>
+                  </p>
+                  {user?.id != null && (
+                    <p className="text-muted small mb-0">
+                      User ID: <code>{user.id}</code>
+                    </p>
+                  )}
                 </div>
 
                 <div className="d-grid gap-2 mb-3">
-                  <button 
-                    type="button" 
-                    className="btn btn-primary"
-                    onClick={handleGoToDashboard}
-                  >
+                  <button type="button" className="btn btn-primary" onClick={handleGoToDashboard}>
                     <i className="fas fa-tachometer-alt me-2"></i>
                     Vào Dashboard
                   </button>
-                  
-                  <button 
-                    type="button" 
-                    className="btn btn-outline-secondary"
-                    onClick={handleLogout}
-                  >
+
+                  <button type="button" className="btn btn-outline-secondary" onClick={handleLogout}>
                     <i className="fas fa-sign-out-alt me-2"></i>
                     Đăng xuất
                   </button>
@@ -264,6 +199,7 @@ export default function LoginPage() {
     );
   }
 
+  // Form đăng nhập
   return (
     <section className="vh-100">
       <div className="container-fluid h-custom">
@@ -278,12 +214,10 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Bên phải là thẻ đăng nhập nằm giữa */}
+          {/* Bên phải là thẻ đăng nhập */}
           <div className="col-md-6 col-lg-5 col-xl-4 offset-xl-1">
             <div className="card p-4 shadow rounded-3">
               <h4 className="text-center mb-1">TSMS TLU</h4>
-
-              {/* Remove general error alert since we have individual field errors */}
 
               <form onSubmit={handleLogin} noValidate>
                 <div className="form-outline mb-2">
@@ -317,7 +251,7 @@ export default function LoginPage() {
                       style={{ cursor: "pointer", borderLeft: "none" }}
                       onClick={() => setShowPassword(!showPassword)}
                     >
-                      <i className={`fas ${showPassword ? "fa-eye" : "fa-eye-slash" }`}></i>
+                      <i className={`fas ${showPassword ? "fa-eye" : "fa-eye-slash"}`}></i>
                     </span>
                   </div>
                   <div className="error-container">
@@ -338,10 +272,10 @@ export default function LoginPage() {
                       Ghi nhớ đăng nhập
                     </label>
                   </div>
-                  <button 
-                    type="button" 
-                    className="btn btn-link text-primary p-0" 
-                    onClick={() => {/* TODO: Xử lý quên mật khẩu */}}
+                  <button
+                    type="button"
+                    className="btn btn-link text-primary p-0"
+                    onClick={() => {}}
                   >
                     Quên mật khẩu?
                   </button>
@@ -351,7 +285,11 @@ export default function LoginPage() {
                   <button type="submit" className="btn btn-primary" disabled={isLoading}>
                     {isLoading ? (
                       <>
-                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <span
+                          className="spinner-border spinner-border-sm me-2"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
                         Đang đăng nhập...
                       </>
                     ) : (

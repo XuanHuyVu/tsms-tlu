@@ -4,70 +4,83 @@ import "../../../styles/AccountForm.css";
 import { useAuth } from "../../../contexts/AuthContext";
 import { accountApi } from "../../../api/AccountApi";
 
+// ===== Role mapping =====
+const toApiRole = (ui) =>
+  ui === "Admin" ? "ROLE_ADMIN"
+  : ui === "Teacher" ? "ROLE_TEACHER"
+  : ui === "Student" ? "ROLE_STUDENT"
+  : ui;
+
+const fromApiRole = (api) =>
+  api === "ROLE_ADMIN" ? "Admin"
+  : api === "ROLE_TEACHER" ? "Teacher"
+  : api === "ROLE_STUDENT" ? "Student"
+  : api;
+
 const AccountForm = ({ onClose, editData, onSuccess }) => {
+  const isEditing = !!editData;
+
+  // Chấp cả key tiếng Việt (tenDangNhap, vaiTro) lẫn tiếng Anh (username, role)
   const [formData, setFormData] = useState({
-    username: editData?.tenDangNhap || "",
-    password: editData ? "••••••••" : "", // Hiển thị dấu chấm khi sửa
-    role: editData?.vaiTro === "Admin" ? "Admin" : editData?.vaiTro === "Teacher" ? "TEACHER" : editData?.vaiTro === "Student" ? "Student" : "",
+    username: editData?.tenDangNhap || editData?.username || "",
+    password: "", // để trống khi sửa
+    role: fromApiRole(editData?.vaiTro || editData?.role || ""),
   });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { isTokenValid, logout } = useAuth();
-
-  const isEditing = !!editData; // Kiểm tra có phải đang sửa không
+  const { logout } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((s) => ({ ...s, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       setLoading(true);
       setError(null);
 
-      if (!isTokenValid()) {
-        throw new Error('Token không hợp lệ hoặc đã hết hạn');
-      }
-
-      // Prepare data for API
-      const apiData = {
-        username: formData.username,
-        password: formData.password,
-        role: formData.role,
+      // Payload gửi API
+      const payload = {
+        username: formData.username.trim(),
+        tenDangNhap: formData.username.trim(), // mirror nếu BE dùng key VN
+        role: toApiRole(formData.role),
+        vaiTro: toApiRole(formData.role),
       };
 
-      console.log('=== ACCOUNT FORM SUBMIT ===');
-      console.log('Form data:', formData);
-      console.log('Sending data to API:', apiData);
-      console.log('Selected role:', formData.role);
+      const pass = formData.password.trim();
+      if (!isEditing) {
+        if (!pass) throw new Error("Mật khẩu không được để trống khi tạo mới");
+        payload.password = pass;
+      } else if (pass && pass !== "••••••••") {
+        payload.password = pass; // chỉ update password nếu nhập mới
+      }
 
-      // Sử dụng AccountApi thay vì fetch trực tiếp
       let result;
       if (isEditing) {
-        result = await accountApi.update(editData.id, apiData);
+        result = await accountApi.update(editData.id, payload);
       } else {
-        result = await accountApi.create(apiData);
+        result = await accountApi.create(payload);
       }
 
-      console.log('API Success:', result);
+      console.log("API Success:", result);
 
-      // Call success callback để refresh list
-      if (onSuccess) {
-        onSuccess();
-      }
-      
+      if (onSuccess) onSuccess();
+      onClose();
     } catch (error) {
-      console.error('Form submit error:', error);
+      console.error("Form submit error:", error);
       setError(error.message);
-      
-      // Nếu token hết hạn, tự động logout
-      if (error.message.includes('Token hết hạn') || error.message.includes('không có quyền')) {
-        setTimeout(() => {
-          logout();
-        }, 2000);
+
+      // Nếu BE trả 401 thì logout
+      if (
+        error?.response?.status === 401 ||
+        error.message.includes("hết hạn") ||
+        error.message.includes("không có quyền")
+      ) {
+        setTimeout(() => logout(), 1500);
       }
     } finally {
       setLoading(false);
@@ -82,7 +95,6 @@ const AccountForm = ({ onClose, editData, onSuccess }) => {
           <FaTimes className="close" onClick={onClose} />
         </div>
 
-        {/* Error message */}
         {error && (
           <div className="alert alert-danger">
             <strong>Lỗi:</strong> {error}
@@ -102,14 +114,14 @@ const AccountForm = ({ onClose, editData, onSuccess }) => {
         </div>
 
         <div className="form-group">
-          <label>Mật khẩu: <span>*</span></label>
+          <label>Mật khẩu: <span>{isEditing ? "(chỉ nhập nếu đổi)" : "*"}</span></label>
           <input
             type="password"
             name="password"
             value={formData.password}
             onChange={handleChange}
-            required
             disabled={loading}
+            required={!isEditing} // bắt buộc khi thêm mới
           />
         </div>
 
@@ -123,9 +135,9 @@ const AccountForm = ({ onClose, editData, onSuccess }) => {
             disabled={loading}
           >
             <option value="">-- Chọn vai trò --</option>
-            <option value="Admin">Quản trị viên</option>
-            <option value="Teacher">Giảng viên</option>
-            <option value="Student">Sinh viên</option>
+            <option value="ADMIN">Quản trị viên</option>
+            <option value="TEACHER">Giảng viên</option>
+            <option value="STUDENT">Sinh viên</option>
           </select>
         </div>
 
@@ -133,7 +145,7 @@ const AccountForm = ({ onClose, editData, onSuccess }) => {
           <button type="submit" className="submit-btn" disabled={loading}>
             {loading ? (
               <>
-                <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <span className="spinner-border spinner-border-sm" />
                 {isEditing ? "Đang cập nhật..." : "Đang tạo..."}
               </>
             ) : (

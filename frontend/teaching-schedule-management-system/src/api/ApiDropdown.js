@@ -30,3 +30,13 @@ export const getDepartmentsByFaculty = async (facultyId) => {
     throw error;
   }
 };
+
+export const getAllUsers = async () => {
+  try {
+    const res = await axiosInstance.get("/admin/users");
+    return res.data; 
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách users:", error);
+    return [];
+  }
+};

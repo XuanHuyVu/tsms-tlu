@@ -1,3 +1,4 @@
+// src/pages/.../AccountList.jsx
 import React, { useState, useEffect } from "react";
 import { FaEdit, FaTrash, FaInfoCircle, FaSearch } from "react-icons/fa";
 import "../../../styles/AccountList.css";
@@ -20,16 +21,19 @@ const AccountList = () => {
   const [loading, setLoading] = useState(true);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { logout, isTokenValid } = useAuth();
+
+  // Chỉ lấy logout từ AuthContext (KHÔNG còn isTokenValid)
+  const { logout } = useAuth();
 
   const fetchAccounts = async () => {
     try {
       setLoading(true);
       setError(null);
-      if (!isTokenValid()) throw new Error("Token không hợp lệ hoặc đã hết hạn");
 
+      // ⛔ BỎ pre-check isTokenValid() ở đây
       const data = await accountApi.getAll();
-      const transformed = data.map((user, index) => {
+
+      const transformed = (data || []).map((user, index) => {
         let role = user.role || "User";
         if (role === "ROLE_ADMIN") role = "Admin";
         if (role === "ROLE_TEACHER") role = "Teacher";
@@ -45,13 +49,20 @@ const AccountList = () => {
       });
 
       transformed.sort((a, b) => (b.id || 0) - (a.id || 0));
-      const finalData = transformed.map((item, index) => ({ ...item, stt: index + 1 }));
+      const finalData = transformed.map((item, i) => ({ ...item, stt: i + 1 }));
       setAccounts(finalData);
       setFilteredAccounts(finalData);
     } catch (err) {
-      setError(err.message);
-      if (err.message.includes("Token")) {
-        setTimeout(() => logout(), 2000);
+      const status = err?.response?.status;
+
+      if (status === 401) {
+        setError("Phiên đăng nhập không hợp lệ hoặc đã hết hạn.");
+        // Nếu muốn đẩy về login ngay lập tức:
+        // logout();
+      } else if (status === 403) {
+        setError("Bạn không có quyền truy cập trang 'Tài khoản'.");
+      } else {
+        setError(err?.response?.data?.message || err.message || "Đã xảy ra lỗi.");
       }
     } finally {
       setLoading(false);
@@ -60,6 +71,7 @@ const AccountList = () => {
 
   useEffect(() => {
     fetchAccounts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -68,33 +80,18 @@ const AccountList = () => {
     } else {
       const filtered = accounts.filter(
         (acc) =>
-          acc.tenDangNhap.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          acc.vaiTro.toLowerCase().includes(searchTerm.toLowerCase())
+          acc.tenDangNhap?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          acc.vaiTro?.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredAccounts(filtered);
     }
   }, [accounts, searchTerm]);
 
   const handleSearch = (e) => setSearchTerm(e.target.value);
-  const handleAdd = () => {
-    setEditingAccount(null);
-    setShowForm(true);
-  };
-
-  const handleEdit = (acc) => {
-    setEditingAccount(acc);
-    setShowForm(true);
-  };
-
-  const handleView = (acc) => {
-    setSelectedAccount(acc);
-    setShowDetail(true);
-  };
-
-  const handleDelete = (acc) => {
-    setDeletingAccount(acc);
-    setShowDeleteModal(true);
-  };
+  const handleAdd = () => { setEditingAccount(null); setShowForm(true); };
+  const handleEdit = (acc) => { setEditingAccount(acc); setShowForm(true); };
+  const handleView = (acc) => { setSelectedAccount(acc); setShowDetail(true); };
+  const handleDelete = (acc) => { setDeletingAccount(acc); setShowDeleteModal(true); };
 
   const confirmDelete = async () => {
     try {
@@ -103,15 +100,10 @@ const AccountList = () => {
       await fetchAccounts();
       setShowDeleteModal(false);
     } catch (err) {
-      setError(err.message);
+      setError(err?.response?.data?.message || err.message || "Xóa thất bại.");
     } finally {
       setDeleteLoading(false);
     }
-  };
-
-  const handleFormSuccess = async () => {
-    await fetchAccounts();
-    setShowForm(false);
   };
 
   if (loading) {
@@ -120,10 +112,12 @@ const AccountList = () => {
 
   return (
     <div className="container">
+      {error && <div className="error-banner">{error}</div>}
+
       {showForm && (
         <AccountForm
           onClose={() => setShowForm(false)}
-          onSuccess={handleFormSuccess}
+          onSuccess={async () => { await fetchAccounts(); setShowForm(false); }}
           editData={editingAccount}
         />
       )}
@@ -145,9 +139,7 @@ const AccountList = () => {
       />
 
       <div className="teacher-header">
-        <button className="add-button" onClick={handleAdd}>
-          Thêm tài khoản
-        </button>
+        <button className="add-button" onClick={handleAdd}>Thêm tài khoản</button>
         <div className="search-container">
           <input
             type="text"

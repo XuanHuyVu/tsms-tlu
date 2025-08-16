@@ -6,6 +6,7 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import "../../styles/LoginPage.css";
 import { useAuth } from "../../contexts/AuthContext";
 import { authApi } from "../../api/AccountApi";
+import axiosInstance from "../../api/axiosInstance";
 
 // Chuẩn hoá role từ backend: ROLE_ADMIN, TEACHER, STUDENT
 const normalizeRole = (rawRole) => {
@@ -28,7 +29,7 @@ export default function LoginPage() {
   const { login, isLoggedIn, user, logout } = useAuth();
   const navigate = useNavigate();
 
-  // Nếu đã login → tránh vào trang login nữa (optional)
+  // Nếu đã đăng nhập, tự điều hướng theo role (optional)
   useEffect(() => {
     if (isLoggedIn && user?.role) {
       const role = user.role;
@@ -57,42 +58,37 @@ export default function LoginPage() {
 
     setIsLoading(true);
     try {
-      console.log("=== LOGIN DEBUG ===");
-      console.log("Username:", username);
-
-      // RẤT QUAN TRỌNG: Xoá token cũ trước khi login
+      // Xoá token cũ để interceptor không gắn vào /auth/login
       localStorage.removeItem("token");
+      delete axiosInstance.defaults.headers?.common?.Authorization;
 
-      // Gọi API (backend nhận JSON { username, password })
+      // Gọi API đăng nhập
       const data = await authApi.login({ username, password });
-      // Kỳ vọng data:
+      // Expect:
       // { token: "xxx", user: { id: 1, username: "admin", role: "ROLE_ADMIN" | "TEACHER" | "STUDENT" } }
 
-      // Lưu token
-      if (data?.token) {
-        localStorage.setItem("token", data.token);
-      } else {
-        // Cho phép tạo token giả nếu backend chưa trả (debug)
-        const fake = "fake-token-" + Date.now();
-        localStorage.setItem("token", fake);
-        console.log("⚠️ API không trả token, dùng tạm:", fake);
+      // Lưu token & set default header cho các request tiếp theo
+      let token = data?.token;
+      if (!token) {
+        token = "fake-token-" + Date.now(); // fallback để debug
+        console.warn("API không trả token, tạm dùng:", token);
       }
+      localStorage.setItem("token", token);
+      axiosInstance.defaults.headers.common.Authorization = `Bearer ${token}`;
 
+      // Chuẩn hoá role & dựng userData
       const role = normalizeRole(data?.user?.role);
       const userData = {
         id: data?.user?.id ?? null,
         username: data?.user?.username ?? username,
-        // UI của bạn dùng fullName/name/username — điền đủ để tránh undefined
+        // UI dùng fullName/name/username — điền đủ để tránh undefined
         name: data?.user?.name ?? data?.user?.username ?? username,
-        fullName:
-          data?.user?.fullName ?? data?.user?.name ?? data?.user?.username ?? username,
+        fullName: data?.user?.fullName ?? data?.user?.name ?? data?.user?.username ?? username,
         role,
-        rawRole: data?.user?.role ?? null, // giữ để debug nếu cần
+        rawRole: data?.user?.role ?? null, // giữ để debug
       };
 
-      console.log("Final userData:", userData);
-
-      // Lưu qua AuthContext (+ localStorage bên trong)
+      // Lưu vào AuthContext (+ localStorage trong context)
       login(userData, rememberMe);
 
       // Điều hướng theo role
@@ -100,21 +96,16 @@ export default function LoginPage() {
       else if (role === "Teacher") navigate("/teacher-dashboard");
       else if (role === "Student") navigate("/student-dashboard");
       else navigate("/dashboard");
-
-      console.log(`✅ Login successful. role=${role} raw=${userData.rawRole}`);
     } catch (error) {
-      console.log("=== LOGIN ERROR DEBUG ===", error);
       const status = error?.response?.status;
-      const backendMsg =
-        error?.response?.data?.message || error?.response?.data?.error || "";
+      const backendMsg = error?.response?.data?.message || error?.response?.data?.error || "";
 
       let errorMessage = "Tên đăng nhập hoặc mật khẩu không đúng";
       if (status === 403) errorMessage = backendMsg || "Không có quyền truy cập (403).";
       else if (status === 401) errorMessage = backendMsg || "Sai thông tin đăng nhập (401).";
       else if (status === 500) errorMessage = backendMsg || "Lỗi server, vui lòng thử lại sau (500).";
       else if (status) errorMessage = backendMsg || `Lỗi ${status}: Không thể đăng nhập`;
-      else if ((error?.message || "").includes("Network Error"))
-        errorMessage = "Không thể kết nối đến server";
+      else if ((error?.message || "").includes("Network Error")) errorMessage = "Không thể kết nối đến server";
 
       setUsernameError(errorMessage);
       setPasswordError(errorMessage);
@@ -163,16 +154,13 @@ export default function LoginPage() {
                   </div>
                   <h5 className="text-success mb-2">Đã đăng nhập thành công!</h5>
                   <p className="text-muted mb-1">
-                    Xin chào{" "}
-                    <strong>{user?.fullName || user?.name || user?.username}</strong>
+                    Xin chào <strong>{user?.fullName || user?.name || user?.username}</strong>
                   </p>
                   <p className="text-muted small">
                     Vai trò: <span className="badge bg-primary">{user?.role || "User"}</span>
                   </p>
                   {user?.id != null && (
-                    <p className="text-muted small mb-0">
-                      User ID: <code>{user.id}</code>
-                    </p>
+                    <p className="text-muted small mb-0">User ID: <code>{user.id}</code></p>
                   )}
                 </div>
 

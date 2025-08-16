@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ClassCancelController {
 
-    private final ScheduleChangeService scheduleChangeService;
+    private final ScheduleChangeService scheduleChangeService;  
 
 //    @GetMapping("/{id}")
 //    public ResponseEntity<ClassCancelDto> getClassCancelById(@PathVariable Long id) {

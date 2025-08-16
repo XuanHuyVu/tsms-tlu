@@ -146,13 +146,18 @@ const ScheduleChangeList = () => {
             <label>Loại thay đổi</label>
             <select name="type" value={filters.type} onChange={handleFilterChange}>
               <option value="Tất cả">Tất cả</option>
-              <option value="CLASS_CANCEL">Hủy lịch</option>
-              <option value="MAKE_UP_CLASS">Bù lịch</option>
+              <option value="CLASS_CANCEL">Lịch hủy</option>
+              <option value="MAKE_UP_CLASS">Lịch bù</option>
             </select>
           </div>
           <div className="filter-item">
             <label>Giảng viên</label>
-            <select name="teacher" value={filters.teacher} onChange={handleFilterChange}>
+            <select
+              name="teacher"
+              value={filters.teacher}
+              onChange={handleFilterChange}
+              style={{ minWidth: '200px' }} 
+            >
               <option value="Tất cả">Tất cả</option>
               {teachers.map((t) => (
                 <option key={t.id} value={t.fullName}>
@@ -161,6 +166,7 @@ const ScheduleChangeList = () => {
               ))}
             </select>
           </div>
+
           <div className="filter-item">
             <label>Từ ngày</label>
             <input type="date" name="fromDate" value={filters.fromDate} onChange={handleFilterChange} />

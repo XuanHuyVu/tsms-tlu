@@ -21,108 +21,49 @@ const TeacherForm = ({ visible, onClose, initialData, onSave }) => {
   const [usersList, setUsersList] = useState([]);
 
   useEffect(() => {
-    if (!visible) return;
+  if (!visible) return;
 
-    const loadDropdowns = async () => {
-      try {
-        // 1. Load faculties
-        const facultyList = await getFaculties();
-        setFaculties(facultyList);
+  const loadDropdowns = async () => {
+    try {
+      // 1. Load faculties
+      const facultyList = await getFaculties();
+      setFaculties(facultyList);
 
-        // 2. Load users
-        const userList = await getAllUsers();
-        setUsersList(userList);
+      // 2. Load users
+      const userList = await getAllUsers();
 
-        // Debug: Log để kiểm tra dữ liệu
-        console.log('Initial Data:', initialData);
-        console.log('User List:', userList);
+      // Lọc user có role = TEACHER
+      const teacherUsers = userList.filter(u => u.role === 'TEACHER');
+      setUsersList(teacherUsers);
 
-        // 3. Xử lý selected values
-        let selectedFacultyId = '';
-        let selectedDepartmentId = '';
-        let selectedUserId = ''; 
+      console.log('User List (TEACHERS only):', teacherUsers);
 
-        // 4. Nếu có initialData
-        if (initialData) {
-          // Faculty
-          if (initialData.faculty?.id) {
-            selectedFacultyId = String(initialData.faculty.id);
-          } else if (initialData.faculty?.name) {
-            const matchedFaculty = facultyList.find(f => f.name === initialData.faculty.name);
-            if (matchedFaculty) selectedFacultyId = String(matchedFaculty.id);
-          }
-
-          // Departments theo faculty
-          let departmentList = [];
-          if (selectedFacultyId) {
-            departmentList = await getDepartmentsByFaculty(selectedFacultyId);
-            setDepartments(departmentList);
-          }
-
-          if (initialData.department?.id) {
-            selectedDepartmentId = String(initialData.department.id);
-          } else if (initialData.department?.name) {
-            const matchedDepartment = departmentList.find(d => d.name === initialData.department.name);
-            if (matchedDepartment) selectedDepartmentId = String(matchedDepartment.id);
-          }
-
-          // FIX: Xử lý userId - kiểm tra nhiều trường hợp
-          if (initialData.user?.username) {
-            // Trường hợp 1: Tìm theo username trong user object (trường hợp của bạn)
-            const matchedUser = userList.find(u => u.username === initialData.user.username); 
-            if (matchedUser) {
-              selectedUserId = String(matchedUser.id); 
-              console.log('Found user by username:', matchedUser);
-            } else {
-              console.log('No user found with username:', initialData.user.username);
-            }
-          } else if (initialData.userId) {
-            // Trường hợp 2: userId là number hoặc string number
-            const initialUserIdAsNumber = typeof initialData.userId === 'string' ? parseInt(initialData.userId) : initialData.userId;
-            const matchedUser = userList.find(u => u.id === initialUserIdAsNumber); 
-            if (matchedUser) {
-              selectedUserId = String(matchedUser.id); 
-              console.log('Found user by userId:', matchedUser);
-            } else {
-              console.log('No user found with userId:', initialUserIdAsNumber);
-            }
-          } else if (initialData.user?.id) {
-            // Trường hợp 3: userId nằm trong object user
-            const matchedUser = userList.find(u => u.id === initialData.user.id); 
-            if (matchedUser) {
-              selectedUserId = String(matchedUser.id); 
-              console.log('Found user by user.id:', matchedUser);
-            }
-          } else {
-            console.log('No userId found in initialData');
-          }
-        } else {
-          setDepartments([]);
+      // Xử lý initialData giống như bạn đang làm
+      let selectedUserId = '';
+      if (initialData) {
+        if (initialData.user?.username) {
+          const matchedUser = teacherUsers.find(u => u.username === initialData.user.username);
+          if (matchedUser) selectedUserId = String(matchedUser.id);
+        } else if (initialData.userId) {
+          const idNum = typeof initialData.userId === 'string' ? parseInt(initialData.userId) : initialData.userId;
+          const matchedUser = teacherUsers.find(u => u.id === idNum);
+          if (matchedUser) selectedUserId = String(matchedUser.id);
+        } else if (initialData.user?.id) {
+          const matchedUser = teacherUsers.find(u => u.id === initialData.user.id);
+          if (matchedUser) selectedUserId = String(matchedUser.id);
         }
-
-        // 5. Set formData cuối cùng
-        setFormData({
-          teacherCode: initialData?.teacherCode || '',
-          fullName: initialData?.fullName || '',
-          gender: initialData?.gender || '',
-          dateOfBirth: initialData?.dateOfBirth ? initialData.dateOfBirth.split('T')[0] : '',
-          email: initialData?.email || '',
-          phoneNumber: initialData?.phoneNumber || '',
-          facultyId: selectedFacultyId,
-          departmentId: selectedDepartmentId,
-          userId: selectedUserId, 
-          status: initialData?.status || '',
-        });
-
-        console.log('Final formData userId:', selectedUserId);
-
-      } catch (error) {
-        console.error('Lỗi khi tải dropdown:', error);
       }
-    };
 
-    loadDropdowns();
-  }, [visible, initialData]);
+      setFormData(prev => ({ ...prev, userId: selectedUserId }));
+
+    } catch (error) {
+      console.error('Lỗi khi tải dropdown:', error);
+    }
+  };
+
+  loadDropdowns();
+}, [visible, initialData]);
+
 
   // Load lại bộ môn khi thay đổi khoa
   useEffect(() => {

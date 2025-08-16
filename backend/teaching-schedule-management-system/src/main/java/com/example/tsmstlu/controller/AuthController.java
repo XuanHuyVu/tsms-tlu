@@ -2,7 +2,9 @@ package com.example.tsmstlu.controller;
 
 import com.example.tsmstlu.dto.user.*;
 import com.example.tsmstlu.entity.UserEntity;
+import com.example.tsmstlu.entity.TeacherEntity;
 import com.example.tsmstlu.repository.UserRepository;
+import com.example.tsmstlu.repository.TeacherRepository;
 import com.example.tsmstlu.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
     private final UserRepository userRepository;
+    private final TeacherRepository teacherRepository;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserLoginDto loginDto) {
@@ -35,10 +38,23 @@ public class AuthController {
         UserEntity userEntity = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        String role = userDetails.getAuthorities().iterator().next().getAuthority();
+
+        Long teacherId = null;
+        String fullName = null;
+        if ("ROLE_TEACHER".equals(role)) {
+            TeacherEntity teacher = teacherRepository.findByUserId(userEntity.getId())
+                    .orElseThrow(() -> new RuntimeException("Teacher not found for user " + userEntity.getId()));
+            teacherId = teacher.getId();
+            fullName = teacher.getFullName();
+        }
+
         UserResponseDto userResponseDto = UserResponseDto.builder()
                 .id(userEntity.getId())
                 .username(userDetails.getUsername())
-                .role(userDetails.getAuthorities().iterator().next().getAuthority())
+                .role(role)
+                .teacherId(teacherId)
+                .fullName(fullName)
                 .build();
 
         return ResponseEntity.ok(new JwtResponseDto(token, userResponseDto));

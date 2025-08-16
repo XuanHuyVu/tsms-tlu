@@ -13,14 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UserResponseDto {
-
-    @JsonIgnore
     private Long id;
-
     private String username;
-
-    @JsonIgnore
-    private String password;
-
     private String role;
 }

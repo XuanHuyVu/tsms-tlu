@@ -14,9 +14,5 @@ import java.time.LocalDate;
 public class UserDto {
     private Long id;
     private String username;
-
-    @JsonIgnore
-    private String password;
-
     private String role;
 }

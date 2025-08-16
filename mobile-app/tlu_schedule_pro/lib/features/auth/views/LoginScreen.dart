@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/AuthViewModel.dart';
 import '../../student/views/screens/schedule_screen.dart';
+import '../../teacher/views/screens/teacher_home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,28 +19,37 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   String? _error;
 
-  void _handleLogin() async {
+  Future<void> _handleLogin() async {
     setState(() {
       _loading = true;
       _error = null;
     });
 
     try {
-      await Provider.of<AuthViewModel>(context, listen: false).login(
-        _emailController.text,
+      await context.read<AuthViewModel>().login(
+        _emailController.text.trim(),
         _passwordController.text,
       );
 
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
-      }
+      if (!mounted) return;
+
+      // Lấy role và điều hướng theo role
+      final auth = context.read<AuthViewModel>();
+      final rawRole = (auth.user?.role ?? '').toString();
+      final role = rawRole.trim().toUpperCase();
+
+      final Widget target =
+      role.contains('TEACHER') ? const TeacherHomeScreen() : const HomeScreen();
+
+      // Xoá stack cũ rồi vào màn đích
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => target),
+            (route) => false,
+      );
     } catch (e) {
       setState(() => _error = 'Sai tài khoản hoặc mật khẩu');
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -208,7 +218,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     TextButton(
                       onPressed: () {
-                        // Handle forgot password
+                        // TODO: Forgot password
                       },
                       child: const Text(
                         'Quên mật khẩu?',
@@ -275,14 +285,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         disabledBackgroundColor: Colors.grey[300],
                       ),
-                      child: _loading ? const SizedBox(
+                      child: _loading
+                          ? const SizedBox(
                         width: 24,
                         height: 24,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor:
+                          AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
-                      ) : const Text('Đăng nhập',
+                      )
+                          : const Text(
+                        'Đăng nhập',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,

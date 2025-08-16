@@ -8,7 +8,7 @@ const AccountForm = ({ onClose, editData, onSuccess }) => {
   const [formData, setFormData] = useState({
     username: editData?.tenDangNhap || "",
     password: editData ? "••••••••" : "", // Hiển thị dấu chấm khi sửa
-    role: editData?.vaiTro === "Admin" ? "Admin" : editData?.vaiTro === "Teacher" ? "Teacher" : editData?.vaiTro === "Student" ? "Student" : "",
+    role: editData?.vaiTro === "Admin" ? "Admin" : editData?.vaiTro === "Teacher" ? "TEACHER" : editData?.vaiTro === "Student" ? "Student" : "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);

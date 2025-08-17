@@ -33,6 +33,16 @@ const Header = () => {
         return 'QUẢN LÝ LỚP HỌC PHẦN';
       case '/majors':
         return 'QUẢN LÝ NGÀNH HỌC';
+      case '/faculties':
+        return 'QUẢN LÝ KHOA';
+      case '/departments':
+        return 'QUẢN LÝ BỘ MÔN';
+      case '/student-class-sections':
+        return 'QUẢN LÝ HỌC PHẦN ĐÃ ĐĂNG KÝ';
+      case '/accounts':
+        return 'QUẢN LÝ TÀI KHOẢN';
+      case '/teaching-schedules':
+        return 'QUẢN LÝ LỊCH GIẢNG DẠY';
       default:
         return 'QUẢN LÝ HỆ THỐNG';
     }

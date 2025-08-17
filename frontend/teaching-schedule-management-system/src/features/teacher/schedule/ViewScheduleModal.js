@@ -8,6 +8,8 @@ const ViewScheduleModal = ({ isOpen, onClose, scheduleData, onFileUploaded }) =>
 
   if (!isOpen || !scheduleData) return null;
 
+  console.log("Schedule Data (ViewScheduleModal):", scheduleData);
+
   const handleSaveFile = async () => {
     if (!file) {
       alert("Vui lòng chọn file trước khi lưu!");
@@ -54,11 +56,15 @@ const ViewScheduleModal = ({ isOpen, onClose, scheduleData, onFileUploaded }) =>
         </div>
 
         <div className="view-modal-content">
-          {/* Các trường giữ nguyên */}
+          {/* Lớp học phần */}
           <div className="info-row">
             <div className="info-group full-width">
-              <label>Lớp học phần: <span className="required">*</span></label>
-              <div className="info-display">{scheduleData.course}</div>
+              <label>
+                Lớp học phần: <span className="required">*</span>
+              </label>
+              <div className="info-display">
+                {scheduleData.subject} ({scheduleData.classSection})
+              </div>
             </div>
           </div>
 
@@ -108,7 +114,14 @@ const ViewScheduleModal = ({ isOpen, onClose, scheduleData, onFileUploaded }) =>
               <label>Tài liệu:</label>
               {scheduleData.materials ? (
                 <div className="info-display">
-                  📄 <a href={scheduleData.materials} target="_blank" rel="noopener noreferrer">Xem tài liệu</a>
+                  📄{" "}
+                  <a
+                    href={scheduleData.materials}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Xem tài liệu
+                  </a>
                 </div>
               ) : (
                 <div>

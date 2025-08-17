@@ -4,7 +4,6 @@ class TeacherBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
   const TeacherBottomNavBar({super.key, required this.currentIndex, required this.onTap});
-
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(

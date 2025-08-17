@@ -47,7 +47,8 @@ const Header = () => {
 
       case '/students':
         return 'QUẢN LÝ SINH VIÊN';
-
+      case '/statistics':
+        return 'THỐNG KÊ - BÁO CÁO';
       default:
         return 'QUẢN LÝ HỆ THỐNG';
     }

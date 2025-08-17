@@ -95,7 +95,7 @@ const Sidebar = () => {
 
         {/* THỐNG KÊ */}
         <li>
-          <NavLink to="/thong-ke" className="menu-link-standalone">THỐNG KÊ - BÁO CÁO</NavLink>
+          <NavLink to="/statistics" className="menu-link-standalone">THỐNG KÊ - BÁO CÁO</NavLink>
         </li>
 
         {/* TÀI KHOẢN */}

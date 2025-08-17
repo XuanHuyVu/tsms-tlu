@@ -7,24 +7,22 @@ class ScheduleStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (label, bg, fg) = switch (status) {
-      ScheduleStatus.ongoing  => ('ĐANG DIỄN RA', Colors.blue.shade50, Colors.blue),
-      ScheduleStatus.upcoming => ('SẮP DIỄN RA', Colors.orange.shade50, Colors.orange),
-      ScheduleStatus.finished => ('HOÀN THÀNH', Colors.green.shade50, Colors.green),
-      ScheduleStatus.canceled => ('NGHỈ DẠY', Colors.red.shade50, Colors.red),
-    };
-
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(10),
+        color: status.color.withOpacity(.12),
+        border: Border.all(color: status.color, width: 1),
+        borderRadius: BorderRadius.circular(8),
       ),
-      child: Text(label,
-          style: Theme.of(context)
-              .textTheme
-              .labelSmall
-              ?.copyWith(color: fg, fontWeight: FontWeight.w600)),
+      child: Text(
+        status.label,
+        style: TextStyle(
+          color: status.color,
+          fontWeight: FontWeight.w700,
+          fontSize: 11,
+          letterSpacing: .3,
+        ),
+      ),
     );
   }
 }

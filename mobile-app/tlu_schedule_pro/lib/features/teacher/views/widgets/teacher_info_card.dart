@@ -3,27 +3,42 @@ import '../../models/teacher_model.dart';
 
 class TeacherInfoCard extends StatelessWidget {
   final TeacherModel teacher;
-  const TeacherInfoCard({super.key, required this.teacher});
+  final int periodsToday;
+  final int periodsThisWeek;
+  final int percentCompleted;
+  const TeacherInfoCard({
+    super.key,
+    required this.teacher,
+    required this.periodsToday,
+    required this.periodsThisWeek,
+    required this.percentCompleted,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final percent = (teacher.progressPercent * 100).toStringAsFixed(0);
-
-    return Card(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 1.5,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 CircleAvatar(
-                  radius: 26,
-                  backgroundImage: teacher.avatarUrl.isNotEmpty
-                      ? NetworkImage(teacher.avatarUrl)
-                      : null,
+                  radius: 24,
+                  backgroundImage:
+                  teacher.avatarUrl.isNotEmpty ? NetworkImage(teacher.avatarUrl) : null,
                   child: teacher.avatarUrl.isEmpty
                       ? const Icon(Icons.person, size: 28)
                       : null,
@@ -33,64 +48,62 @@ class TeacherInfoCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(teacher.name,
-                          style: Theme.of(context).textTheme.titleMedium),
-                      const SizedBox(height: 4),
-                      Text(teacher.faculty,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(color: Colors.grey[700])),
+                      Text(
+                        teacher.name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      Text(
+                        teacher.faculty,
+                        style: TextStyle(color: Colors.black.withOpacity(.6)),
+                      ),
                     ],
                   ),
                 ),
-                Icon(Icons.verified, color: Colors.blue[600]),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             Row(
               children: [
-                _StatTile(title: 'Tiết hôm nay', value: '${teacher.sessionsToday}'),
+                _statBox('Tiết hôm nay', periodsToday.toString()),
                 const SizedBox(width: 8),
-                _StatTile(title: 'Tiết tuần này', value: '${teacher.sessionsThisWeek}'),
+                _statBox('Tiết tuần này', periodsThisWeek.toString()),
                 const SizedBox(width: 8),
-                _StatTile(title: 'Hoàn thành', value: '$percent%'),
+                _statBox('Hoàn thành', '$percentCompleted%'),
               ],
-            ),
+            )
           ],
         ),
       ),
     );
   }
-}
 
-class _StatTile extends StatelessWidget {
-  final String title;
-  final String value;
-  const _StatTile({required this.title, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _statBox(String label, String value) {
     return Expanded(
       child: Container(
-        height: 64,
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.blue[50],
+          color: const Color(0xFFF4F6FA),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(value, style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 2),
-              Text(title,
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelSmall
-                      ?.copyWith(color: Colors.blueGrey)),
-            ],
-          ),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+            ),
+          ],
         ),
       ),
     );

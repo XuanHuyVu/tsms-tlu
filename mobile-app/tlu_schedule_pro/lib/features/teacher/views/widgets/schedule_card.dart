@@ -3,89 +3,79 @@ import '../../models/schedule_model.dart';
 import 'schedule_status_badge.dart';
 
 class ScheduleCard extends StatelessWidget {
-  final ScheduleModel schedule;
-  const ScheduleCard({super.key, required this.schedule});
+  final ScheduleModel item;
+  const ScheduleCard({super.key, required this.item});
 
   @override
   Widget build(BuildContext context) {
-    final Color accent = switch (schedule.status) {
-      ScheduleStatus.ongoing  => Colors.blue,
-      ScheduleStatus.upcoming => Colors.orange,
-      ScheduleStatus.finished => Colors.green,
-      ScheduleStatus.canceled => Colors.red,
-    };
-
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 0.8,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(
+          color: item.status == ScheduleStatus.ongoing
+              ? const Color(0xFF2F80ED)
+              : Colors.transparent,
+          width: 1.5,
+        ),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Dòng 1: Tiết + badge
             Row(
               children: [
-                Text(schedule.periodLabel,
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: accent,
-                      fontWeight: FontWeight.w700,
-                    )),
-                const Spacer(),
-                ScheduleStatusBadge(status: schedule.status),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // Tên môn + mã lớp
-            Text(
-              schedule.courseName,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleSmall
-                  ?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              schedule.classCode,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelSmall
-                  ?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-
-            // Phòng + Chương
-            Row(
-              children: [
-                const Icon(Icons.location_on_outlined, size: 16),
-                const SizedBox(width: 6),
-                Text(schedule.room,
-                    style: Theme.of(context).textTheme.bodySmall),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                const Icon(Icons.menu_book_outlined, size: 16),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(schedule.chapter,
-                      style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  item.periodText,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF2F80ED),
+                  ),
                 ),
+                const Spacer(),
+                ScheduleStatusBadge(status: item.status),
               ],
             ),
+            const SizedBox(height: 8),
+            Text(
+              item.courseTitle,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            Text(
+              '(${item.classCode})',
+              style: TextStyle(
+                color: Colors.black.withOpacity(.6),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            _iconText(Icons.room, item.room),
+            const SizedBox(height: 6),
+            _iconText(Icons.menu_book_rounded, item.chapter),
             const SizedBox(height: 10),
-
-            // Các tag trạng thái phụ (ví dụ)
             Wrap(
               spacing: 8,
-              children: [
-                _chip('Hoàn thành', Icons.check_circle, Colors.green),
-                _chip('Nghỉ dạy', Icons.no_backpack_outlined, Colors.red),
-                _chip('Ngày dạy', Icons.event_available, Colors.orange),
-              ],
+              runSpacing: 8,
+              children: item.bottomChips
+                  .map((t) => _chip(
+                t,
+                color: t.toLowerCase().contains('hoàn')
+                    ? const Color(0xFF2EB872)
+                    : const Color(0xFFF2994A),
+              ))
+                  .toList(),
             ),
           ],
         ),
@@ -93,12 +83,36 @@ class ScheduleCard extends StatelessWidget {
     );
   }
 
-  Widget _chip(String text, IconData icon, Color color) {
-    return Chip(
-      avatar: Icon(icon, size: 16, color: color),
-      label: Text(text),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      side: BorderSide.none,
+  Widget _iconText(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: Colors.black.withOpacity(.6)),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _chip(String text, {required Color color}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
+        ),
+      ),
     );
   }
 }

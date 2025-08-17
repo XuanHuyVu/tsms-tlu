@@ -1,20 +1,13 @@
+import 'package:flutter/material.dart';
+
 class TeacherModel {
-  final String id;
   final String name;
   final String faculty;
-  final String avatarUrl;
-
-  final int sessionsToday;
-  final int sessionsThisWeek;
-  final double progressPercent; // 0..1
+  final String avatarUrl; // keep empty for placeholder
 
   const TeacherModel({
-    required this.id,
     required this.name,
     required this.faculty,
-    required this.avatarUrl,
-    required this.sessionsToday,
-    required this.sessionsThisWeek,
-    required this.progressPercent,
+    this.avatarUrl = '',
   });
 }

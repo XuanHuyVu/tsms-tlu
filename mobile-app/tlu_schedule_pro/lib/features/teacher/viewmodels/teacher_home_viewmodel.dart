@@ -1,34 +1,21 @@
 import 'package:flutter/foundation.dart';
-import '../models/teacher_model.dart';
 import '../models/schedule_model.dart';
 import '../services/teacher_service.dart';
 
 class TeacherHomeViewModel extends ChangeNotifier {
   final TeacherService _service;
-
   TeacherHomeViewModel(this._service);
 
-  TeacherModel? teacher;
-  List<ScheduleModel> schedules = [];
-  bool loading = false;
-  String? error;
+  bool isLoading = true;
+  TeacherHomeData? data;
 
   Future<void> load() async {
-    try {
-      loading = true;
-      error = null;
-      notifyListeners();
-
-      final data = await _service.fetchTeacherHome();
-      teacher = data.teacher;
-      schedules = data.todaySchedules;
-
-      loading = false;
-      notifyListeners();
-    } catch (e) {
-      loading = false;
-      error = e.toString();
-      notifyListeners();
-    }
+    isLoading = true;
+    notifyListeners();
+    data = await _service.fetchHomeData();
+    isLoading = false;
+    notifyListeners();
   }
+
+  List<ScheduleModel> get schedules => data?.todaySchedules ?? [];
 }

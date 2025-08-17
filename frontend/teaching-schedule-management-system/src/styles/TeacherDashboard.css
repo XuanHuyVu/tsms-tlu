@@ -402,3 +402,47 @@
     padding: 20px 15px;
   }
 }
+
+
+/* Giữ nguyên style cũ, chỉ thêm cái này */
+.upcoming-section {
+  flex: 1;
+  min-height: 0; /* để con bên trong có thể scroll */
+  display: flex;
+  flex-direction: column;
+}
+
+.schedule-content-wrapper {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.schedule-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* chỗ danh sách */
+.classes-list.scrollable {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;  /* bật cuộn */
+  padding-right: 8px;
+  max-height: 500px; /* bạn có thể tăng/giảm số này */
+}
+
+/* Tùy chọn: style thanh cuộn cho đẹp */
+.classes-list.scrollable::-webkit-scrollbar {
+  width: 8px;
+}
+.classes-list.scrollable::-webkit-scrollbar-thumb {
+  background: #aaa;
+  border-radius: 4px;
+}
+.classes-list.scrollable::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}

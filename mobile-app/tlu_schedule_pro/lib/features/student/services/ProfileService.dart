@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/ProfileEntity.dart';
 
 class ProfileService {
@@ -13,23 +14,27 @@ class ProfileService {
   }
 
   Future<ProfileEntity> fetchProfile() async {
-    final uri = Uri.parse('$baseUrl/api/admin/students');
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('jwt_token');
+
+    if (token == null) {
+      throw Exception('Không tìm thấy token. Vui lòng đăng nhập lại.');
+    }
+
+    final uri = Uri.parse('$baseUrl/api/students/profile');
 
     final response = await http.get(
       uri,
       headers: {
         'Content-Type': 'application/json',
-        // 'Authorization': 'Bearer YOUR_ACCESS_TOKEN',
+        'Authorization': 'Bearer $token',
       },
     );
 
     if (response.statusCode == 200) {
-      final List<dynamic> jsonList = jsonDecode(response.body);
-      if (jsonList.isNotEmpty) {
-        return ProfileEntity.fromJson(jsonList[0]);
-      } else {
-        throw Exception("Không có dữ liệu profile");
-      }
+      final Map<String, dynamic> jsonObject = jsonDecode(utf8.decode(response.bodyBytes));
+
+      return ProfileEntity.fromJson(jsonObject);
     } else {
       throw Exception('Lỗi tải profile: ${response.statusCode} - ${response.body}');
     }

@@ -139,7 +139,6 @@ const ScheduleChangeList = () => {
 
   return (
     <div className="schedule-change-container">
-      {/* Filter bar */}
       <div className="filter-bar">
         <div className="filter-items-group">
           <div className="filter-item">

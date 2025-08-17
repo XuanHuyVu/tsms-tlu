@@ -7,6 +7,9 @@ class ProfileEntity {
   final int enrollmentYear;
   final String majorName;
   final String facultyName;
+  final String email;
+  final String phoneNumber;
+  final String dateOfBirth;
 
   ProfileEntity({
     required this.id,
@@ -17,6 +20,9 @@ class ProfileEntity {
     required this.enrollmentYear,
     required this.majorName,
     required this.facultyName,
+    required this.email,
+    required this.phoneNumber,
+    required this.dateOfBirth,
   });
 
   factory ProfileEntity.fromJson(Map<String, dynamic> json) {
@@ -29,6 +35,9 @@ class ProfileEntity {
       enrollmentYear: json['enrollmentYear'] ?? 0,
       majorName: json['major']?['name'] ?? '',
       facultyName: json['faculty']?['name'] ?? '',
+      email: json['email'] ?? '',
+      phoneNumber: json['phoneNumber'] ?? '',
+      dateOfBirth: json['dateOfBirth'] ?? '', // giả sử server trả kiểu String yyyy-MM-dd
     );
   }
 }

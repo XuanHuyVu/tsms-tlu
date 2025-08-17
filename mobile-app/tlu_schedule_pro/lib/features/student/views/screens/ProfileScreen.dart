@@ -18,6 +18,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     futureProfile = ProfileService().fetchProfile();
   }
 
+  // Hàm format ngày tháng đặt ở đây
+  String formatDate(String isoDate) {
+    try {
+      final DateTime parsedDate = DateTime.parse(isoDate);
+      return "${parsedDate.day.toString().padLeft(2, '0')}/"
+          "${parsedDate.month.toString().padLeft(2, '0')}/"
+          "${parsedDate.year}";
+    } catch (e) {
+      return isoDate; // fallback nếu parse lỗi
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,6 +104,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _buildInfoRow(Icons.perm_identity, "Mã sinh viên", user.studentCode),
                         _buildInfoRow(Icons.person, "Họ tên", user.fullName),
                         _buildInfoRow(Icons.wc, "Giới tính", user.gender),
+                        _buildInfoRow(Icons.calendar_today, "Ngày sinh", formatDate(user.dateOfBirth)),
+                        _buildInfoRow(Icons.email, "Email", user.email),
+                        _buildInfoRow(Icons.phone, "Số điện thoại", user.phoneNumber),
                         _buildInfoRow(Icons.class_, "Lớp", user.className),
                         _buildInfoRow(Icons.school, "Khoa", user.facultyName),
                         _buildInfoRow(Icons.computer, "Ngành học", user.majorName),

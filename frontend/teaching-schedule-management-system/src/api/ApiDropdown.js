@@ -40,3 +40,19 @@ export const getAllUsers = async () => {
     return [];
   }
 };
+
+/* ===================== THÊM MỚI ===================== */
+/**
+ * Lấy danh sách tất cả các Chuyên ngành
+ * @returns Promise<Array<{id: number, name: string, facultyId: number}>>
+ */
+export const getMajors = async () => {
+  try {
+    const response = await axiosInstance.get('/admin/majors');
+    return response.data;
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách Chuyên ngành:', error);
+    throw error;
+  }
+};
+

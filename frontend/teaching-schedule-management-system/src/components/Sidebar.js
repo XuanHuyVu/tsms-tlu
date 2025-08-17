@@ -39,7 +39,7 @@ const Sidebar = () => {
             <li><NavLink to="/faculties" className="submenu-link">KHOA</NavLink></li>
             <li><NavLink to="/departments" className="submenu-link">BỘ MÔN</NavLink></li>
             <li><NavLink to="/majors" className="submenu-link">NGÀNH HỌC</NavLink></li>
-            <li><NavLink to="/rooms" className="submenu-link">PHÒNG HỌC</NavLink></li>          
+            <li><NavLink to="/rooms" className="submenu-link">PHÒNG HỌC</NavLink></li>           
           </ul>
         </li>
 
@@ -57,6 +57,12 @@ const Sidebar = () => {
             <li><NavLink to="/student-class-sections" className="submenu-link">HỌC PHẦN ĐÃ ĐĂNG KÝ</NavLink></li>
           </ul>
         </li>
+
+        {/* SINH VIÊN */}
+        <li>
+          <NavLink to="/students" className="menu-link-standalone">SINH VIÊN</NavLink>
+        </li>
+
 
         {/* GIẢNG VIÊN */}
         <li className={openMenus.giangVien ? 'open' : ''}>

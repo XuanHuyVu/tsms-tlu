@@ -1,18 +1,16 @@
-// src/api/TeacherScheduleApi.js
 import axiosInstance from "./axiosInstance";
 
 /**
- * GET /teacher/teaching-schedules?teacherId=456
+ * GET /api/teacher/schedules/{teacherId}
+ * (params ví dụ: { date: 'YYYY-MM-DD' } nếu BE hỗ trợ)
  */
-export async function getAllTeacherSchedules(teacherId, params = {}) {
-  if (!teacherId) throw new Error("TeacherScheduleApi: missing teacherId");
-  const { data } = await axiosInstance.get("/teacher/teaching-schedules", {
-    params: { teacherId, ...params },
-  });
-  console.log("[TeacherScheduleApi] raw schedules →", data);
-  return data;
+export async function getByTeacherId(teacherId, params = {}) {
+  if (!teacherId) throw new Error("Thiếu teacherId.");
+  const { data } = await axiosInstance.get(
+    `/teacher/schedules/${teacherId}`,
+    { params } // nếu BE không nhận params, bỏ đối số { params } là xong
+  );
+  return Array.isArray(data) ? data : [];
 }
 
-export default {
-  getAll: getAllTeacherSchedules,
-};
+export default { getByTeacherId };

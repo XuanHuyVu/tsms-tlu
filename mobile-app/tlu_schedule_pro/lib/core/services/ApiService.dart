@@ -1,84 +1,27 @@
 // lib/core/services/ApiService.dart
-import 'package:dio/dio.dart' as dio;
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../constants/constants.dart';
 
 class ApiService {
-  ApiService._internal() {
-    _dio = dio.Dio(
-      dio.BaseOptions(
-        baseUrl: AppConst.baseUrl, // vd: http://10.0.2.2:8080/api/
-        connectTimeout: const Duration(seconds: 15),
-        receiveTimeout: const Duration(seconds: 25),
-        sendTimeout: const Duration(seconds: 15),
-      ),
-    );
+  // Dùng 10.0.2.2 cho Android emulator, localhost cho web
+  static String get baseUrl => kIsWeb ? 'http://localhost:8080' : 'http://10.0.2.2:8080';
 
-    // Gắn token cho mọi request (nếu có)
-    _dio.interceptors.add(
-      dio.InterceptorsWrapper(
-        onRequest: (options, handler) async {
-          final sp = await SharedPreferences.getInstance();
-          final token = sp.getString('auth_token');
-          if (token != null && token.isNotEmpty) {
-            options.headers['Authorization'] = 'Bearer $token';
-          }
-          // Mặc định gửi JSON
-          options.headers['Content-Type'] = 'application/json';
-          return handler.next(options);
-        },
-      ),
-    );
-
-    // Log request/response để debug URL & payload
-    _dio.interceptors.add(
-      dio.LogInterceptor(
-        request: true,
-        requestBody: true,
-        responseBody: true,
-        error: true,
-        requestHeader: false,
-        responseHeader: false,
-      ),
-    );
+  static Future<Map<String, String>> _headers() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('jwt_token');
+    return {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
   }
 
-  // Singleton
-  static final ApiService I = ApiService._internal();
-
-  late final dio.Dio _dio;
-
-  /// Chuẩn hoá path: nếu lỡ truyền "/" đầu thì cắt đi
-  String _norm(String path) => path.startsWith('/') ? path.substring(1) : path;
-
-  Future<dio.Response<T>> get<T>(
-      String path, {
-        Map<String, dynamic>? queryParameters,
-      }) {
-    return _dio.get<T>(_norm(path), queryParameters: queryParameters);
-  }
-
-  Future<dio.Response<T>> post<T>(
-      String path, {
-        dynamic data,
-        Map<String, dynamic>? queryParameters,
-      }) {
-    return _dio.post<T>(_norm(path), data: data, queryParameters: queryParameters);
-  }
-
-  Future<dio.Response<T>> put<T>(
-      String path, {
-        dynamic data,
-        Map<String, dynamic>? queryParameters,
-      }) {
-    return _dio.put<T>(_norm(path), data: data, queryParameters: queryParameters);
-  }
-
-  Future<dio.Response<T>> delete<T>(
-      String path, {
-        Map<String, dynamic>? queryParameters,
-        dynamic data,
-      }) {
-    return _dio.delete<T>(_norm(path), queryParameters: queryParameters, data: data);
+  static Future<dynamic> getJson(String path) async {
+    final res = await http.get(Uri.parse('$baseUrl$path'), headers: await _headers());
+    if (res.statusCode >= 200 && res.statusCode < 300) {
+      return jsonDecode(res.body);
+    }
+    throw Exception('GET $path failed ${res.statusCode}: ${res.body}');
   }
 }

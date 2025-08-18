@@ -1,20 +1,38 @@
-import 'package:flutter/foundation.dart';
+// lib/features/teacher/viewmodels/teacher_home_viewmodel.dart
+import 'package:flutter/material.dart';
 import '../models/schedule_model.dart';
 import '../services/teacher_service.dart';
 
 class TeacherHomeViewModel extends ChangeNotifier {
-  final TeacherService _service;
-  TeacherHomeViewModel(this._service);
+  final _service = TeacherService();
 
-  bool isLoading = true;
-  TeacherHomeData? data;
+  bool loading = false;
+  String? error;
+  String teacherName = '';
+  String faculty = '';
+  int periodsToday = 0;
+  int periodsThisWeek = 0;
+  int percentCompleted = 0;
+  List<ScheduleModel> todaySchedules = const [];
 
   Future<void> load() async {
-    isLoading = true;
+    loading = true;
+    error = null;
     notifyListeners();
-    data = await _service.fetchHomeData();
-    isLoading = false;
-    notifyListeners();
+
+    try {
+      final data = await _service.fetchHomeData();
+      teacherName = data.teacher.name;
+      faculty = data.teacher.faculty;
+      periodsToday = data.periodsToday;
+      periodsThisWeek = data.periodsThisWeek;
+      percentCompleted = data.percentCompleted;
+      todaySchedules = data.todaySchedules;
+    } catch (e) {
+      error = e.toString();
+    } finally {
+      loading = false;
+      notifyListeners();
+    }
   }
-  List<ScheduleModel> get schedules => data?.todaySchedules ?? [];
 }

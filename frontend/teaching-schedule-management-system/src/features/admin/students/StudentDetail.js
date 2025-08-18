@@ -44,11 +44,13 @@ const StudentDetail = ({ open, onClose, student }) => {
         
         <div className="student-detail-row">
           <label>Số điện thoại:</label>
-          <div>{student.phoneNumber}</div>
+          {/* kiểm tra cả phoneNumber (camelCase) và phone_number (snake_case) */}
+          <div>{student.phoneNumber || student.phone_number || "Chưa có dữ liệu"}</div>
         </div>
         <div className="student-detail-row">
           <label>Email:</label>
-          <div>{student.email}</div>
+          {/* email có thể đúng rồi, thêm fallback cho chắc */}
+          <div>{student.email || "Chưa có dữ liệu"}</div>
         </div>
 
         <div className="student-detail-row">
@@ -58,15 +60,15 @@ const StudentDetail = ({ open, onClose, student }) => {
 
         <div className="student-detail-row">
           <label>Ngày sinh:</label>
-          <div>{formatDate(student.dateOfBirth)}</div>
+          <div>{formatDate(student.dateOfBirth || student.date_of_birth)}</div>
         </div>
         <div className="student-detail-row">
           <label>Lớp:</label>
-          <div>{student.className}</div>
+          <div>{student.className || student.class_name}</div>
         </div>
         <div className="student-detail-row">
           <label>Năm nhập học:</label>
-          <div>{student.enrollmentYear}</div>
+          <div>{student.enrollmentYear || student.enrollment_year}</div>
         </div>
         <div className="student-detail-row">
           <label>Ngành:</label>

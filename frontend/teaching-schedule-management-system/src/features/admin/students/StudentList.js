@@ -1,3 +1,4 @@
+// src/features/admin/student/StudentList.js
 import React, { useEffect, useState } from 'react';
 import { FaTrashAlt, FaEdit, FaInfoCircle, FaSearch } from 'react-icons/fa';
 import '../../../styles/StudentList.css';
@@ -16,10 +17,10 @@ const StudentList = () => {
   const [students, setStudents] = useState([]);
 
   const [openDetail, setOpenDetail] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState(null); 
-  const [editingStudent, setEditingStudent] = useState(null); 
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [editingStudent, setEditingStudent] = useState(null);
 
-  // Lấy danh sách sinh viên
+  // 🔹 Lấy danh sách sinh viên
   const fetchStudents = async () => {
     try {
       const data = await getAllStudents();
@@ -33,7 +34,7 @@ const StudentList = () => {
     fetchStudents();
   }, []);
 
-  // Thêm mới hoặc cập nhật sinh viên
+  // 🔹 Lưu sinh viên (thêm hoặc cập nhật)
   const handleSaveStudent = async (id, studentData) => {
     try {
       if (id) {
@@ -43,19 +44,19 @@ const StudentList = () => {
         await createStudent(studentData);
         alert("Thêm sinh viên thành công!");
       }
-      await fetchStudents(); 
+      await fetchStudents();
     } catch (error) {
       console.error('❌ Lỗi khi lưu sinh viên:', error);
       alert("Có lỗi xảy ra khi lưu sinh viên.");
     }
-    setOpenForm(false); 
-    setEditingStudent(null); 
+    setOpenForm(false);
+    setEditingStudent(null);
   };
 
-  // Xem chi tiết
+  // 🔹 Xem chi tiết
   const handleView = async (studentToList) => {
     try {
-      const fullStudentDetails = await getStudentById(studentToList.userId);
+      const fullStudentDetails = await getStudentById(studentToList.id);
       setSelectedStudent(fullStudentDetails);
       setOpenDetail(true);
     } catch (error) {
@@ -63,19 +64,19 @@ const StudentList = () => {
     }
   };
 
-  // Chỉnh sửa
+  // 🔹 Chỉnh sửa
   const handleEdit = async (studentToList) => {
     try {
-      const fullStudentDetails = await getStudentById(studentToList.userId);
+      const fullStudentDetails = await getStudentById(studentToList.id);
       setEditingStudent(fullStudentDetails);
-      setOpenForm(true); 
+      setOpenForm(true);
     } catch (error) {
       console.error('❌ Lỗi khi tải chi tiết sinh viên để chỉnh sửa:', error);
       alert("Không thể tải thông tin sinh viên để chỉnh sửa.");
     }
   };
 
-  // Xóa sinh viên
+  // 🔹 Xóa sinh viên
   const handleStudentDelete = async (studentId) => {
     const confirmDelete = window.confirm("Bạn có chắc chắn muốn xóa sinh viên này không?");
     if (confirmDelete) {
@@ -90,7 +91,7 @@ const StudentList = () => {
     }
   };
 
-  // Format ngày
+  // 🔹 Format ngày
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -112,6 +113,7 @@ const StudentList = () => {
         </div>
       </div>
 
+      {/* Chi tiết sinh viên */}
       <StudentDetail
         open={openDetail}
         student={selectedStudent}
@@ -121,37 +123,35 @@ const StudentList = () => {
         }}
       />
 
+      {/* Form thêm/sửa sinh viên */}
       <StudentForm
         visible={openForm}
         onClose={() => {
           setOpenForm(false);
-          setEditingStudent(null); 
+          setEditingStudent(null);
         }}
-        initialData={editingStudent} 
-        onSave={handleSaveStudent} 
+        initialData={editingStudent}
+        onSave={handleSaveStudent}
       />
 
+      {/* Bảng danh sách */}
       <table className="student-table">
         <thead>
           <tr>
             <th>STT</th>
             <th>Mã sinh viên</th>
             <th>Họ tên</th>
-            <th>Giới tính</th>
             <th>Lớp</th>
-            <th>Năm nhập học</th>
             <th>Thao tác</th>
           </tr>
         </thead>
         <tbody>
           {students.map((student, index) => (
-            <tr key={student.userId}>
+            <tr key={student.id}>
               <td>{index + 1}</td>
               <td>{student.studentCode}</td>
               <td>{student.fullName}</td>
-              <td>{student.gender}</td>
-              <td>{student.className}</td>
-              <td>{student.enrollmentYear}</td>
+              <td>{student.className || 'Chưa có lớp'}</td>
               <td className="actions">
                 <FaInfoCircle
                   className="icon info"
@@ -161,12 +161,12 @@ const StudentList = () => {
                 <FaEdit
                   className="icon edit"
                   title="Chỉnh sửa"
-                  onClick={() => handleEdit(student)} 
+                  onClick={() => handleEdit(student)}
                 />
                 <FaTrashAlt
                   className="icon delete"
                   title="Xóa"
-                  onClick={() => handleStudentDelete(student.userId)}
+                  onClick={() => handleStudentDelete(student.id)}
                 />
               </td>
             </tr>
@@ -174,6 +174,7 @@ const StudentList = () => {
         </tbody>
       </table>
 
+      {/* Footer */}
       <div className="footer">
         <div>Hiển thị {students.length} kết quả</div>
         <div className="pagination">
@@ -190,5 +191,4 @@ const StudentList = () => {
     </div>
   );
 };
-
 export default StudentList;

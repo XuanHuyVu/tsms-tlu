@@ -1,5 +1,7 @@
 package com.example.tsmstlu.dto.student;
 
+import com.example.tsmstlu.dto.faculty.FacultyResponseDto;
+import com.example.tsmstlu.dto.major.MajorResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +23,6 @@ public class StudentProfileDto {
     private Date dateOfBirth;
     private String className;
     private Integer enrollmentYear;
-    private String majorName;
-    private String facultyName;
+    private MajorResponseDto major;
+    private FacultyResponseDto faculty;
 }

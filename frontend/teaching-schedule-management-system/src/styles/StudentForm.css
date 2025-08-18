@@ -15,7 +15,8 @@
 /* Hộp modal chính */
 .modal-student-content {
   background: white;
-  width: 850px;
+  width: 650px;
+  max-height: 720px;
   padding: 0;
   border-radius: 8px;
   overflow: hidden;

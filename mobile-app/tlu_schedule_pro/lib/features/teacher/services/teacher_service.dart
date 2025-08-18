@@ -1,3 +1,8 @@
+// lib/features/teacher/services/teacher_service.dart
+import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../core/services/ApiService.dart';
 import '../models/teacher_model.dart';
 import '../models/schedule_model.dart';
 
@@ -18,55 +23,111 @@ class TeacherHomeData {
 }
 
 class TeacherService {
-  // Mock: return fixed data
-  Future<TeacherHomeData> fetchHomeData() async {
-    // mimic loading
-    await Future.delayed(const Duration(milliseconds: 400));
+  Future<int?> _getTeacherId() async {
+    final p = await SharedPreferences.getInstance();
+    return p.getInt('teacher_id');
+  }
 
-    const teacher = TeacherModel(
-      name: 'ThS. Nguyễn Văn An',
-      faculty: 'Khoa Công nghệ thông tin',
+  Future<String?> _getFullName() async {
+    final p = await SharedPreferences.getInstance();
+    return p.getString('full_name');
+  }
+
+  bool _sameDate(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  DateTime _mondayOfWeek(DateTime d) {
+    final weekday = d.weekday; // 1..7 (Mon..Sun)
+    return DateTime(d.year, d.month, d.day).subtract(Duration(days: weekday - 1));
+  }
+
+  DateTime _sundayOfWeek(DateTime d) {
+    final monday = _mondayOfWeek(d);
+    return monday.add(const Duration(days: 6));
+  }
+
+  int _sumPeriods(List<ScheduleModel> xs) =>
+      xs.fold(0, (acc, s) => acc + s.periodsCount);
+
+  /// GET /api/teacher/schedules/{teacherId}
+  Future<TeacherHomeData> fetchHomeData() async {
+    final teacherId = await _getTeacherId();
+    if (teacherId == null) {
+      throw Exception('Không tìm thấy teacherId. Hãy đăng nhập lại.');
+    }
+
+    dynamic res;
+    try {
+      res = await ApiService.getJson('/api/teacher/schedules/$teacherId');
+    } on TimeoutException {
+      throw Exception('Hệ thống bận. Vui lòng thử lại sau.');
+    } catch (e) {
+      throw Exception('Không thể tải lịch dạy: $e');
+    }
+
+    // res là List các "môn", mỗi môn có classSection + details[]
+    final List root = (res is List)
+        ? res
+        : (res is Map<String, dynamic>)
+        ? (res['items'] ?? res['data'] ?? []) as List
+        : const [];
+
+    // ✅ Flatten: tạo 1 ScheduleModel cho mỗi phần tử trong details
+    final List<ScheduleModel> all = [];
+    for (final item in root.whereType<Map<String, dynamic>>()) {
+      final section = (item['classSection'] ?? {}) as Map<String, dynamic>;
+      final details = (item['details'] ?? []) as List;
+      for (final d in details.whereType<Map<String, dynamic>>()) {
+        all.add(ScheduleModel.fromSectionDetail(section: section, detail: d));
+      }
+    }
+
+    // Lọc hôm nay / tuần này
+    final now = DateTime.now();
+    final today = all.where((s) {
+      if (s.teachingDate == null) return true;
+      return _sameDate(s.teachingDate!, now);
+    }).toList();
+
+    final monday = _mondayOfWeek(now);
+    final sunday = _sundayOfWeek(now);
+    bool inWeek(DateTime d) => !d.isBefore(monday) && !d.isAfter(sunday);
+
+    final thisWeek = all.where((s) {
+      if (s.teachingDate == null) return true;
+      final d = DateTime(s.teachingDate!.year, s.teachingDate!.month, s.teachingDate!.day);
+      return inWeek(d);
+    }).toList();
+
+    // Thống kê
+    final periodsToday = _sumPeriods(today);
+    final periodsThisWeek = _sumPeriods(thisWeek);
+    final doneCount = today.where((s) => s.status == ScheduleStatus.done).length;
+    final percentCompleted =
+    today.isEmpty ? 0 : ((doneCount / today.length) * 100).round();
+
+    // Thông tin GV
+    final name = await _getFullName() ?? 'Giảng viên';
+
+    // Lấy faculty từ record đầu tiên nếu có
+    String faculty = '';
+    if (root.isNotEmpty && root.first is Map<String, dynamic>) {
+      final sec = (root.first as Map<String, dynamic>)['classSection'] as Map<String, dynamic>?;
+      faculty = (sec?['faculty']?['name'])?.toString() ?? '';
+    }
+
+    final teacher = TeacherModel(
+      id: teacherId,
+      name: name,
+      faculty: faculty,
     );
 
-    const schedules = [
-      ScheduleModel(
-        periodText: 'Tiết 1 – 3 (7:00 - 9:40)',
-        courseTitle:
-        'Phát triển ứng dụng chi các thiết bị di động-2-24',
-        classCode: 'CSE441_001',
-        room: '311 - B5',
-        chapter: 'Chương 3: Xử lý dữ liệu và cơ sở dữ liệu SQLite',
-        status: ScheduleStatus.ongoing,
-        bottomChips: ['Hoàn thành'],
-      ),
-      ScheduleModel(
-        periodText: 'Tiết 4 – 6 (9:45 - 12:25)',
-        courseTitle:
-        'Phát triển ứng dụng chi các thiết bị di động-2-24',
-        classCode: 'CSE441_002',
-        room: '311 - B5',
-        chapter: 'Chương 3: Xử lý dữ liệu và cơ sở dữ liệu SQLite',
-        status: ScheduleStatus.upcoming,
-        bottomChips: ['Nghỉ dạy'],
-      ),
-      ScheduleModel(
-        periodText: 'Tiết 7 – 9 (12:55 - 15:35)',
-        courseTitle:
-        'Phát triển ứng dụng chi các thiết bị di động-2-24',
-        classCode: 'CSE441_003',
-        room: '311 - B5',
-        chapter: 'Chương 3: Xử lý dữ liệu và cơ sở dữ liệu SQLite',
-        status: ScheduleStatus.upcoming,
-        bottomChips: ['Hoàn thành', 'Nghỉ dạy'],
-      ),
-    ];
-
-    return const TeacherHomeData(
+    return TeacherHomeData(
       teacher: teacher,
-      periodsToday: 12,
-      periodsThisWeek: 42,
-      percentCompleted: 87,
-      todaySchedules: schedules,
+      periodsToday: periodsToday,
+      periodsThisWeek: periodsThisWeek,
+      percentCompleted: percentCompleted,
+      todaySchedules: today,
     );
   }
 }

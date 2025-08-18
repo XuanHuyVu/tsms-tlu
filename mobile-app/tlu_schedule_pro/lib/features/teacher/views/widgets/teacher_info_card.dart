@@ -79,7 +79,6 @@ class TeacherInfoCard extends StatelessWidget {
       ),
     );
   }
-
   Widget _statBox(String label, String value) {
     return Expanded(
       child: Container(

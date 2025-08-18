@@ -16,6 +16,5 @@ class TeacherHomeViewModel extends ChangeNotifier {
     isLoading = false;
     notifyListeners();
   }
-
   List<ScheduleModel> get schedules => data?.todaySchedules ?? [];
 }

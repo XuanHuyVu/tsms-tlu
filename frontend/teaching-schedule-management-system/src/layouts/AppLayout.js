@@ -19,9 +19,8 @@ import ScheduleChangeList from '../features/admin/schedulechanges/ScheduleChange
 import TeachingScheduleList from '../features/admin/teaching_schedules/TeachingScheduleList';
 import MajorList from '../features/admin/majors/MajorList';
 import StudentClassSectionList from '../features/admin/student-class-sections/StudentClassSectionList';
-
-// 👇 Thêm import StudentList
 import StudentList from '../features/admin/students/StudentList';
+import StatisticList from '../features/admin/statistics/StatisticList';
 
 function AppLayout() {
   return (
@@ -52,10 +51,8 @@ function AppLayout() {
                 <Route path="/teaching-schedules" element={<div><TeachingScheduleList /></div>} />
                 <Route path="/majors" element={<div><MajorList /></div>} />
                 <Route path="/student-class-sections" element={<div><StudentClassSectionList defaultStudentId={null} /></div>} />
-                
-                {/* 👇 Thêm route Sinh viên */}
                 <Route path="/students" element={<div><StudentList /></div>} />
-
+                <Route path="/statistics" element={<div><StatisticList /></div>} />
                 <Route path="*" element={<Dashboard />} />
               </Routes>
             </div>

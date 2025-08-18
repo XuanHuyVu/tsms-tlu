@@ -4,7 +4,6 @@ import '../../models/schedule_model.dart';
 class ScheduleStatusBadge extends StatelessWidget {
   final ScheduleStatus status;
   const ScheduleStatusBadge({super.key, required this.status});
-
   @override
   Widget build(BuildContext context) {
     return Container(

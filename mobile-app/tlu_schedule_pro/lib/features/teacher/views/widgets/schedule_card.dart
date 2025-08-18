@@ -5,7 +5,6 @@ import 'schedule_status_badge.dart';
 class ScheduleCard extends StatelessWidget {
   final ScheduleModel item;
   const ScheduleCard({super.key, required this.item});
-
   @override
   Widget build(BuildContext context) {
     return Container(

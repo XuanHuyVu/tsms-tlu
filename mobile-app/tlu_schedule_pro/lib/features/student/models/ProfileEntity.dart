@@ -37,7 +37,7 @@ class ProfileEntity {
       facultyName: json['faculty']?['name'] ?? '',
       email: json['email'] ?? '',
       phoneNumber: json['phoneNumber'] ?? '',
-      dateOfBirth: json['dateOfBirth'] ?? '', // giả sử server trả kiểu String yyyy-MM-dd
+      dateOfBirth: json['dateOfBirth'] ?? '',
     );
   }
 }

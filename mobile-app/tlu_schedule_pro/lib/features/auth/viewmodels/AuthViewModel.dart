@@ -20,7 +20,7 @@ class AuthViewModel extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('jwt_token', u.token);
       await prefs.setString('username', u.username);
-      await prefs.setString('role', u.role); // <<< QUAN TRỌNG: lưu role
+      await prefs.setString('role', u.role);
 
       notifyListeners();
     } catch (e) {
@@ -37,7 +37,7 @@ class AuthViewModel extends ChangeNotifier {
     if (token != null && username != null && role != null && role.isNotEmpty) {
       _user = UserEntity(username: username, token: token, role: role);
     } else {
-      _user = null; // không đủ dữ liệu -> coi như chưa đăng nhập
+      _user = null;
     }
     notifyListeners();
   }
@@ -47,7 +47,7 @@ class AuthViewModel extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('jwt_token');
     await prefs.remove('username');
-    await prefs.remove('role'); // <<< xoá luôn role
+    await prefs.remove('role');
     notifyListeners();
   }
 }

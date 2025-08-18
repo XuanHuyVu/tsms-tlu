@@ -21,6 +21,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: Colors.blue[700],
+      iconTheme: const IconThemeData(color: Colors.white),
+      actionsIconTheme: const IconThemeData(color: Colors.white),
       leading: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Image.asset(
@@ -33,6 +35,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         style: const TextStyle(
           fontWeight: FontWeight.bold,
           letterSpacing: 1.2,
+          color: Colors.white,
         ),
       ),
       centerTitle: true,

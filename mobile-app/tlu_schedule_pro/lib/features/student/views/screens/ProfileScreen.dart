@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../models/ProfileEntity.dart';
 import '../../services/ProfileService.dart';
+import 'package:tlu_schedule_pro/features/auth/viewmodels/AuthViewModel.dart';
+import 'package:provider/provider.dart';
+import 'package:tlu_schedule_pro/shared/widgets/logout_dialog.dart';
+import 'package:tlu_schedule_pro/features/student/views/screens/schedule_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -18,7 +22,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     futureProfile = ProfileService().fetchProfile();
   }
 
-  // Hàm format ngày tháng đặt ở đây
   String formatDate(String isoDate) {
     try {
       final DateTime parsedDate = DateTime.parse(isoDate);
@@ -26,9 +29,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
           "${parsedDate.month.toString().padLeft(2, '0')}/"
           "${parsedDate.year}";
     } catch (e) {
-      return isoDate; // fallback nếu parse lỗi
+      return isoDate;
     }
   }
+
+  Future<void> _logout(BuildContext context) async {
+    final shouldLogout = await showLogoutConfirmationDialog(context);
+    if (shouldLogout) {
+      final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+      await authViewModel.logout();
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+    }
+  }
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +108,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       border: Border.all(color: Colors.grey.shade300, width: 1),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
+                          color: Colors.grey.withValues(alpha: 0.5),
                           spreadRadius: 2,
                           blurRadius: 6,
                           offset: const Offset(0, 3),
@@ -145,15 +161,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
+                            _buildOption(Icons.home, "Trang chủ", Colors.blue, onTap: () {
+                              Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(builder: (_) => const HomeScreen()),
+                                    (route) => false,
+                              );
+                            }),
                             _buildOption(Icons.notifications, "Thông báo", Colors.amber),
                             _buildOption(Icons.settings, "Cài đặt", Colors.grey),
-                            _buildOption(Icons.logout, "Đăng xuất", Colors.red),
+                            _buildOption(Icons.logout, "Đăng xuất", Colors.red, onTap: () => _logout(context)),
                           ],
                         ),
                       ),
                     ],
                   ),
                 ),
+
               ],
             ),
           );
@@ -170,13 +193,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildOption(IconData icon, String title, Color color) {
-    return Column(
-      children: [
-        Icon(icon, size: 36, color: color),
-        const SizedBox(height: 4),
-        Text(title, style: const TextStyle(fontSize: 14)),
-      ],
+  Widget _buildOption(IconData icon, String title, Color color, {VoidCallback? onTap}) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: onTap,
+      child: Column(
+        children: [
+          Icon(icon, size: 36, color: color),
+          const SizedBox(height: 4),
+          Text(title, style: const TextStyle(fontSize: 14)),
+        ],
+      ),
     );
   }
+
 }

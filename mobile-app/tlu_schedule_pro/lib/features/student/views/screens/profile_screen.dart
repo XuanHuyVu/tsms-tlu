@@ -294,7 +294,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               color: Colors.blue,
                               onTap: () {
                                 Navigator.of(context).pushAndRemoveUntil(
-                                  MaterialPageRoute(builder: (_) => const HomeScreen()),
+                                  MaterialPageRoute(builder: (_) => const ScheduleScreen()),
                                       (route) => false,
                                 );
                               },

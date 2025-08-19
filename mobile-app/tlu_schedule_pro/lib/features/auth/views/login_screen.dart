@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../../student/views/screens/schedule_screen.dart';
@@ -33,15 +34,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
 
-      // Lấy role và điều hướng theo role
       final auth = context.read<AuthViewModel>();
       final rawRole = (auth.user?.role ?? '').toString();
       final role = rawRole.trim().toUpperCase();
 
       final Widget target =
-      role.contains('TEACHER') ? const TeacherHomeScreen() : const HomeScreen();
+      role.contains('TEACHER') ? const TeacherHomeScreen() : const ScheduleScreen();
 
-      // Xoá stack cũ rồi vào màn đích
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => target),
             (route) => false,
@@ -64,8 +63,6 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               children: [
                 const SizedBox(height: 50),
-
-                // Logo
                 Container(
                   width: 150,
                   height: 150,
@@ -90,34 +87,25 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
                 const SizedBox(height: 40),
-
-                // Welcome Title
-                const Text(
+                Text(
                   'Chào mừng trở lại!',
-                  style: TextStyle(
+                  style: GoogleFonts.montserrat(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF2196F3),
                   ),
                 ),
-
                 const SizedBox(height: 8),
-
-                // Subtitle
-                const Text(
+                Text(
                   'Đăng nhập để xem lịch học của bạn',
-                  style: TextStyle(
+                  style: GoogleFonts.poppins(
                     fontSize: 16,
                     color: Colors.grey,
                   ),
                 ),
-
                 const SizedBox(height: 40),
-
-                // Email Field
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.grey[100],
@@ -128,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
                       hintText: 'Email',
-                      hintStyle: TextStyle(color: Colors.grey[500]),
+                      hintStyle: GoogleFonts.poppins(color: Colors.grey[500]),
                       prefixIcon: Icon(
                         Icons.person_outline,
                         color: Colors.grey[500],
@@ -141,10 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // Password Field
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.grey[100],
@@ -155,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     obscureText: _obscurePassword,
                     decoration: InputDecoration(
                       hintText: 'Nhập mật khẩu',
-                      hintStyle: TextStyle(color: Colors.grey[500]),
+                      hintStyle: GoogleFonts.poppins(color: Colors.grey[500]),
                       prefixIcon: Icon(
                         Icons.lock_outline,
                         color: Colors.grey[500],
@@ -181,10 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
-                // Remember Me & Forgot Password
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -193,23 +175,38 @@ class _LoginScreenState extends State<LoginScreen> {
                         SizedBox(
                           width: 20,
                           height: 20,
-                          child: Checkbox(
-                            value: _rememberMe,
-                            onChanged: (value) {
+                          child: InkWell(
+                            onTap: () {
                               setState(() {
-                                _rememberMe = value ?? false;
+                                _rememberMe = !_rememberMe;
                               });
                             },
-                            activeColor: const Color(0xFF2196F3),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(4),
+                            child: Container(
+                              width: 20,
+                              height: 20,
+                              decoration: BoxDecoration(
+                                color: _rememberMe ? const Color(0xFF2196F3) : Colors.transparent,
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: _rememberMe ? const Color(0xFF2196F3) : Colors.grey,
+                                  width: 2,
+                                ),
+                              ),
+                              child: _rememberMe
+                                  ? const Icon(
+                                Icons.check,
+                                size: 16,
+                                color: Colors.white,
+                              )
+                                  : null,
                             ),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        const Text(
+                        Text(
                           'Ghi nhớ đăng nhập',
-                          style: TextStyle(
+                          style: GoogleFonts.poppins(
                             color: Colors.grey,
                             fontSize: 14,
                           ),
@@ -220,9 +217,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {
                         // TODO: Forgot password
                       },
-                      child: const Text(
+                      child: Text(
                         'Quên mật khẩu?',
-                        style: TextStyle(
+                        style: GoogleFonts.poppins(
                           color: Color(0xFF2196F3),
                           fontSize: 14,
                         ),

@@ -1,17 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'features/auth/viewmodels/auth_viewmodel.dart';
+import 'features/student/viewmodels/schedule_viewmodel.dart';
 import 'features/auth/views/splash_screen.dart';
 import 'features/auth/views/login_screen.dart';
+import 'features/student/views/screens/schedule_screen.dart';
 
 void main() {
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
+        ChangeNotifierProxyProvider<AuthViewModel, ScheduleViewModel>(
+          create: (_) => ScheduleViewModel(""),
+          update: (_, authVM, __) {
+            final token = authVM.user?.token ?? "";
+            return ScheduleViewModel(token);
+          },
+        ),
       ],
       child: const MyApp(),
     ),
+
   );
 }
 
@@ -21,14 +31,17 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'App Demo',
+      title: 'TLU Schedule Pro',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.blue),
-
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        useMaterial3: true,
+      ),
       initialRoute: '/',
       routes: {
         '/': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
+        '/schedule': (context) => const ScheduleScreen(),
       },
     );
   }

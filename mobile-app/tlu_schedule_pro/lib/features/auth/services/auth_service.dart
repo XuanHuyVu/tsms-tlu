@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-import '../../../shared/models/UserEntity.dart';
+import '../../../shared/models/user_entity.dart';
 
 class AuthService {
   /// Dùng 10.0.2.2 cho Android emulator, localhost cho web

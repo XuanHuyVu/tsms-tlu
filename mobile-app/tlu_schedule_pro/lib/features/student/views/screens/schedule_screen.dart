@@ -21,7 +21,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:tlu_schedule_pro/shared/widgets/custom_app_bar.dart';
-import 'package:tlu_schedule_pro/features/student/views/screens/ProfileScreen.dart';
+import 'package:tlu_schedule_pro/features/student/views/screens/profile_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});

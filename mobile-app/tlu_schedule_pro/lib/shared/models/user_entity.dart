@@ -1,4 +1,4 @@
-// lib/shared/models/UserEntity.dart
+// lib/shared/models/user_entity.dart
 class UserEntity {
   final String username;
   final String token;

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../core/services/ApiService.dart';
+import '../../../core/services/api_service.dart';
 import '../models/teacher_model.dart';
 import '../models/schedule_model.dart';
 

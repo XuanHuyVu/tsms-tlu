@@ -1,10 +1,10 @@
-// lib/features/auth/views/SplashScreen.dart
+// lib/features/auth/views/splash_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../viewmodels/AuthViewModel.dart';
+import '../viewmodels/auth_viewmodel.dart';
 import '../../student/views/screens/schedule_screen.dart';
 import '../../teacher/views/screens/teacher_home_screen.dart'; // tên file snake_case
-import 'LoginScreen.dart';
+import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -55,9 +55,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
-// import '../../viewmodels/AuthViewModel.dart';
-// import 'ProfileScreen.dart'; // Thêm import cho ProfileScreen
-// import 'LoginScreen.dart';
+// import '../../viewmodels/auth_viewmodel.dart';
+// import 'profile_screen.dart'; // Thêm import cho ProfileScreen
+// import 'login_screen.dart';
 //
 // class SplashScreen extends StatelessWidget {
 //   const SplashScreen({super.key});

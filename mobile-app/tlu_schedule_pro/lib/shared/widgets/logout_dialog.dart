@@ -69,5 +69,5 @@ Future<bool> showLogoutConfirmationDialog(BuildContext context) async {
       ],
     ),
   );
-  return result ?? false; // nếu người dùng đóng dialog thì trả về false
+  return result ?? false;
 }

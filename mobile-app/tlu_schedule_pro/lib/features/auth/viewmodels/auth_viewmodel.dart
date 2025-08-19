@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../shared/models/UserEntity.dart';
-import '../services/AuthService.dart';
+import '../../../shared/models/user_entity.dart';
+import '../services/auth_service.dart';
 
 class AuthViewModel extends ChangeNotifier {
   UserEntity? _user;

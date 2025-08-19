@@ -1,14 +1,44 @@
 // src/contexts/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { setAuthToken } from "../api/axiosInstance"; // ✅ import helper bạn đã viết
+import { setAuthToken } from "../api/axiosInstance";
 
 const AuthContext = createContext();
-
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within an AuthProvider");
   return ctx;
 };
+
+// Helpers
+const LS = window.localStorage;
+const SS = window.sessionStorage;
+const KEYS = {
+  isLoggedIn: "isLoggedIn",
+  user: "user",
+  token: "token",
+  rememberMe: "rememberMe",
+};
+
+function readAuthFrom(storage) {
+  const isLoggedIn = storage.getItem(KEYS.isLoggedIn);
+  const user = storage.getItem(KEYS.user);
+  const token = storage.getItem(KEYS.token);
+  if (isLoggedIn === "true" && user && token) {
+    return { user: JSON.parse(user), token };
+  }
+  return null;
+}
+
+function isJwtExpired(token) {
+  try {
+    const [, payload] = token.split(".");
+    const { exp } = JSON.parse(atob(payload));
+    if (!exp) return false;
+    return Date.now() >= exp * 1000;
+  } catch {
+    return false; // nếu token không phải JWT, bỏ qua kiểm tra
+  }
+}
 
 export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -16,7 +46,7 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [ready, setReady] = useState(false);
 
-  // ✅ login nhận { token, user } và set vào axiosInstance
+  // ✅ login nhận { token, user } và lưu theo rememberMe
   const login = (data, rememberMe = false) => {
     if (!data?.token || !data?.user) {
       console.error("login() needs shape: { token, user }");
@@ -25,50 +55,62 @@ export const AuthProvider = ({ children }) => {
     setIsLoggedIn(true);
     setUser(data.user);
     setToken(data.token);
+    setAuthToken(data.token);
 
-    localStorage.setItem("isLoggedIn", "true");
-    localStorage.setItem("user", JSON.stringify(data.user));
-    localStorage.setItem("token", data.token);
+    // Xoá sạch trước khi set
+    [LS, SS].forEach(s => {
+      s.removeItem(KEYS.isLoggedIn);
+      s.removeItem(KEYS.user);
+      s.removeItem(KEYS.token);
+    });
 
-    setAuthToken(data.token); // ✅ gắn Authorization mặc định
+    const store = rememberMe ? LS : SS;
+    store.setItem(KEYS.isLoggedIn, "true");
+    store.setItem(KEYS.user, JSON.stringify(data.user));
+    store.setItem(KEYS.token, data.token);
 
-    if (rememberMe) localStorage.setItem("rememberMe", "true");
-    else localStorage.removeItem("rememberMe");
+    // rememberMe flag chỉ lưu ở localStorage để hydrate biết có “nhớ”
+    if (rememberMe) LS.setItem(KEYS.rememberMe, "true");
+    else LS.removeItem(KEYS.rememberMe);
   };
 
   const logout = () => {
     setIsLoggedIn(false);
     setUser(null);
     setToken(null);
-
-    // ✅ clear hết và tháo Authorization mặc định
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    localStorage.removeItem("rememberMe");
     setAuthToken(null);
+
+    [LS, SS].forEach(s => {
+      s.removeItem(KEYS.isLoggedIn);
+      s.removeItem(KEYS.user);
+      s.removeItem(KEYS.token);
+      s.removeItem(KEYS.rememberMe);
+    });
   };
 
-  // ✅ Hydrate: khôi phục state + gắn token vào axiosInstance
+  // ✅ Hydrate: ưu tiên sessionStorage; nếu không có, chỉ dùng localStorage khi rememberMe = true
   useEffect(() => {
-    const savedLoginState = localStorage.getItem("isLoggedIn");
-    const savedUser = localStorage.getItem("user");
-    const savedToken = localStorage.getItem("token");
-
     try {
-      if (savedLoginState === "true" && savedUser && savedToken) {
-        setIsLoggedIn(true);
-        setUser(JSON.parse(savedUser));
-        setToken(savedToken);
-        setAuthToken(savedToken); // ✅ gắn lại cho axiosInstance
+      let restored = readAuthFrom(SS);
+      if (!restored && LS.getItem(KEYS.rememberMe) === "true") {
+        restored = readAuthFrom(LS);
+      }
+
+      if (restored) {
+        if (isJwtExpired(restored.token)) {
+          // token hết hạn -> clear & ở màn login
+          logout();
+        } else {
+          setIsLoggedIn(true);
+          setUser(restored.user);
+          setToken(restored.token);
+          setAuthToken(restored.token);
+        }
       } else {
         setAuthToken(null);
       }
     } catch {
-      localStorage.removeItem("isLoggedIn");
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
-      setAuthToken(null);
+      logout();
     } finally {
       setReady(true);
     }

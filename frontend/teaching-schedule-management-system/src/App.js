@@ -11,10 +11,10 @@ import LoginPage from './features/auth/LoginPage';
 import { useAuth } from './contexts/AuthContext';
 
 function AppContent() {
-  const { isLoggedIn, isLoading } = useAuth();
+  const { isLoggedIn, ready } = useAuth();
 
   // loading spinner khi AuthContext đang khởi tạo
-  if (isLoading) {
+  if (!ready) {
     return (
       <div className="d-flex justify-content-center align-items-center vh-100">
         <div className="spinner-border text-primary" role="status">
@@ -27,13 +27,17 @@ function AppContent() {
   return (
     <Router>
       <Routes>
-        {/* mặc định chuyển về /login */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        {/* Trang login: nếu đã đăng nhập thì đá về "/" */}
+        <Route
+          path="/login"
+          element={isLoggedIn ? <Navigate to="/" replace /> : <LoginPage />}
+        />
 
-        {/* trang đăng nhập */}
-        <Route path="/login" element={<LoginPage />} />
-
-        {/* mọi route còn lại – chỉ vào được khi đã login */}
+        {/* Root & các route còn lại: protected */}
+        <Route
+          path="/"
+          element={isLoggedIn ? <AppLayout /> : <Navigate to="/login" replace />}
+        />
         <Route
           path="/*"
           element={isLoggedIn ? <AppLayout /> : <Navigate to="/login" replace />}

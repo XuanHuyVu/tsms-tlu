@@ -12,18 +12,19 @@
   z-index: 999;
 }
 
+
 /* Hộp modal chính */
 .modal-student-content {
   background: white;
   width: 650px;
-  max-height: 720px;
-  padding: 0;
+  height: 650px;          
+  display: flex;
+  flex-direction: column;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-/* Header của modal */
 .modal-student-header {
   background-color: #1D479A !important;
   padding: 16px 24px;
@@ -35,7 +36,12 @@
   min-height: 50px;
   border-top-left-radius: 6px;
   border-top-right-radius: 6px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;    
 }
+
 
 .modal-student-header h2 {
   color: #fff;
@@ -54,31 +60,29 @@
   cursor: pointer;
 }
 
-/* Phần form */
+
 .student-form {
   padding: 24px;
+  overflow-y: auto;
+  flex: 1;        
 }
 
-/* Grid layout cho form */
 .student-form .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
 }
 
-/* Nhóm input */
 .form-group {
   display: flex;
   flex-direction: column;
 }
 
-/* Label */
 .form-group label {
   font-weight: bold;
   margin-bottom: 6px;
 }
 
-/* Input và Select */
 .form-group input,
 .form-group select {
   padding: 10px;
@@ -88,16 +92,14 @@
   background: #fff;
 }
 
-/* Button group */
 .form-actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 30px;
   border-top: 1px solid #eee;
-  padding-top: 20px;
+  padding: 20px;
+  flex-shrink: 0;
 }
 
-/* Các nút */
 .submit-button,
 .cancel-button {
   padding: 8px 20px;
@@ -116,4 +118,12 @@
 .cancel-button {
   background-color: #f1f1f1;
   color: #333;
+}
+
+.student-form::-webkit-scrollbar {
+  width: 8px;
+}
+.student-form::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
 }

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/ProfileEntity.dart';
+import '../models/profile_entity.dart';
 
 class ProfileService {
   String get baseUrl {
@@ -21,7 +21,7 @@ class ProfileService {
       throw Exception('Không tìm thấy token. Vui lòng đăng nhập lại.');
     }
 
-    final uri = Uri.parse('$baseUrl/api/students/profile');
+    final uri = Uri.parse('$baseUrl/api/student/profile');
 
     final response = await http.get(
       uri,

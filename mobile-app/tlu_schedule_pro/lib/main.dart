@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'features/auth/viewmodels/AuthViewModel.dart';
-import 'features/auth/views/SplashScreen.dart';
-import 'features/auth/views/LoginScreen.dart';
+import 'features/auth/viewmodels/auth_viewmodel.dart';
+import 'features/auth/views/splash_screen.dart';
+import 'features/auth/views/login_screen.dart';
 
 void main() {
   runApp(

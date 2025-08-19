@@ -3,6 +3,7 @@ class UserEntity {
   final String username;
   final String token;
   final String role;
+  final int id;              // <-- thêm
   final int? teacherId;
   final int? studentId;
   final String? fullName;
@@ -11,19 +12,12 @@ class UserEntity {
     required this.username,
     required this.token,
     required this.role,
+    required this.id,        // <-- thêm
     this.teacherId,
     this.studentId,
     this.fullName,
   });
 
-  /// Kỳ vọng JSON login giống postman:
-  /// {
-  ///   "token": "...",
-  ///   "user": {
-  ///     "id": 13, "username": "gvthang",
-  ///     "role": "ROLE_TEACHER", "teacherId": 1, "studentId": null, "fullName": "Nguyễn Văn A"
-  ///   }
-  /// }
   factory UserEntity.fromJson(Map<String, dynamic> json) {
     final user = (json['user'] ?? {}) as Map<String, dynamic>;
     int? _toInt(dynamic v) {
@@ -36,6 +30,7 @@ class UserEntity {
       username: (user['username'] ?? '').toString(),
       token: (json['token'] ?? '').toString(),
       role: (user['role'] ?? '').toString(),
+      id: _toInt(user['id']) ?? 0,          // <-- thêm
       teacherId: _toInt(user['teacherId']),
       studentId: _toInt(user['studentId']),
       fullName: user['fullName']?.toString(),

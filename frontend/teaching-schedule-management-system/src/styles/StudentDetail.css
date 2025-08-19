@@ -16,10 +16,33 @@
 .student-detail-box {
   background-color: #ffffff;
   border-radius: 10px;
-  width: 500px;
+  width: 650px;
   max-width: 95%;
+  max-height: 650px;
   padding: 24px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #ccc;
+}
+
+.student-detail-box::-webkit-scrollbar {
+  width: 8px;
+}
+
+.student-detail-box::-webkit-scrollbar-track {
+  background: #ccc;
+  border-radius: 8px;
+}
+
+.student-detail-box::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 8px;
+}
+
+.student-detail-box::-webkit-scrollbar-thumb:hover {
+  background-color: #ccc;
 }
 
 /* Tiêu đề */

@@ -14,4 +14,5 @@ public class MakeUpClassDto {
     private RoomResponseDto newRoom;
     private String lectureContent;
     private String fileUrl;
+    private String status;
 }

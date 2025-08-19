@@ -11,4 +11,5 @@ public class ScheduleChangeDto {
     private String type;
     private TeachingScheduleResponseDto teachingSchedule;
     private Date createdAt;
+    private String status;
 }

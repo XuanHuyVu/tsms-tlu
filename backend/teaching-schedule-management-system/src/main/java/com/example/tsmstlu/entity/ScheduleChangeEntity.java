@@ -43,4 +43,6 @@
 
         @Column(name = "new_period_end")
         private String newPeriodEnd;
+
+        private String status;
     }

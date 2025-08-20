@@ -5,12 +5,34 @@ import '../../viewmodels/teacher_schedule_viewmodel.dart';
 import '../../models/schedule_model.dart';
 import '../widgets/schedule_card.dart';
 
+/// ---- Config & helpers -------------------------------------------------------
+
+const _brandBlue = Color(0xFF4A90E2);
+
 String _two(int n) => n.toString().padLeft(2, '0');
 String _ddMMyyyy(DateTime d) => '${_two(d.day)}/${_two(d.month)}/${d.year}';
-String _weekdayVi(DateTime d) {
-  const names = ['CN','Th 2','Th 3','Th 4','Th 5','Th 6','Th 7'];
+
+// Viết tắt cho thanh chọn trong Tab "Tuần"
+String _weekdayShort(DateTime d) {
+  const names = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
   return names[d.weekday % 7];
 }
+
+// Đầy đủ để hiển thị tiêu đề ngày
+String _weekdayFull(DateTime d) {
+  const names = [
+    'Chủ Nhật',
+    'Thứ Hai',
+    'Thứ Ba',
+    'Thứ Tư',
+    'Thứ Năm',
+    'Thứ Sáu',
+    'Thứ Bảy'
+  ];
+  return names[d.weekday % 7];
+}
+
+/// ---- Entry Screen -----------------------------------------------------------
 
 class TeacherScheduleScreen extends StatelessWidget {
   const TeacherScheduleScreen({super.key});
@@ -55,36 +77,46 @@ class _BodyState extends State<_Body> with TickerProviderStateMixin {
     return SafeArea(
       child: Column(
         children: [
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            child: Row(
-              children: [
-                const Expanded(
-                  child: Text('Lịch dạy',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-                ),
-                IconButton(onPressed: () {}, icon: const Icon(Icons.notifications_rounded)),
-                IconButton(onPressed: () {}, icon: const Icon(Icons.search_rounded)),
-              ],
-            ),
+          /// AppBar xanh: luôn có mũi tên trở lại
+          _ScheduleAppBar(
+            title: 'LỊCH DẠY',
+            onBack: () => Navigator.of(context).maybePop(),
+            notifCount: 0,
           ),
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: TabBar(
-              controller: _tab,
-              indicator: BoxDecoration(
-                color: Colors.blue,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              indicatorSize: TabBarIndicatorSize.tab,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.blue,
-              tabs: const [Tab(text: 'Ngày'), Tab(text: 'Tuần')],
-            ),
-          ),
+
+          /// Khoảng cách rõ ràng giữa AppBar và TabBar
           const SizedBox(height: 8),
+
+          /// Tab bar: Ngày / Tuần - tab chưa chọn nền xám nhạt
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(3),
+                child: TabBar(
+                  controller: _tab,
+                  indicator: BoxDecoration(
+                    color: _brandBlue,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  dividerColor: Colors.transparent,
+                  labelColor: Colors.white,
+                  unselectedLabelColor: Colors.black87,
+                  tabs: const [Tab(text: 'Ngày'), Tab(text: 'Tuần')],
+                ),
+              ),
+            ),
+          ),
+
+          /// Khoảng cách dưới TabBar cho thông thoáng
+          const SizedBox(height: 8),
+
+          /// Nội dung từng tab
           Expanded(
             child: TabBarView(
               controller: _tab,
@@ -97,6 +129,82 @@ class _BodyState extends State<_Body> with TickerProviderStateMixin {
   }
 }
 
+/// ---- AppBar component -------------------------------------------------------
+
+class _ScheduleAppBar extends StatelessWidget {
+  final String title;
+  final VoidCallback? onBack;
+  final int notifCount;
+
+  const _ScheduleAppBar({
+    required this.title,
+    this.onBack,
+    this.notifCount = 0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: _brandBlue,
+      padding: const EdgeInsets.fromLTRB(4, 8, 12, 8),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: onBack,
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            title.toUpperCase(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const Spacer(),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(Icons.notifications_rounded, color: Colors.white),
+              ),
+              if (notifCount > 0)
+                Positioned(
+                  right: 6,
+                  top: 6,
+                  child: Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                    child: Text(
+                      '$notifCount',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// ---- Tab: Ngày --------------------------------------------------------------
+
 class _DayTab extends StatelessWidget {
   const _DayTab();
 
@@ -108,47 +216,41 @@ class _DayTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       children: [
+        /// Thẻ thông tin ngày (đã bỏ nút "Chọn ngày")
         Container(
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(.06),
+                color: _brandBlue.withOpacity(.06),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
             ],
-            border: Border.all(color: Colors.black12),
+            border: Border.all(color: _brandBlue.withOpacity(.18)),
           ),
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
           child: Column(
             children: [
-              Text('${d.day}',
-                  style: const TextStyle(fontSize: 56, fontWeight: FontWeight.w900)),
+              Text(
+                '${d.day}',
+                style: const TextStyle(
+                  fontSize: 56,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
               const SizedBox(height: 6),
               Text(
-                '${_weekdayVi(d)}, ${d.day} tháng ${d.month} năm ${d.year}',
-                style: const TextStyle(color: Colors.black54),
-              ),
-              const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: vm.selectedDate,
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime(2035),
-                  );
-                  if (picked != null) vm.pickDate(picked);
-                },
-                icon: const Icon(Icons.event),
-                label: Text('Chọn ngày (${_ddMMyyyy(d)})'),
+                '${_weekdayFull(d)}, ${d.day} tháng ${d.month} năm ${d.year}',
+                style: const TextStyle(color: Colors.black87),
               ),
             ],
           ),
         ),
         const SizedBox(height: 12),
+
+        /// Danh sách lịch trong ngày
         ...vm.daySchedules.map((e) => ScheduleCard(item: e)),
         if (vm.daySchedules.isEmpty)
           const Padding(
@@ -160,6 +262,10 @@ class _DayTab extends StatelessWidget {
   }
 }
 
+/// ---- Tab: Tuần --------------------------------------------------------------
+
+/// ---- Tab: Tuần --------------------------------------------------------------
+
 class _WeekTab extends StatelessWidget {
   const _WeekTab();
 
@@ -167,55 +273,84 @@ class _WeekTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final vm = context.watch<TeacherScheduleViewModel>();
 
-    final monday = vm.selectedDate.subtract(Duration(days: vm.selectedDate.weekday - 1));
+    final monday =
+    vm.selectedDate.subtract(Duration(days: vm.selectedDate.weekday - 1));
     final days = List.generate(7, (i) => monday.add(Duration(days: i)));
 
     return Column(
       children: [
+        /// Thanh chọn ngày trong tuần - ĐÃ SỬA
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
           child: Row(
             children: [
-              IconButton(onPressed: () => vm.shiftWeek(-1), icon: const Icon(Icons.chevron_left)),
+              IconButton(
+                onPressed: () => vm.shiftWeek(-1),
+                icon: const Icon(Icons.chevron_left),
+              ),
               Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: days.map((d) {
-                    final sel = d.year == vm.selectedDate.year &&
-                        d.month == vm.selectedDate.month &&
-                        d.day == vm.selectedDate.day;
-                    return GestureDetector(
-                      onTap: () => vm.pickDate(d),
-                      child: Container(
-                        width: 40,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        decoration: BoxDecoration(
-                          color: sel ? Colors.blue : Colors.transparent,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          children: [
-                            Text(_weekdayVi(d),
+                child: Container(
+                  height: 64, // Chiều cao cố định cho thanh chọn ngày
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: days.length,
+                    separatorBuilder: (context, index) => const SizedBox(width: 4),
+                    itemBuilder: (context, i) {
+                      final day = days[i];
+                      final isSelected = day.day == vm.selectedDate.day &&
+                          day.month == vm.selectedDate.month &&
+                          day.year == vm.selectedDate.year;
+
+                      return GestureDetector(
+                        onTap: () => vm.pickDate(day),
+                        child: Container(
+                          width: 44, // Chiều rộng cố định cho mỗi ô ngày
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected ? _brandBlue : Colors.transparent,
+                            border: Border.all(
+                              color: isSelected
+                                  ? _brandBlue
+                                  : _brandBlue.withOpacity(.25),
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                _weekdayShort(day),
                                 style: TextStyle(
-                                    fontSize: 12,
-                                    color: sel ? Colors.white : Colors.black54)),
-                            const SizedBox(height: 4),
-                            Text('${d.day}',
+                                  fontSize: 12,
+                                  color: isSelected ? Colors.white : Colors.black54,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${day.day}',
                                 style: TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    color: sel ? Colors.white : Colors.black87)),
-                          ],
+                                  fontWeight: FontWeight.w800,
+                                  color: isSelected ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  }).toList(),
+                      );
+                    },
+                  ),
                 ),
               ),
-              IconButton(onPressed: () => vm.shiftWeek(1), icon: const Icon(Icons.chevron_right)),
+              IconButton(
+                onPressed: () => vm.shiftWeek(1),
+                icon: const Icon(Icons.chevron_right),
+              ),
             ],
           ),
         ),
         const SizedBox(height: 4),
+
+        /// Lịch từng ngày trong tuần (grouped)
         Expanded(
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -226,9 +361,11 @@ class _WeekTab extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: Text(
-                    '${_weekdayVi(date)}, ${_ddMMyyyy(date)}',
+                    '${_weekdayFull(date)}, ${_ddMMyyyy(date)}',
                     style: const TextStyle(
-                        fontWeight: FontWeight.w800, color: Colors.blue),
+                      fontWeight: FontWeight.w800,
+                      color: _brandBlue,
+                    ),
                   ),
                 ),
                 ...list.map((e) => ScheduleCard(item: e)),

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getScheduleChanges, getScheduleChangeDetail, approveScheduleChange } from "../../../api/ScheduleChangeApi";
+import { getScheduleChanges, getScheduleChangeDetail, approveScheduleChange,rejectScheduleChange} from "../../../api/ScheduleChangeApi";
 import { getAllTeachers } from "../../../api/TeacherApi";
 import dayjs from "dayjs";
 import "../../../styles/ScheduleChangeList.css";
@@ -29,6 +29,13 @@ const ScheduleChangeList = () => {
     MAKE_UP_CLASS: "Lịch bù",
     CLASS_CANCEL: "Lịch hủy",
   };
+
+  const statusLabels = {
+  DA_DUYET: "Đã duyệt",
+  TU_CHOI: "Từ chối",
+  CHUA_DUYET: "Chưa duyệt"
+};
+
 
   useEffect(() => {
     fetchTeachers();
@@ -109,24 +116,44 @@ const ScheduleChangeList = () => {
     setSelectedChange(null);
   };
 
-  const handleApproveSchedule = async (changeToApprove) => {
-    try {
-      await approveScheduleChange(changeToApprove.id);
-      alert(`Duyệt thành công lịch ID: ${changeToApprove.id}, loại: ${typeMapping[changeToApprove.type]}`);
-      fetchAllChanges(); // reload toàn bộ
-      handleCloseModal();
-    } catch (error) {
-      console.error("Lỗi khi duyệt lịch:", error);
-      alert("Đã có lỗi xảy ra khi duyệt lịch.");
-    }
-  };
+const handleApproveSchedule = async (changeToApprove) => {
+  try {
+    // Gọi API duyệt
+    const res = await approveScheduleChange(changeToApprove.id);
+
+    // Cập nhật state nếu API trả về thành công
+    setAllChanges(prevChanges =>
+      prevChanges.map(change =>
+        change.id === changeToApprove.id
+          ? { ...change, status: "Đã duyệt" } 
+          : change
+      )
+    );
+
+    alert(`Đã duyệt lịch ID: ${changeToApprove.id}`);
+    handleCloseModal();
+  } catch (error) {
+    console.error("Lỗi khi duyệt lịch:", error);
+    alert("Duyệt lịch thất bại! Vui lòng thử lại.");
+  }
+};
 
   const handleRejectSchedule = async (changeToReject) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      alert(`Từ chối thành công lịch ID: ${changeToReject.id}, loại: ${typeMapping[changeToReject.type]}`);
+      // Gọi API từ chối
+      const res = await rejectScheduleChange(changeToReject.id);
+
+      // Cập nhật state nếu API trả về thành công
+      setAllChanges(prevChanges =>
+        prevChanges.map(change =>
+          change.id === changeToReject.id
+            ? { ...change, status: "Đã từ chối" }
+            : change
+        )
+      );
+
+      alert(`Đã từ chối lịch ID: ${changeToReject.id}`);
       handleCloseModal();
-      fetchAllChanges();
     } catch (error) {
       console.error("Lỗi khi từ chối lịch:", error);
       alert("Đã có lỗi xảy ra khi từ chối lịch.");
@@ -197,6 +224,7 @@ const ScheduleChangeList = () => {
             <th>Giảng viên phụ trách</th>
             <th>Lớp học phần</th>
             <th>Ngày tạo</th>
+            <th>Trạng thái</th>
             <th>Thao tác</th>
           </tr>
         </thead>
@@ -209,6 +237,7 @@ const ScheduleChangeList = () => {
                 <td>{item.teachingSchedule?.classSection?.teacher?.fullName || "-"}</td>
                 <td>{item.teachingSchedule?.classSection?.name || "-"}</td>
                 <td>{item.createdAt ? dayjs(item.createdAt).format("DD/MM/YYYY") : "-"}</td>
+                <td>{statusLabels[item.status] || item.status || "Chưa duyệt"}</td>
                 <td className="actions">
                   <FaInfoCircle className="icon info" title="Chi tiết" onClick={() => handleViewDetails(item)} />
                   <FaRegCheckSquare className="icon check" title="Duyệt" onClick={() => handleApproveSchedule(item)} />

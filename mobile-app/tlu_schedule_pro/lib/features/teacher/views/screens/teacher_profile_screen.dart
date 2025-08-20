@@ -1,83 +1,130 @@
-// lib/features/teacher/views/screens/teacher_profile_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/teacher_profile_viewmodel.dart';
-import '../../models/teacher_profile_model.dart';
 
-class TeacherProfileScreen extends StatefulWidget {
-  final int teacherId;
+class TeacherProfileScreen extends StatelessWidget {
+  final String token; // Truyền token khi login
 
-  const TeacherProfileScreen({Key? key, required this.teacherId}) : super(key: key);
-
-  @override
-  State<TeacherProfileScreen> createState() => _TeacherProfileScreenState();
-}
-
-class _TeacherProfileScreenState extends State<TeacherProfileScreen> {
-  @override
-  void initState() {
-    super.initState();
-    Provider.of<TeacherProfileViewModel>(context, listen: false)
-        .fetchProfile(widget.teacherId);
-  }
+  const TeacherProfileScreen({super.key, required this.token});
 
   @override
   Widget build(BuildContext context) {
-    final vm = Provider.of<TeacherProfileViewModel>(context);
+    return ChangeNotifierProvider(
+      create: (_) => TeacherProfileViewModel()..getTeacherProfile(token),
+      child: Consumer<TeacherProfileViewModel>(
+        builder: (context, viewModel, child) {
+          if (viewModel.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (viewModel.teacherProfile == null) {
+            return const Center(child: Text("Không tải được dữ liệu"));
+          }
 
-    return Scaffold(
-      appBar: AppBar(title: const Text("Hồ sơ giảng viên")),
-      body: vm.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : vm.errorMessage != null
-          ? Center(child: Text("Lỗi: ${vm.errorMessage}"))
-          : vm.profile == null
-          ? const Center(child: Text("Không có dữ liệu"))
-          : _buildProfileView(vm.profile!),
-    );
-  }
+          final profile = viewModel.teacherProfile!;
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text("Hồ sơ giảng viên"),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    // TODO: logout xử lý sau
+                  },
+                  child: const Text("Đăng xuất", style: TextStyle(color: Colors.red)),
+                )
+              ],
+            ),
+            body: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  // Header (ảnh + tên + khoa)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        const CircleAvatar(
+                          radius: 40,
+                          backgroundImage: AssetImage("assets/avatar.png"), // thay avatar
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          profile.fullName,
+                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          profile.facultyName,
+                          style: const TextStyle(color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
 
-  Widget _buildProfileView(TeacherProfile profile) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 50,
-            backgroundImage: profile.avatarUrl.isNotEmpty
-                ? NetworkImage(profile.avatarUrl)
-                : const AssetImage("assets/images/default_avatar.png")
-            as ImageProvider,
-          ),
-          const SizedBox(height: 16),
-          Text(profile.name,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          _buildInfoRow("Email", profile.email),
-          _buildInfoRow("Số điện thoại", profile.phone),
-          _buildInfoRow("Khoa", profile.faculty),
-          _buildInfoRow("Bộ môn", profile.department),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              // TODO: mở màn hình sửa hồ sơ
-            },
-            child: const Text("Chỉnh sửa hồ sơ"),
-          )
-        ],
+                  // Thông tin cá nhân
+                  Card(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        children: [
+                          _buildInfoRow(Icons.email, "Email", profile.email),
+                          _buildInfoRow(Icons.cake, "Ngày sinh", profile.dateOfBirth),
+                          _buildInfoRow(Icons.phone, "SĐT", profile.phoneNumber),
+                          _buildInfoRow(Icons.male, "Giới tính", profile.gender),
+                          _buildInfoRow(Icons.badge, "Mã GV", profile.teacherCode),
+                          _buildInfoRow(Icons.school, "Bộ môn", profile.departmentName),
+                          _buildInfoRow(Icons.check_circle, "Trạng thái", profile.status),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Cài đặt
+                  Card(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Column(
+                      children: const [
+                        ListTile(
+                          leading: Icon(Icons.settings),
+                          title: Text("Cài đặt tài khoản"),
+                        ),
+                        Divider(),
+                        ListTile(
+                          leading: Icon(Icons.help_outline),
+                          title: Text("Trợ giúp"),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(IconData icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Text("$label: ",
-              style: const TextStyle(fontWeight: FontWeight.bold)),
-          Expanded(child: Text(value)),
+          Icon(icon, color: Colors.blue),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          Expanded(
+            child: Text(value, textAlign: TextAlign.right),
+          ),
         ],
       ),
     );

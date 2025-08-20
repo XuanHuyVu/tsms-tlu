@@ -1,44 +1,37 @@
-// lib/features/teacher/models/teacher_profile_model.dart
 class TeacherProfile {
-  final int id;
-  final String name;
+  final String teacherCode;
+  final String fullName;
+  final String gender;
   final String email;
-  final String phone;
-  final String department;
-  final String faculty;
-  final String avatarUrl;
+  final String dateOfBirth;
+  final String phoneNumber;
+  final String departmentName;
+  final String facultyName;
+  final String status;
 
   TeacherProfile({
-    required this.id,
-    required this.name,
+    required this.teacherCode,
+    required this.fullName,
+    required this.gender,
     required this.email,
-    required this.phone,
-    required this.department,
-    required this.faculty,
-    required this.avatarUrl,
+    required this.dateOfBirth,
+    required this.phoneNumber,
+    required this.departmentName,
+    required this.facultyName,
+    required this.status,
   });
 
   factory TeacherProfile.fromJson(Map<String, dynamic> json) {
     return TeacherProfile(
-      id: json['id'] ?? 0,
-      name: json['name'] ?? '',
+      teacherCode: json['teacherCode'] ?? '',
+      fullName: json['fullName'] ?? '',
+      gender: json['gender'] ?? '',
       email: json['email'] ?? '',
-      phone: json['phone'] ?? '',
-      department: json['department'] ?? '',
-      faculty: json['faculty'] ?? '',
-      avatarUrl: json['avatarUrl'] ?? '',
+      dateOfBirth: json['dateOfBirth'] ?? '',
+      phoneNumber: json['phoneNumber'] ?? '',
+      departmentName: json['department']?['name'] ?? '',
+      facultyName: json['faculty']?['name'] ?? '',
+      status: json['status'] ?? '',
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      "id": id,
-      "name": name,
-      "email": email,
-      "phone": phone,
-      "department": department,
-      "faculty": faculty,
-      "avatarUrl": avatarUrl,
-    };
   }
 }

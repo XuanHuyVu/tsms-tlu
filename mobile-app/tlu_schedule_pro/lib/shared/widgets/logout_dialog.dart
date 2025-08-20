@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 Future<bool> showLogoutConfirmationDialog(BuildContext context) async {
   final result = await showDialog<bool>(
@@ -20,19 +21,22 @@ Future<bool> showLogoutConfirmationDialog(BuildContext context) async {
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'Xác nhận đăng xuất',
-            style: TextStyle(
+            style: GoogleFonts.montserrat(
               fontWeight: FontWeight.bold,
               fontSize: 24,
             ),
           ),
         ],
       ),
-      content: const Text(
-        'Bạn có chắc chắn muốn đăng xuất khỏi tài khoản không?',
-        style: TextStyle(fontSize: 14),
-      ),
+          content: Text(
+            'Bạn có chắc chắn muốn đăng xuất khỏi tài khoản không?',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+            ),
+          ),
+
       contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
       actionsPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       actionsAlignment: MainAxisAlignment.spaceBetween,
@@ -47,8 +51,9 @@ Future<bool> showLogoutConfirmationDialog(BuildContext context) async {
                 borderRadius: BorderRadius.circular(6),
               ),
             ),
-            child: const Text('Đăng xuất', style: TextStyle(fontSize: 16, color: Colors.white)),
+            child: Text('Đăng xuất', style: GoogleFonts.poppins(fontSize: 16, color: Colors.white)),
             onPressed: () => Navigator.of(context).pop(true),
+
           ),
         ),
         SizedBox(
@@ -62,7 +67,7 @@ Future<bool> showLogoutConfirmationDialog(BuildContext context) async {
               ),
               backgroundColor: Colors.white,
             ),
-            child: const Text('Hủy bỏ', style: TextStyle(fontSize: 16, color: Colors.black)),
+            child: Text('Hủy bỏ', style: GoogleFonts.poppins(fontSize: 16, color: Colors.black)),
             onPressed: () => Navigator.of(context).pop(false),
           ),
         ),

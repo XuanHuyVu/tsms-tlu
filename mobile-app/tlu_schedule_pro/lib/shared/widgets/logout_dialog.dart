@@ -24,7 +24,7 @@ Future<bool> showLogoutConfirmationDialog(BuildContext context) async {
             'Xác nhận đăng xuất',
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 18,
+              fontSize: 24,
             ),
           ),
         ],

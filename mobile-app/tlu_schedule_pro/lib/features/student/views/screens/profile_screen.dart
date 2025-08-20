@@ -4,7 +4,9 @@ import '../../services/profile_service.dart';
 import 'package:tlu_schedule_pro/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:tlu_schedule_pro/shared/widgets/logout_dialog.dart';
-import 'package:tlu_schedule_pro/features/student/views/screens/schedule_screen.dart';
+import 'accountsetting_screen.dart';
+import 'schedule_screen.dart';
+
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -126,6 +128,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.lightBlue.shade700,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
+          onPressed: () {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const ScheduleScreen()),
+            );
+          },
+          splashRadius: 24,
+          tooltip: 'Quay lại Trang Chủ',
+        ),
+        centerTitle: true,
+      ),
+
       body: FutureBuilder<ProfileEntity>(
         future: futureProfile,
         builder: (context, snapshot) {
@@ -197,7 +215,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           style: const TextStyle(color: Colors.white70, fontSize: 16),
                           textAlign: TextAlign.center,
                         ),
-                      ],
+                        ],
                     ),
                   ),
 
@@ -276,57 +294,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          "Tùy chọn",
+                          "Cài đặt",
                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                         ),
                         const SizedBox(height: 12),
-                        GridView.count(
-                          crossAxisCount: 2,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          crossAxisSpacing: 18,
-                          mainAxisSpacing: 18,
-                          childAspectRatio: 0.88,
+                        // Thay GridView.count bằng ListView hoặc Column
+                        Column(
                           children: [
-                            _buildOptionCard(
-                              icon: Icons.home,
-                              label: "Trang chủ",
-                              color: Colors.blue,
+                            _buildSettingOption(
+                              icon: Icons.account_circle,
+                              label: "Cài đặt tài khoản",
                               onTap: () {
-                                Navigator.of(context).pushAndRemoveUntil(
-                                  MaterialPageRoute(builder: (_) => const ScheduleScreen()),
-                                      (route) => false,
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(builder: (_) => const AccountSettingsScreen()),
                                 );
                               },
                             ),
-                            _buildOptionCard(
-                              icon: Icons.notifications,
-                              label: "Thông báo",
-                              color: Colors.amber.shade700,
+                            _buildSettingOption(
+                              icon: Icons.help_outline,
+                              label: "Trợ giúp",
                               onTap: () {
-                                // Implement notifications screen navigation
+                                // Điều hướng hoặc xử lý sự kiện
                               },
-                            ),
-                            _buildOptionCard(
-                              icon: Icons.settings,
-                              label: "Cài đặt",
-                              color: Colors.grey.shade700,
-                              onTap: () {
-                                // Implement settings screen navigation
-                              },
-                            ),
-                            _buildOptionCard(
-                              icon: Icons.logout,
-                              label: "Đăng xuất",
-                              color: Colors.red.shade700,
-                              onTap: () => _logout(context),
                             ),
                           ],
                         ),
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 26),
                 ],
               ),
@@ -336,4 +331,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
+}
+// Widget xây dựng từng item trong danh sách
+Widget _buildSettingOption({
+  required IconData icon,
+  required String label,
+  required VoidCallback onTap,
+}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade300),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.grey.shade700),
+          const SizedBox(width: 12),
+          Text(label, style: const TextStyle(fontSize: 16)),
+        ],
+      ),
+    ),
+  );
 }

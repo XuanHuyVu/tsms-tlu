@@ -1,45 +1,47 @@
-// lib/features/teacher/viewmodels/teacher_profile_viewmodel.dart
+import 'dart:developer' as dev;
 import 'package:flutter/material.dart';
+
 import '../models/teacher_profile_model.dart';
 import '../services/teacher_profile_service.dart';
 
 class TeacherProfileViewModel extends ChangeNotifier {
-  final TeacherProfileService _service = TeacherProfileService();
-  TeacherProfile? _profile;
-  bool _isLoading = false;
-  String? _errorMessage;
+  final _service = TeacherProfileService();
 
-  TeacherProfile? get profile => _profile;
-  bool get isLoading => _isLoading;
-  String? get errorMessage => _errorMessage;
+  bool isLoading = false;
+  String? errorMessage;
+  TeacherProfile? profile;
 
   Future<void> fetchProfile(int teacherId) async {
-    _isLoading = true;
+    if (teacherId <= 0) {
+      errorMessage = 'teacherId không hợp lệ: $teacherId';
+      profile = null;
+      notifyListeners();
+      return;
+    }
+
+    isLoading = true;
+    errorMessage = null;
+    profile = null;
     notifyListeners();
 
     try {
-      _profile = await _service.getProfile(teacherId);
-      _errorMessage = null;
+      dev.log('TeacherProfileVM.fetchProfile(id=$teacherId)');
+      profile = await _service.getProfile(teacherId);              // endpoint chính
+      dev.log('TeacherProfileVM -> OK: ${profile}');
     } catch (e) {
-      _errorMessage = e.toString();
+      dev.log('getProfile(id=$teacherId) FAIL: $e');
+
+      // Fallback: nếu backend dùng userId thay vì teacherId.
+      try {
+        dev.log('Fallback getProfileByUserId(userId=$teacherId)');
+        profile = await _service.getProfileByUserId(teacherId);
+      } catch (e2) {
+        dev.log('Fallback FAIL: $e2');
+        errorMessage = e2.toString();
+      }
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
-
-    _isLoading = false;
-    notifyListeners();
-  }
-
-  Future<void> updateProfile(TeacherProfile updated) async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      _profile = await _service.updateProfile(updated);
-      _errorMessage = null;
-    } catch (e) {
-      _errorMessage = e.toString();
-    }
-
-    _isLoading = false;
-    notifyListeners();
   }
 }

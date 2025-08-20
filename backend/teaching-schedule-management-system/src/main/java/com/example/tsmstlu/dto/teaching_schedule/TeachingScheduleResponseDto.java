@@ -12,4 +12,5 @@ import java.util.List;
 @Data
 public class TeachingScheduleResponseDto {
     private ClassSectionResponseDto classSection;
+    private TeachingScheduleDetailResponseDto teachingScheduleDetail;
 }

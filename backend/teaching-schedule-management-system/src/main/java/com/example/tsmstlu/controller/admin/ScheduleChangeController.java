@@ -2,6 +2,7 @@ package com.example.tsmstlu.controller.admin;
 
 import com.example.tsmstlu.dto.schedule_change.ClassCancelDto;
 import com.example.tsmstlu.dto.schedule_change.MakeUpClassDto;
+import com.example.tsmstlu.dto.schedule_change.ScheduleChangeApprovedDto;
 import com.example.tsmstlu.dto.schedule_change.ScheduleChangeDto;
 import com.example.tsmstlu.service.ScheduleChangeService;
 import lombok.RequiredArgsConstructor;
@@ -35,5 +36,20 @@ public class ScheduleChangeController {
     public ResponseEntity<MakeUpClassDto> getMakeUpClassById(@PathVariable Long id) {
         MakeUpClassDto dto = scheduleChangeService.getMakeUpClassById(id);
         return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/approved")
+    public List<ScheduleChangeDto> getApprovedSchedules() {
+        return scheduleChangeService.getApprovedSchedules();
+    }
+
+    @PutMapping("/{id}/approve")
+    public ScheduleChangeApprovedDto approveSchedule(@PathVariable Long id) {
+        return scheduleChangeService.approveScheduleChange(id);
+    }
+
+    @PutMapping("/{id}/reject")
+    public ScheduleChangeApprovedDto rejectSchedule(@PathVariable Long id) {
+        return scheduleChangeService.rejectScheduleChange(id);
     }
 }

@@ -119,6 +119,7 @@ public interface MapperUtils {
 
     // schedule change
     ScheduleChangeDto toScheduleChangeListDto(ScheduleChangeEntity entity);
+    ScheduleChangeApprovedDto toScheduleChangeApprovedDto(ScheduleChangeEntity entity);
     ClassCancelDto toClassCancelDto(ScheduleChangeEntity entity);
     ScheduleChangeEntity toScheduleChangeEntity(ClassCancelCreateDto dto);
     MakeUpClassDto toMakeUpClassDto(ScheduleChangeEntity entity);

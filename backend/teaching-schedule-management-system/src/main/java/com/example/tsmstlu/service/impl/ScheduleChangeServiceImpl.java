@@ -93,4 +93,34 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
         ScheduleChangeEntity saved = scheduleChangeRepository.save(entity);
         return mapper.toMakeUpClassDto(saved);
     }
+
+    @Override
+    public List<ScheduleChangeDto> getApprovedSchedules() {
+        List<ScheduleChangeEntity> entities = scheduleChangeRepository.findByStatus("DA_DUYET");
+        return entities.stream()
+                .map(mapper :: toScheduleChangeListDto)
+                .collect(Collectors.toList());
+    }
+    @Override
+    public ScheduleChangeApprovedDto approveScheduleChange(Long id) {
+        ScheduleChangeEntity entity = scheduleChangeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Schedule change not found with id: " + id));
+
+        entity.setStatus("DA_DUYET");
+        ScheduleChangeEntity saved = scheduleChangeRepository.save(entity);
+
+        return mapper.toScheduleChangeApprovedDto(saved);
+    }
+
+    @Override
+    public ScheduleChangeApprovedDto rejectScheduleChange(Long id) {
+        ScheduleChangeEntity entity = scheduleChangeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Schedule change not found with id: " + id));
+
+        entity.setStatus("TU_CHOI");
+        ScheduleChangeEntity saved = scheduleChangeRepository.save(entity);
+
+        return mapper.toScheduleChangeApprovedDto(saved);
+    }
+
 }

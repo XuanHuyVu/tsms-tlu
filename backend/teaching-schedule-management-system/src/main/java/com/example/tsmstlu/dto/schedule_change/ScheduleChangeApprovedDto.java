@@ -12,8 +12,7 @@ import java.util.Date;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ScheduleChangeDto {
-    private Long id;
+public class ScheduleChangeApprovedDto {
     private String type;
     private TeachingScheduleResponseDto teachingSchedule;
     private Date createdAt;

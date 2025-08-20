@@ -10,4 +10,8 @@ public interface ScheduleChangeService {
     ClassCancelDto createClassCancel(ClassCancelCreateDto dto);
     MakeUpClassDto getMakeUpClassById(Long id);
     MakeUpClassDto createMakeUpClass(MakeUpClassCreateDto dto);
+    List<ScheduleChangeDto> getApprovedSchedules();
+    ScheduleChangeApprovedDto approveScheduleChange(Long id);
+    ScheduleChangeApprovedDto rejectScheduleChange(Long id);
+
 }

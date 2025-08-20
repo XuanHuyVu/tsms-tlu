@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../models/profile_entity.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../models/profile_model.dart';
 import '../../services/profile_service.dart';
 import 'package:tlu_schedule_pro/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:provider/provider.dart';
@@ -16,7 +17,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  late Future<ProfileEntity> futureProfile;
+  late Future<ProfileModel> futureProfile;
 
   @override
   void initState() {
@@ -57,14 +58,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             flex: 3,
             child: Text(
               label,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+              style: GoogleFonts.poppins (fontWeight: FontWeight.w600, fontSize: 16),
             ),
           ),
           Expanded(
             flex: 4,
             child: Text(
               displayValue!,
-              style: const TextStyle(fontSize: 15, color: Colors.black87),
+              style: GoogleFonts.poppins(fontSize: 15, color: Colors.black87),
               textAlign: TextAlign.right,
             ),
           ),
@@ -113,7 +114,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 12),
               Text(label,
-                  style: const TextStyle(
+                  style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.black87,
@@ -129,7 +130,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.lightBlue.shade700,
+        backgroundColor: const Color(0xFF4A90E2),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
@@ -144,7 +145,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         centerTitle: true,
       ),
 
-      body: FutureBuilder<ProfileEntity>(
+      body: FutureBuilder<ProfileModel>(
         future: futureProfile,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -156,21 +157,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
 
           final user = snapshot.data!;
+          final Color backgroundColor = const Color(0xFF4A90E2);
 
           return SafeArea(
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  // Header with gradient and avatar
                   Container(
                     width: double.infinity,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.indigo.shade700, Colors.blueAccent.shade400, Colors.lightBlueAccent.shade100],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
+                    color: backgroundColor,
                     padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
                     child: Column(
                       children: [
@@ -179,10 +174,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           children: [
                             CircleAvatar(
                               radius: 50,
-                              backgroundImage: AssetImage("assets/images/avatar.png"),
+                              backgroundColor: Colors.grey,
+                              child: ClipOval(
+                                child: Image.asset(
+                                  "assets/images/avatar1.png",
+                                  fit: BoxFit.cover,
+                                  width: 100,
+                                  height: 100,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Center(
+                                      child: Text(
+                                        "HL",
+                                        style: TextStyle(
+                                          fontSize: 24,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
                             ),
+
                             Container(
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: Colors.white70,
                               ),
@@ -196,7 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(height: 16),
                         Text(
                           user.fullName,
-                          style: const TextStyle(
+                          style: GoogleFonts.montserrat(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                             fontSize: 24,
@@ -207,15 +223,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(height: 6),
                         Text(
                           "Mã SV: ${user.studentCode}",
-                          style: const TextStyle(color: Colors.white70, fontSize: 18),
+                          style: GoogleFonts.poppins(color: Colors.white70, fontSize: 18),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           user.email ?? "Chưa cập nhật email",
-                          style: const TextStyle(color: Colors.white70, fontSize: 16),
+                          style: GoogleFonts.poppins(color: Colors.white70, fontSize: 16),
                           textAlign: TextAlign.center,
                         ),
-                        ],
+                      ],
                     ),
                   ),
 
@@ -235,7 +251,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Center(
                               child: Text(
                                 "Thông tin sinh viên",
-                                style: TextStyle(
+                                style: GoogleFonts.montserrat(
                                   color: Colors.blue.shade900,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 20,
@@ -277,7 +293,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Expanded(
                             child: Text(
                               "Chúc bạn một ngày học tập năng động và hiệu quả tại TLU!",
-                              style: TextStyle(fontSize: 16, color: Colors.indigo.shade700),
+                              style: GoogleFonts.poppins(fontSize: 16, color: Colors.indigo.shade700),
                             ),
                           ),
                         ],
@@ -293,12 +309,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                         Text(
                           "Cài đặt",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                          style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 20),
                         ),
                         const SizedBox(height: 12),
-                        // Thay GridView.count bằng ListView hoặc Column
                         Column(
                           children: [
                             _buildSettingOption(
@@ -314,7 +329,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               icon: Icons.help_outline,
                               label: "Trợ giúp",
                               onTap: () {
-                                // Điều hướng hoặc xử lý sự kiện
                               },
                             ),
                           ],
@@ -349,7 +363,7 @@ Widget _buildSettingOption({
         border: Border.all(color: Colors.grey.shade300),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
+            color: Colors.grey.withValues(alpha: 0.2),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
@@ -359,7 +373,7 @@ Widget _buildSettingOption({
         children: [
           Icon(icon, color: Colors.grey.shade700),
           const SizedBox(width: 12),
-          Text(label, style: const TextStyle(fontSize: 16)),
+          Text(label, style: GoogleFonts.poppins(fontSize: 16)),
         ],
       ),
     ),

@@ -1,4 +1,4 @@
-class ProfileEntity {
+class ProfileModel {
   final int id;
   final String studentCode;
   final String fullName;
@@ -11,7 +11,7 @@ class ProfileEntity {
   final String phoneNumber;
   final String dateOfBirth;
 
-  ProfileEntity({
+  ProfileModel({
     required this.id,
     required this.studentCode,
     required this.fullName,
@@ -25,8 +25,8 @@ class ProfileEntity {
     required this.dateOfBirth,
   });
 
-  factory ProfileEntity.fromJson(Map<String, dynamic> json) {
-    return ProfileEntity(
+  factory ProfileModel.fromJson(Map<String, dynamic> json) {
+    return ProfileModel(
       id: json['id'] ?? 0,
       studentCode: json['studentCode'] ?? '',
       fullName: json['fullName'] ?? '',

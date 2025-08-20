@@ -5,8 +5,51 @@ class ScheduleCard extends StatelessWidget {
   final ScheduleModel item;
   const ScheduleCard({super.key, required this.item});
 
+  /// Parse "HH:mm - HH:mm" -> (start, end) theo ngày hôm nay. Trả về null nếu không parse được
+  (DateTime, DateTime)? _parseTodayRange() {
+    final tr = (item.timeRange).trim();
+    final reg = RegExp(r'(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})');
+    final m = reg.firstMatch(tr);
+    if (m == null) return null;
+    final now = DateTime.now();
+    final sh = int.parse(m.group(1)!);
+    final sm = int.parse(m.group(2)!);
+    final eh = int.parse(m.group(3)!);
+    final em = int.parse(m.group(4)!);
+    final start = DateTime(now.year, now.month, now.day, sh, sm);
+    final end = DateTime(now.year, now.month, now.day, eh, em);
+    return (start, end);
+  }
+
+  /// Trạng thái hiển thị tính theo thời gian thực và item.status
+  ScheduleStatus get effectiveStatus {
+    // Ưu tiên các trạng thái kết thúc/bỏ dạy do người dùng thao tác
+    if (item.status == ScheduleStatus.done) return ScheduleStatus.done;
+    if (item.status == ScheduleStatus.canceled) return ScheduleStatus.canceled;
+
+    final range = _parseTodayRange();
+    if (range == null) {
+      // không parse được thì giữ nguyên nếu có, mặc định xem như sắp diễn ra
+      return item.status == ScheduleStatus.unknown
+          ? ScheduleStatus.upcoming
+          : item.status;
+    }
+
+    final (start, end) = range;
+    final now = DateTime.now();
+
+    if (now.isBefore(start)) return ScheduleStatus.upcoming;
+
+    // Trong giờ HOẶC đã qua giờ kết thúc: vẫn hiển thị ĐANG DIỄN RA
+    if (now.isAfter(start) || now.isAtSameMomentAs(start)) {
+      return ScheduleStatus.ongoing;
+    }
+
+    return ScheduleStatus.upcoming; // fallback
+  }
+
   Color get statusColor {
-    switch (item.status) {
+    switch (effectiveStatus) {
       case ScheduleStatus.ongoing:
         return const Color(0xFF2F6BFF); // xanh
       case ScheduleStatus.upcoming:
@@ -21,7 +64,7 @@ class ScheduleCard extends StatelessWidget {
   }
 
   String get statusLabel {
-    switch (item.status) {
+    switch (effectiveStatus) {
       case ScheduleStatus.ongoing:
         return 'ĐANG DIỄN RA';
       case ScheduleStatus.upcoming:
@@ -37,8 +80,11 @@ class ScheduleCard extends StatelessWidget {
 
   Widget _chip(String text, Color fg, Color bg) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-    decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
-    child: Text(text, style: TextStyle(color: fg, fontWeight: FontWeight.w700, fontSize: 12)),
+    decoration:
+    BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
+    child: Text(text,
+        style: TextStyle(
+            color: fg, fontWeight: FontWeight.w700, fontSize: 12)),
   );
 
   @override
@@ -55,7 +101,10 @@ class ScheduleCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.black12),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(.05), blurRadius: 8, offset: const Offset(0, 4)),
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 4)),
         ],
       ),
       child: IntrinsicHeight(
@@ -82,21 +131,25 @@ class ScheduleCard extends StatelessWidget {
                   children: <Widget>[
                     Row(
                       children: <Widget>[
-                        Text(
-                          header,
-                          style: TextStyle(color: statusColor, fontWeight: FontWeight.w700),
-                        ),
+                        Text(header,
+                            style: TextStyle(
+                                color: statusColor,
+                                fontWeight: FontWeight.w700)),
                         const Spacer(),
                         if (statusLabel.isNotEmpty)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: statusColor.withOpacity(.12),
+                              color: statusColor.withValues(alpha: .12),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
                               statusLabel,
-                              style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.w700),
+                              style: TextStyle(
+                                  color: statusColor,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700),
                             ),
                           ),
                       ],
@@ -104,9 +157,11 @@ class ScheduleCard extends StatelessWidget {
                     const SizedBox(height: 10),
 
                     Text(item.subjectName,
-                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w800, fontSize: 16)),
                     const SizedBox(height: 4),
-                    Text(item.classCode, style: const TextStyle(color: Colors.grey)),
+                    Text(item.classCode,
+                        style: const TextStyle(color: Colors.grey)),
                     const SizedBox(height: 8),
 
                     Row(children: <Widget>[
@@ -130,12 +185,14 @@ class ScheduleCard extends StatelessWidget {
 
                     const SizedBox(height: 10),
 
-                    // 2 nút hành động: Hoàn thành / Nghỉ dạy
+                    // 2 nút hành động (hiện tại là UI demo)
                     Row(
                       children: [
-                        _chip('Hoàn thành', const Color(0xFF2E7D32), const Color(0xFFE2F3E6)),
+                        _chip('Hoàn thành', const Color(0xFF2E7D32),
+                            const Color(0xFFE2F3E6)),
                         const SizedBox(width: 10),
-                        _chip('Nghỉ dạy', const Color(0xFFF29900), const Color(0xFFFFF1D9)),
+                        _chip('Nghỉ dạy', const Color(0xFFF29900),
+                            const Color(0xFFFFF1D9)),
                       ],
                     ),
                   ],

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/profile_entity.dart';
+import '../models/profile_model.dart';
 
 class ProfileService {
   String get baseUrl {
@@ -13,7 +13,7 @@ class ProfileService {
     }
   }
 
-  Future<ProfileEntity> fetchProfile() async {
+  Future<ProfileModel> fetchProfile() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('jwt_token');
 
@@ -34,7 +34,7 @@ class ProfileService {
     if (response.statusCode == 200) {
       final Map<String, dynamic> jsonObject = jsonDecode(utf8.decode(response.bodyBytes));
 
-      return ProfileEntity.fromJson(jsonObject);
+      return ProfileModel.fromJson(jsonObject);
     } else {
       throw Exception('Lỗi tải profile: ${response.statusCode} - ${response.body}');
     }

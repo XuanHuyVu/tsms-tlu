@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:tlu_schedule_pro/shared/widgets/logout_dialog.dart';
 
 class AccountSettingsScreen extends StatelessWidget {
@@ -8,7 +9,13 @@ class AccountSettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cài đặt tài khoản'),
+        title: Text(
+          'Cài đặt tài khoản',
+          style: GoogleFonts.montserrat(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -18,32 +25,39 @@ class AccountSettingsScreen extends StatelessWidget {
             _buildSettingOption(
               icon: Icons.notifications,
               label: "Cài đặt thông báo",
-              onTap: () {
-              },
+              onTap: () {},
             ),
             _buildSettingOption(
               icon: Icons.language,
               label: "Ngôn ngữ",
-              onTap: () {
-              },
+              onTap: () {},
             ),
             const Spacer(),
             Center(
               child: ElevatedButton(
                 onPressed: () async {
-                  final shouldLogout = await showLogoutConfirmationDialog(context);
+                  final shouldLogout =
+                  await showLogoutConfirmationDialog(context);
+                  if (shouldLogout == true) {
+                    // TODO: Thực hiện logic logout
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red.shade700,
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
                 ),
-                child: const Text(
+                child: Text(
                   'Đăng xuất',
-                  style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-
             ),
           ],
         ),
@@ -67,7 +81,7 @@ class AccountSettingsScreen extends StatelessWidget {
           border: Border.all(color: Colors.grey.shade300),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
+              color: Colors.grey.withValues(alpha: 0.2),
               blurRadius: 5,
               offset: const Offset(0, 2),
             ),
@@ -77,11 +91,16 @@ class AccountSettingsScreen extends StatelessWidget {
           children: [
             Icon(icon, color: Colors.grey.shade700),
             const SizedBox(width: 12),
-            Text(label, style: const TextStyle(fontSize: 16)),
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                color: Colors.black87,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
-
 }

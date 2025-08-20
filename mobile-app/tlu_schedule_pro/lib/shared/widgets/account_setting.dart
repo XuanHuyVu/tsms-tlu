@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:tlu_schedule_pro/shared/widgets/logout_dialog.dart';
+import 'logout_dialog.dart';
+import 'package:provider/provider.dart';
+import 'package:tlu_schedule_pro/features/auth/viewmodels/auth_viewmodel.dart';
 
 class AccountSettingsScreen extends StatelessWidget {
   const AccountSettingsScreen({Key? key}) : super(key: key);
+
+  Future<void> _logout(BuildContext context) async {
+    final shouldLogout = await showLogoutConfirmationDialog(context);
+    if (shouldLogout) {
+      final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+      await authViewModel.logout();
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,13 +46,7 @@ class AccountSettingsScreen extends StatelessWidget {
             const Spacer(),
             Center(
               child: ElevatedButton(
-                onPressed: () async {
-                  final shouldLogout =
-                  await showLogoutConfirmationDialog(context);
-                  if (shouldLogout == true) {
-                    // TODO: Thực hiện logic logout
-                  }
-                },
+                onPressed: () => _logout(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red.shade700,
                   padding:
@@ -81,7 +86,7 @@ class AccountSettingsScreen extends StatelessWidget {
           border: Border.all(color: Colors.grey.shade300),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.2),
+              color: Colors.grey.withAlpha(50),
               blurRadius: 5,
               offset: const Offset(0, 2),
             ),

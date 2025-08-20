@@ -2,11 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/profile_model.dart';
 import '../../services/profile_service.dart';
-import 'package:tlu_schedule_pro/features/auth/viewmodels/auth_viewmodel.dart';
-import 'package:provider/provider.dart';
-import 'package:tlu_schedule_pro/shared/widgets/logout_dialog.dart';
-import 'accountsetting_screen.dart';
 import 'schedule_screen.dart';
+import 'package:tlu_schedule_pro/shared/widgets/settings_section.dart';
 
 
 class ProfileScreen extends StatefulWidget {
@@ -33,15 +30,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           "${parsedDate.year}";
     } catch (e) {
       return isoDate;
-    }
-  }
-
-  Future<void> _logout(BuildContext context) async {
-    final shouldLogout = await showLogoutConfirmationDialog(context);
-    if (shouldLogout) {
-      final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-      await authViewModel.logout();
-      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
     }
   }
 
@@ -177,7 +165,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               backgroundColor: Colors.grey,
                               child: ClipOval(
                                 child: Image.asset(
-                                  "assets/images/avatar1.png",
+                                  "assets/images/avatar.png",
                                   fit: BoxFit.cover,
                                   width: 100,
                                   height: 100,
@@ -185,7 +173,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     return Center(
                                       child: Text(
                                         "HL",
-                                        style: TextStyle(
+                                        style: GoogleFonts.poppins(
                                           fontSize: 24,
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,
@@ -304,38 +292,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 26),
 
                   // Options section with modern cards and grid layout
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                         Text(
-                          "Cài đặt",
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 20),
-                        ),
-                        const SizedBox(height: 12),
-                        Column(
-                          children: [
-                            _buildSettingOption(
-                              icon: Icons.account_circle,
-                              label: "Cài đặt tài khoản",
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (_) => const AccountSettingsScreen()),
-                                );
-                              },
-                            ),
-                            _buildSettingOption(
-                              icon: Icons.help_outline,
-                              label: "Trợ giúp",
-                              onTap: () {
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
+                  const SettingsSection(),
                   const SizedBox(height: 26),
                 ],
               ),
@@ -346,7 +303,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 }
-// Widget xây dựng từng item trong danh sách
+
 Widget _buildSettingOption({
   required IconData icon,
   required String label,

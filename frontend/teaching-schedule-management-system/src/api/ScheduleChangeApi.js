@@ -1,6 +1,5 @@
 import axiosInstance from './axiosInstance';
 
-// Lấy danh sách thay đổi lịch (có filter và phân trang)
 export const getScheduleChanges = async (params) => {
   try {
     const res = await axiosInstance.get("/admin/schedule-changes", { params });
@@ -31,11 +30,10 @@ export const getScheduleChangeDetail = async (id, type) => {
 
 
 
-//Duyệt thay đổi lịch
 export const approveScheduleChange = async (id) => {
   try {
-    const res = await axiosInstance.put(`/schedule-changes/${id}/approve`, {
-      status: "APPROVED",
+    const res = await axiosInstance.put(`/admin/schedule-changes/${id}/approve`, {
+      status: "DA_DUYET",
     });
     return res.data;
   } catch (error) {
@@ -44,11 +42,10 @@ export const approveScheduleChange = async (id) => {
   }
 };
 
-// Từ chối thay đổi lịch
 export const rejectScheduleChange = async (id) => {
   try {
-    const res = await axiosInstance.put(`/schedule-changes/${id}/approve`, {
-      status: "REJECTED",
+    const res = await axiosInstance.put(`/admin/schedule-changes/${id}/reject`, {
+      status: "TU_CHOI",
     });
     return res.data;
   } catch (error) {
@@ -57,13 +54,4 @@ export const rejectScheduleChange = async (id) => {
   }
 };
 
-// Xóa yêu cầu thay đổi lịch
-// export const deleteScheduleChange = async (id) => {
-//   try {
-//     const res = await axiosInstance.delete(`/schedule-changes/${id}`);
-//     return res.data;
-//   } catch (error) {
-//     console.error("Lỗi khi xóa thay đổi lịch:", error);
-//     throw error;
-//   }
-// };
+

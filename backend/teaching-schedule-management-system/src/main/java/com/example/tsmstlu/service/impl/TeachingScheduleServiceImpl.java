@@ -55,6 +55,7 @@ public class TeachingScheduleServiceImpl implements TeachingScheduleService {
                 .map(d -> {
                     TeachingScheduleDetailEntity detail = mapperUtils.toTeachingScheduleDetailEntity(d);
                     detail.setSchedule(schedule);
+                    detail.setStatus("CHUA_DAY");
                     return detail;
                 }).collect(Collectors.toList())
         );

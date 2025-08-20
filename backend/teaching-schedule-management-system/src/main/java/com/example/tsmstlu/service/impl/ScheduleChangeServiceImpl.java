@@ -48,8 +48,6 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
                         "Teaching schedule not found with id: " + dto.getTeachingScheduleId()
                 ));
 
-
-//        teachingSchedule.getTeachingScheduleDetails().size();
         ScheduleChangeEntity entity = new ScheduleChangeEntity();
         entity.setTeachingSchedule(teachingSchedule);
         entity.setReason(dto.getReason());
@@ -63,14 +61,14 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
 
     @Override
     public MakeUpClassDto getMakeUpClassById(Long id) {
-         ScheduleChangeEntity entity = scheduleChangeRepository.findById(id)
+        ScheduleChangeEntity entity = scheduleChangeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Make-up class not found with id: " + id));
         return mapper.toMakeUpClassDto(entity);
     }
 
     @Override
     public MakeUpClassDto createMakeUpClass(MakeUpClassCreateDto dto) {
-        var teachingSchedule = teachingScheduleRepository.findById(dto.getTeachingScheduleId())
+        var teachingSchedule = teachingScheduleRepository.findByIdWithDetails(dto.getTeachingScheduleId())
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Teaching schedule not found with id: " + dto.getTeachingScheduleId()
                 ));

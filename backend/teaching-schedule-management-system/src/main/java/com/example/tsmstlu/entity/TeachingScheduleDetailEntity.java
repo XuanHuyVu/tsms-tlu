@@ -32,4 +32,5 @@ public class TeachingScheduleDetailEntity extends BaseEntity {
     private String periodEnd;
 
     private String type;
+    private String status;
 }

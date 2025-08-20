@@ -9,4 +9,5 @@ public class TeachingScheduleDetailDto {
     private String periodStart;
     private String periodEnd;
     private String type;
+    private String status;
 }

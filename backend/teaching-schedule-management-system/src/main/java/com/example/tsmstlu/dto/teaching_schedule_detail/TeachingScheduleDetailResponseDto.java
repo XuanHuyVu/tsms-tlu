@@ -4,8 +4,10 @@ import lombok.Data;
 
 @Data
 public class TeachingScheduleDetailResponseDto {
+    private Long id;
     private String teachingDate;
     private String periodStart;
     private String periodEnd;
     private String type;
+    private String status;
 }

@@ -19,9 +19,9 @@ public interface TeachingScheduleRepository extends JpaRepository<TeachingSchedu
         SELECT new com.example.tsmstlu.dto.teaching_schedule.StudentScheduleDto(
             cs.id,
             cs.name,
-            subj.name,
-            t.fullName,
-            r.code,
+            cs.subject.name,
+            ts.teacher.fullName,
+            ts.room.code,
             d.teachingDate,
             d.periodStart,
             d.periodEnd,
@@ -29,15 +29,14 @@ public interface TeachingScheduleRepository extends JpaRepository<TeachingSchedu
         )
         FROM StudentClassSectionEntity scs
         JOIN scs.classSection cs
-        JOIN SubjectEntity subj ON cs.subject.id = subj.id
-        JOIN TeachingScheduleEntity ts ON ts.classSection.id = cs.id
+        JOIN cs.teachingSchedules ts
         JOIN ts.details d
-        JOIN TeacherEntity t ON ts.teacher.id = t.id
-        JOIN RoomEntity r ON ts.room.id = r.id
         WHERE scs.student.id = :studentId
         ORDER BY d.teachingDate, d.periodStart
     """)
-    List<StudentScheduleDto> findStudentSchedule(Long studentId);
+    List<StudentScheduleDto> findStudentSchedule(@Param("studentId") Long studentId);
+
+
 
     @Query("""
         select ts from TeachingScheduleEntity ts

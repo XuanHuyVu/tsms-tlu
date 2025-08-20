@@ -18,8 +18,8 @@ public class StudentScheduleDto {
     private String subjectName;
     private String teacherName;
     private String roomCode;
-    private String teachingDate;
-    private String periodStart;
-    private String periodEnd;
+    private Date teachingDate;
+    private Integer periodStart;
+    private Integer periodEnd;
     private String type;
 }

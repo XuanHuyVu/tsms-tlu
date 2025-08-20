@@ -76,8 +76,8 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
         ScheduleChangeEntity entity = new ScheduleChangeEntity();
         entity.setTeachingSchedule(teachingSchedule);
         entity.setType("MAKE_UP_CLASS");
-        entity.setNewPeriodStart(dto.getNewPeriodStart());
-        entity.setNewPeriodEnd(dto.getNewPeriodEnd());
+        entity.setNewPeriodStart(Integer.valueOf(dto.getNewPeriodStart()));
+        entity.setNewPeriodEnd(Integer.valueOf(dto.getNewPeriodEnd()));
         entity.setNewDate(dto.getNewDate());
         entity.setLectureContent(dto.getLectureContent());
         entity.setFileUrl(dto.getFileUrl());

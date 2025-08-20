@@ -39,10 +39,10 @@
         private String fileUrl;
 
         @Column(name = "new_period_start")
-        private String newPeriodStart;
+        private Integer newPeriodStart;
 
         @Column(name = "new_period_end")
-        private String newPeriodEnd;
+        private Integer newPeriodEnd;
 
         private String status;
     }

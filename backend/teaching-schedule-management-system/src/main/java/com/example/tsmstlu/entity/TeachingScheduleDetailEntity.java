@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.util.Date;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,14 +25,22 @@ public class TeachingScheduleDetailEntity extends BaseEntity {
     private TeachingScheduleEntity schedule;
 
     @Column(name = "teaching_date", nullable = false)
-    private String teachingDate;
+    private Date teachingDate;
 
     @Column(name = "period_start", nullable = false)
-    private String periodStart;
+    private Integer periodStart;
 
     @Column(name = "period_end", nullable = false)
-    private String periodEnd;
+    private Integer periodEnd;
 
     private String type;
     private String status;
+
+    @Transient
+    public Integer getDuration() {
+        if (periodStart != null && periodEnd != null) {
+            return periodEnd - periodStart + 1;
+        }
+        return 0;
+    }
 }

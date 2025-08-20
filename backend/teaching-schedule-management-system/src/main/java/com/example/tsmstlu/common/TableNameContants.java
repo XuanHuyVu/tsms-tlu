@@ -18,4 +18,5 @@ public class TableNameContants {
     public static final String SCHEDULE_CHANGE = "schedule_changes";
     public static final String MAJOR = "majors";
     public static final String STUDENT_CLASS_SECTION = "student_class_sections";
+    public static final String TEACHING_LOG = "teaching_logs";
 }

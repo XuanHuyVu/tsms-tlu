@@ -28,6 +28,7 @@ import com.example.tsmstlu.dto.subject.SubjectDto;
 import com.example.tsmstlu.dto.subject.SubjectListDto;
 import com.example.tsmstlu.dto.subject.SubjectUpdateDto;
 import com.example.tsmstlu.dto.teacher.*;
+import com.example.tsmstlu.dto.teaching_log.TeacherStatsDto;
 import com.example.tsmstlu.dto.teaching_schedule.*;
 import com.example.tsmstlu.dto.teaching_schedule_detail.TeachingScheduleDetailCreateDto;
 import com.example.tsmstlu.dto.teaching_schedule_detail.TeachingScheduleDetailDto;

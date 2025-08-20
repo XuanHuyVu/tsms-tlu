@@ -1,7 +1,7 @@
-package com.example.tsmstlu.controller.student;
+package com.example.tsmstlu.controller.teacher;
 
-import com.example.tsmstlu.dto.student.StudentProfileDto;
-import com.example.tsmstlu.service.StudentService;
+import com.example.tsmstlu.dto.teacher.TeacherProfileDto;
+import com.example.tsmstlu.service.TeacherService;
 import com.example.tsmstlu.utils.MapperUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,21 +14,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/student/profile")
-@PreAuthorize("hasRole('STUDENT')")
+@RequestMapping("/api/teacher/profile")
+@PreAuthorize("hasRole('TEACHER')")
 @RequiredArgsConstructor
-public class StudentProfileController {
+public class TeacherProfileController {
 
-    private final StudentService studentService;
-    private final MapperUtils mapperUtils;
+    private final TeacherService teacherService;
+    private final MapperUtils mapper;
 
     @GetMapping
-    public ResponseEntity<StudentProfileDto> getStudentProfile() {
+    public ResponseEntity<TeacherProfileDto> getTeacherProfile() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User userDetails = (User) authentication.getPrincipal();
 
-        StudentProfileDto profile = studentService.getStudentProfileByUsername(userDetails.getUsername());
+        TeacherProfileDto teacherProfile = teacherService.getTeacherProfileByUsername(userDetails.getUsername());
 
-        return profile != null ? ResponseEntity.ok(profile) : ResponseEntity.notFound().build();
+        return teacherProfile != null
+                ? ResponseEntity.ok(teacherProfile)
+                : ResponseEntity.notFound().build();
     }
 }

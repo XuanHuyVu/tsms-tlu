@@ -1,9 +1,6 @@
 package com.example.tsmstlu.service.impl;
 
-import com.example.tsmstlu.dto.teacher.TeacherCreateDto;
-import com.example.tsmstlu.dto.teacher.TeacherDto;
-import com.example.tsmstlu.dto.teacher.TeacherListDto;
-import com.example.tsmstlu.dto.teacher.TeacherUpdateDto;
+import com.example.tsmstlu.dto.teacher.*;
 import com.example.tsmstlu.entity.DepartmentEntity;
 import com.example.tsmstlu.entity.FacultyEntity;
 import com.example.tsmstlu.entity.TeacherEntity;
@@ -106,5 +103,12 @@ public class TeacherServiceImpl implements TeacherService {
         }
         teacherRepository.deleteById(id);
         log.info("Deleted teacher with id: {}", id);
+    }
+
+    @Override
+    public TeacherProfileDto getTeacherProfileByUsername(String username) {
+        return teacherRepository.findByUserUsername(username)
+                .map(mapper::toTeacherProfileDto)
+                .orElseThrow(() -> new RuntimeException("Teacher not found with username: " + username));
     }
 }

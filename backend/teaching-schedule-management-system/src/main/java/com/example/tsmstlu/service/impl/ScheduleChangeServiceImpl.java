@@ -53,6 +53,7 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
         entity.setReason(dto.getReason());
         entity.setFileUrl(dto.getFileUrl());
         entity.setType("CLASS_CANCEL");
+        entity.setStatus("CHUA_DUYET");
 
         ScheduleChangeEntity saved = scheduleChangeRepository.save(entity);
         return mapper.toClassCancelDto(saved);
@@ -75,12 +76,13 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
         ScheduleChangeEntity entity = new ScheduleChangeEntity();
         entity.setTeachingSchedule(teachingSchedule);
         entity.setType("MAKE_UP_CLASS");
-
         entity.setNewPeriodStart(dto.getNewPeriodStart());
         entity.setNewPeriodEnd(dto.getNewPeriodEnd());
         entity.setNewDate(dto.getNewDate());
         entity.setLectureContent(dto.getLectureContent());
         entity.setFileUrl(dto.getFileUrl());
+        entity.setStatus("CHUA_DUYET");
+
 
         if(dto.getNewRoomId() != null) {
             RoomEntity room = roomRepository.findById(dto.getNewRoomId())
@@ -91,7 +93,4 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
         ScheduleChangeEntity saved = scheduleChangeRepository.save(entity);
         return mapper.toMakeUpClassDto(saved);
     }
-
-
-
 }

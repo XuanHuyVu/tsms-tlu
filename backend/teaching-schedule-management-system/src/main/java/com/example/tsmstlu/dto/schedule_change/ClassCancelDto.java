@@ -10,4 +10,5 @@ public class ClassCancelDto {
     private TeachingScheduleResponseDto teachingSchedule;
     private String reason;
     private String fileUrl;
+    private String status;
 }

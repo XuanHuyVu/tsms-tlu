@@ -1,4 +1,3 @@
-/* Modal overlay */
 .schedulechange-detail-modal {
   position: fixed;
   top: 0; left: 0;
@@ -14,7 +13,7 @@
   border-radius: 8px;
   width: 650px;
   max-width: 95%;
-  height: 500px; /* Chiều cao cố định */
+  height: 650px; 
   box-shadow: 0 8px 16px rgba(0,0,0,0.2);
   display: flex;
   flex-direction: column;
@@ -31,11 +30,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-shrink: 0; /* Không co khi thiếu chỗ */
+  flex-shrink: 0; 
 }
 
 .schedulechange-detail-header h2 {
-  font-size: 20px;
+  font-size: 26px;
   font-weight: 600;
   margin: 0;
 }
@@ -49,11 +48,10 @@
   color: white;
 }
 
-/* Body */
 .schedulechange-detail-body {
   padding: 20px;
-  flex: 1; /* Chiếm hết không gian trống giữa header và footer */
-  overflow-y: auto; /* Thanh cuộn khi tràn */
+  flex: 1; 
+  overflow-y: auto; 
 }
 
 .form-grid {
@@ -139,3 +137,5 @@
 
 .approve-btn:hover { background-color: #08306b; }
 .reject-btn:hover { background-color: #7b7b7b; }
+
+

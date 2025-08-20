@@ -69,6 +69,7 @@ public interface MapperUtils {
     // Teacher
     TeacherListDto toTeacherListDto(TeacherEntity entity);
     TeacherDto toTeacherDetailDto(TeacherEntity entity);
+    TeacherProfileDto toTeacherProfileDto(TeacherEntity entity);
     TeacherEntity toTeacherEntity(TeacherCreateDto dto);
     TeacherEntity toTeacherEntity(TeacherUpdateDto dto);
     TeacherUpdateDto toTeacherUpdateDto(TeacherEntity entity);

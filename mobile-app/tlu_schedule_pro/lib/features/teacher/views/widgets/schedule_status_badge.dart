@@ -14,8 +14,7 @@ extension ScheduleStatusStyle on ScheduleStatus {
       case ScheduleStatus.canceled:
         return 'HUỶ';
       case ScheduleStatus.unknown:
-      default:
-        return '';
+      return '';
     }
   }
 

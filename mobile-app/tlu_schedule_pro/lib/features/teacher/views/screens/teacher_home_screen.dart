@@ -9,7 +9,7 @@ import '../widgets/schedule_card.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/teacher_info_card.dart';
 import '../widgets/stats_panel.dart';
-import 'teacher_schedule_screen.dart'; 
+import 'teacher_schedule_screen.dart';
 
 class TeacherHomeScreen extends StatefulWidget {
   const TeacherHomeScreen({super.key});
@@ -62,68 +62,39 @@ class _HomeTab extends StatelessWidget {
           }
 
           final todayStr = formatDdMMyyyy(DateTime.now());
+          final displayName = vm.teacherName.isNotEmpty ? vm.teacherName : 'Giảng viên';
 
           return SafeArea(
             child: ListView(
               padding: const EdgeInsets.all(12),
               children: <Widget>[
-                const _TopBar(),
+                // Header: logo + chuông + avatar (thay search)
+                _TopBar(name: displayName),
                 const SizedBox(height: 12),
 
-                // Card: Info GV + 3 ô thống kê
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(.06),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                    border: Border.all(color: Colors.black12),
-                  ),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 6),
-                        child: TeacherInfoCard(
-                          compact: true,
-                          teacher: TeacherModel(
-                            id: 0,
-                            name: vm.teacherName.isNotEmpty ? vm.teacherName : 'Giảng viên',
-                            faculty: vm.faculty.isNotEmpty ? vm.faculty : '',
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                        child: StatsPanel(
-                          periodsToday: vm.periodsToday,
-                          periodsThisWeek: vm.periodsThisWeek,
-                          percentCompleted: vm.percentCompleted,
-                        ),
-                      ),
-                    ],
-                  ),
+                // ✅ Chỉ còn 3 ô thống kê – không bọc card
+                StatsPanel(
+                  periodsToday: vm.periodsToday,
+                  periodsThisWeek: vm.periodsThisWeek,
+                  percentCompleted: vm.percentCompleted,
                 ),
 
                 const SizedBox(height: 16),
 
-                // Header danh sách lịch hôm nay
+                // Header danh sách lịch hôm nay (giữ nguyên kiểu cũ)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(children: [
-                      const Text('Lịch dạy hôm nay',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                      const Text(
+                        'Lịch dạy hôm nay',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                      ),
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.blue.withValues(alpha: 0.08),   // <- đổi from withOpacity
+                          color: Colors.blue.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -136,10 +107,7 @@ class _HomeTab extends StatelessWidget {
                         ),
                       ),
                     ]),
-                    TextButton(
-                      onPressed: onSeeAll,                        // <-- dùng callback
-                      child: const Text('Xem tất cả'),
-                    ),
+                    TextButton(onPressed: onSeeAll, child: const Text('Xem tất cả')),
                   ],
                 ),
 
@@ -161,27 +129,41 @@ class _HomeTab extends StatelessWidget {
   }
 }
 
+/// TopBar: bỏ card, thay search = avatar viết tắt
 class _TopBar extends StatelessWidget {
-  const _TopBar();
+  final String name;
+  const _TopBar({super.key, required this.name});
+
+  String _getInitials(String fullName) {
+    final parts = fullName.trim().split(RegExp(r'\s+'));
+    if (parts.length >= 2) return (parts.first[0] + parts.last[0]).toUpperCase();
+    if (parts.isNotEmpty) return parts.first[0].toUpperCase();
+    return '';
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(.05), blurRadius: 8, offset: const Offset(0, 3)),
-        ],
-        border: Border.all(color: Colors.black12),
-      ),
       child: Row(
         children: [
-          Image.asset('assets/images/LOGO_THUYLOI.png', height: 24),
+          Image.asset('assets/images/LOGO_THUYLOI.png', height: 28),
           const Spacer(),
-          IconButton(onPressed: () {}, icon: const Icon(Icons.notifications_rounded)),
-          IconButton(onPressed: () {}, icon: const Icon(Icons.search_rounded)),
+          IconButton(
+            onPressed: () { /* TODO: mở trang thông báo */ },
+            icon: const Icon(Icons.notifications_rounded),
+          ),
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: const Color(0xFF2F6BFF),
+            child: Text(
+              _getInitials(name),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -210,4 +192,3 @@ class _ProfileTab extends StatelessWidget {
     return const TeacherProfileScreen();
   }
 }
-

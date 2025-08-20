@@ -1,7 +1,6 @@
 package com.example.tsmstlu.service;
 
 import com.example.tsmstlu.dto.schedule_change.*;
-
 import java.util.List;
 
 public interface ScheduleChangeService {
@@ -13,5 +12,5 @@ public interface ScheduleChangeService {
     List<ScheduleChangeDto> getApprovedSchedules();
     ScheduleChangeApprovedDto approveScheduleChange(Long id);
     ScheduleChangeApprovedDto rejectScheduleChange(Long id);
-
+    List<ScheduleChangeDto> getByTeacherUsername(String username);
 }

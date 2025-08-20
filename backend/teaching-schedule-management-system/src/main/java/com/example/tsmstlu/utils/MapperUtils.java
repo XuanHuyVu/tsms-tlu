@@ -28,12 +28,10 @@ import com.example.tsmstlu.dto.subject.SubjectDto;
 import com.example.tsmstlu.dto.subject.SubjectListDto;
 import com.example.tsmstlu.dto.subject.SubjectUpdateDto;
 import com.example.tsmstlu.dto.teacher.*;
-import com.example.tsmstlu.dto.teaching_schedule.TeachingScheduleCreateDto;
-import com.example.tsmstlu.dto.teaching_schedule.TeachingScheduleDto;
-import com.example.tsmstlu.dto.teaching_schedule.TeachingScheduleListDto;
-import com.example.tsmstlu.dto.teaching_schedule.TeachingScheduleUpdateDto;
+import com.example.tsmstlu.dto.teaching_schedule.*;
 import com.example.tsmstlu.dto.teaching_schedule_detail.TeachingScheduleDetailCreateDto;
 import com.example.tsmstlu.dto.teaching_schedule_detail.TeachingScheduleDetailDto;
+import com.example.tsmstlu.dto.teaching_schedule_detail.TeachingScheduleDetailResponseDto;
 import com.example.tsmstlu.dto.teaching_schedule_detail.TeachingScheduleDetailUpdateDto;
 import com.example.tsmstlu.dto.user.UserCreateDto;
 import com.example.tsmstlu.dto.user.UserDto;
@@ -106,12 +104,14 @@ public interface MapperUtils {
 
     // Teaching Schedule
     TeachingScheduleDto toTeachingScheduleDto(TeachingScheduleEntity entity);
+    TeachingScheduleResponseDto toTeachingScheduleResponseDto(TeachingScheduleEntity entity);
     TeachingScheduleListDto toTeachingScheduleListDto(TeachingScheduleEntity entity);
     TeachingScheduleEntity toTeachingScheduleEntity(TeachingScheduleCreateDto dto);
     TeachingScheduleEntity toTeachingScheduleEntity(TeachingScheduleUpdateDto dto);
     void copyEntity(TeachingScheduleUpdateDto dto, @MappingTarget TeachingScheduleEntity entity);
 
     // Teaching Schedule Detail
+    TeachingScheduleDetailResponseDto toTeachingScheduleDetailResponseDto(TeachingScheduleDetailEntity entity);
     TeachingScheduleDetailDto toTeachingScheduleDetailDto(TeachingScheduleDetailEntity entity);
     TeachingScheduleDetailEntity toTeachingScheduleDetailEntity(TeachingScheduleDetailCreateDto dto);
     TeachingScheduleDetailEntity toTeachingScheduleDetailEntity(TeachingScheduleDetailUpdateDto dto);
@@ -119,6 +119,7 @@ public interface MapperUtils {
 
     // schedule change
     ScheduleChangeDto toScheduleChangeListDto(ScheduleChangeEntity entity);
+    ScheduleChangeDto toScheduleChangeDto(ScheduleChangeEntity entity);
     ScheduleChangeApprovedDto toScheduleChangeApprovedDto(ScheduleChangeEntity entity);
     ClassCancelDto toClassCancelDto(ScheduleChangeEntity entity);
     ScheduleChangeEntity toScheduleChangeEntity(ClassCancelCreateDto dto);

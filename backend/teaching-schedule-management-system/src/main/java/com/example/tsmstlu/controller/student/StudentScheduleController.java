@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,8 +25,7 @@ public class StudentScheduleController {
     @GetMapping
     public ResponseEntity<List<StudentScheduleDto>> getSchedule() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        org.springframework.security.core.userdetails.User userDetails =
-                (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
+        User userDetails = (User) authentication.getPrincipal();
 
         List<StudentScheduleDto> schedules = studentScheduleService.getScheduleByUsername(userDetails.getUsername());
 

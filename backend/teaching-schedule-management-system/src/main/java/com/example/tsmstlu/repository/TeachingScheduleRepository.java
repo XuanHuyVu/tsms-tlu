@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TeachingScheduleRepository extends JpaRepository<TeachingScheduleEntity, Long> {
@@ -37,4 +38,11 @@ public interface TeachingScheduleRepository extends JpaRepository<TeachingSchedu
         ORDER BY d.teachingDate, d.periodStart
     """)
     List<StudentScheduleDto> findStudentSchedule(Long studentId);
+
+    @Query("""
+        select ts from TeachingScheduleEntity ts
+        left join fetch ts.details
+        where ts.id = :id
+    """)
+    Optional<TeachingScheduleEntity> findByIdWithDetails(@Param("id") Long id);
 }

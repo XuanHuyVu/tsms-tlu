@@ -5,6 +5,9 @@ import com.example.tsmstlu.service.ScheduleChangeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,7 +23,13 @@ public class ScheduleChangeListController {
 
     @GetMapping
     public ResponseEntity<List<ScheduleChangeDto>> getAll() {
-        List<ScheduleChangeDto> list = scheduleChangeService.getAll();
-        return ResponseEntity.ok(list);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User userDetails = (User) authentication.getPrincipal();
+
+        List<ScheduleChangeDto> list = scheduleChangeService.getByTeacherUsername(userDetails.getUsername());
+
+        return list != null && !list.isEmpty()
+                ? ResponseEntity.ok(list)
+                : ResponseEntity.notFound().build();
     }
 }

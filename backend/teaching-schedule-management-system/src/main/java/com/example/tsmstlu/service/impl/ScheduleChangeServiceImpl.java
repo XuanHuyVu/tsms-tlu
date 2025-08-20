@@ -43,11 +43,13 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
 
     @Override
     public ClassCancelDto createClassCancel(ClassCancelCreateDto dto) {
-        var teachingSchedule = teachingScheduleRepository.findById(dto.getTeachingScheduleId())
+        var teachingSchedule = teachingScheduleRepository.findByIdWithDetails(dto.getTeachingScheduleId())
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Teaching schedule not found with id: " + dto.getTeachingScheduleId()
                 ));
 
+
+//        teachingSchedule.getTeachingScheduleDetails().size();
         ScheduleChangeEntity entity = new ScheduleChangeEntity();
         entity.setTeachingSchedule(teachingSchedule);
         entity.setReason(dto.getReason());
@@ -123,4 +125,13 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
         return mapper.toScheduleChangeApprovedDto(saved);
     }
 
+    @Override
+    public List<ScheduleChangeDto> getByTeacherUsername(String username) {
+        List<ScheduleChangeEntity> entities =
+                scheduleChangeRepository.findByTeachingScheduleTeacherUserUsername(username);
+
+        return entities.stream()
+                .map(mapper::toScheduleChangeDto)
+                .collect(Collectors.toList());
+    }
 }

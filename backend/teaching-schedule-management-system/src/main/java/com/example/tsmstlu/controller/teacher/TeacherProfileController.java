@@ -2,7 +2,6 @@ package com.example.tsmstlu.controller.teacher;
 
 import com.example.tsmstlu.dto.teacher.TeacherProfileDto;
 import com.example.tsmstlu.service.TeacherService;
-import com.example.tsmstlu.utils.MapperUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class TeacherProfileController {
 
     private final TeacherService teacherService;
-    private final MapperUtils mapper;
 
     @GetMapping
     public ResponseEntity<TeacherProfileDto> getTeacherProfile() {

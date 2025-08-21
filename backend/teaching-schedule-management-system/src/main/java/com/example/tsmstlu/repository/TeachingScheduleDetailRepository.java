@@ -1,6 +1,7 @@
 package com.example.tsmstlu.repository;
 
 import com.example.tsmstlu.dto.teaching_log.TeacherStatsDto;
+import com.example.tsmstlu.entity.TeacherEntity;
 import com.example.tsmstlu.entity.TeachingScheduleDetailEntity;
 import com.example.tsmstlu.entity.TeachingScheduleEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -60,5 +61,4 @@ public interface TeachingScheduleDetailRepository extends JpaRepository<Teaching
         where d.id = :id
     """)
     Optional<TeachingScheduleDetailEntity> findByIdWithScheduleDetails(@Param("id") Long id);
-
 }

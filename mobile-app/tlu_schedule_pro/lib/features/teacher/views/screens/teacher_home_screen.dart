@@ -10,7 +10,7 @@ import '../widgets/schedule_card.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/stats_panel.dart';
 import 'teacher_schedule_screen.dart';
-
+import 'teacher_stat_screen.dart';
 class TeacherHomeScreen extends StatefulWidget {
   const TeacherHomeScreen({super.key});
 
@@ -195,8 +195,7 @@ class _NotifyTab extends StatelessWidget {
 class _StatsTab extends StatelessWidget {
   const _StatsTab();
   @override
-  Widget build(BuildContext context) =>
-      const SafeArea(child: Center(child: Text('Thống kê (đang phát triển)')));
+  Widget build(BuildContext context) => const TeacherStatScreen();
 }
 
 class _ProfileTab extends StatelessWidget {

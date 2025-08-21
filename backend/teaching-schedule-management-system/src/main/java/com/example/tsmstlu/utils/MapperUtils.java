@@ -120,8 +120,14 @@ public interface MapperUtils {
     void copyEntity(TeachingScheduleDetailUpdateDto dto, @MappingTarget TeachingScheduleDetailEntity entity);
 
     // schedule change
+    @Mapping(target = "details", source = "teachingScheduleDetail")
+    @Mapping(target = "classSection", source = "teachingScheduleDetail.schedule.classSection")
     ScheduleChangeDto toScheduleChangeListDto(ScheduleChangeEntity entity);
+    @Mapping(target = "details", source = "teachingScheduleDetail")
+    @Mapping(target = "classSection", source = "teachingScheduleDetail.schedule.classSection")
     ScheduleChangeDto toScheduleChangeDto(ScheduleChangeEntity entity);
+    @Mapping(target = "details", source = "teachingScheduleDetail")
+    @Mapping(target = "classSection", source = "teachingScheduleDetail.schedule.classSection")
     ScheduleChangeApprovedDto toScheduleChangeApprovedDto(ScheduleChangeEntity entity);
     @Mapping(target = "details", source = "teachingScheduleDetail")
     @Mapping(target = "classSection", source = "teachingScheduleDetail.schedule.classSection")

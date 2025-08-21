@@ -1,18 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { FaInfoCircle, FaSearch } from 'react-icons/fa';
 import { getAllStatistic } from "../../../api/StatisticApi";
+import { getFaculties, getSemesters } from "../../../api/ApiDropdown";
 import '../../../styles/StatisticList.css';
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 const StatisticsReport = () => {
   const [filters, setFilters] = useState({
     period: "Tháng",
-    semester: "Học kỳ 1 - 2025",
-    faculty: "Tất cả khoa",
+    semester: "",
+    faculty: "",
     status: "Đang làm việc",
     search: "",
   });
 
   const [statistics, setStatistics] = useState([]);
+  const [semesters, setSemesters] = useState([]);
+  const [faculties, setFaculties] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,10 +35,68 @@ const StatisticsReport = () => {
     fetchStats();
   }, []);
 
+  useEffect(() => {
+    const fetchDropdownData = async () => {
+      try {
+        const semestersData = await getSemesters();
+        const facultiesData = await getFaculties();
+        setSemesters(semestersData);
+        setFaculties(facultiesData);
+
+        if (semestersData.length > 0) {
+          setFilters((prev) => ({ ...prev, semester: "Tất cả" }));
+        }
+
+        if (facultiesData.length > 0 && !filters.faculty) {
+          setFilters((prev) => ({ ...prev, faculty: "Tất cả khoa" }));
+        }
+      } catch (error) {
+        console.error("Lỗi khi tải dropdown:", error);
+      }
+    };
+    fetchDropdownData();
+  }, []);
+
+
+  const filteredStatistics = statistics.filter(item => {
+    const matchSemester = filters.semester === "Tất cả" || !filters.semester ? true : item.semesterName === filters.semester;
+    const matchSearch = filters.search ? item.teacherName.toLowerCase().includes(filters.search.toLowerCase()) : true;
+
+    // Nếu thêm lọc theo khoa hoặc trạng thái thì mở rộng ở đây
+
+    return matchSemester && matchSearch;
+  });
+
+
+
+  const exportToExcel = () => {
+    if (filteredStatistics.length === 0) {
+      alert("Không có dữ liệu để xuất báo cáo");
+      return;
+    }
+
+    const dataForExcel = filteredStatistics.map((item, index) => ({
+      'STT': index + 1,
+      'Giảng viên': item.teacherName,
+      'Học kỳ': item.semesterName,
+      'Giờ đã dạy': item.taughtHours,
+      'Giờ chưa dạy': item.notTaughtHours,
+      'Giờ dạy bù': item.makeUpHours,
+      'Tổng giờ': item.totalHours,
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Báo cáo giảng dạy');
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(blob, `Bao_cao_gio_day_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
   return (
     <div className="statistic-container">
       <div className="statistic-header">
-        <button className="add-button">
+        <button className="add-button" onClick={exportToExcel}>
           In báo cáo
         </button>
         <div className="search-container">
@@ -52,7 +115,6 @@ const StatisticsReport = () => {
 
       <div className="filter-bar-statistics">
         <div className="filter-items-group-statistics">
-          {/* Filter 1 */}
           <div className="filter-item-statistics">
             <label>Thống kê theo</label>
             <select
@@ -73,9 +135,12 @@ const StatisticsReport = () => {
                 setFilters({ ...filters, semester: e.target.value })
               }
             >
-              <option>Học kỳ 1 - 2025</option>
-              <option>Học kỳ 2 - 2025</option>
+              <option value="Tất cả">Tất cả</option>
+              {semesters.map((s) => (
+                <option key={s.id} value={s.name}>{s.name}</option>
+              ))}
             </select>
+
           </div>
 
           <div className="filter-item-statistics">
@@ -86,9 +151,10 @@ const StatisticsReport = () => {
                 setFilters({ ...filters, faculty: e.target.value })
               }
             >
-              <option>Tất cả khoa</option>
-              <option>Công Nghệ Thông Tin</option>
-              <option>Kinh tế</option>
+              <option value="Tất cả khoa">Tất cả khoa</option>
+              {faculties.map((f) => (
+                <option key={f.id} value={f.name}>{f.name}</option>
+              ))}
             </select>
           </div>
 
@@ -104,12 +170,6 @@ const StatisticsReport = () => {
               <option>Nghỉ phép</option>
             </select>
           </div>
-        </div>
-
-        <div>
-          <button className="add-button">
-            Thống kê
-          </button>
         </div>
       </div>
 
@@ -133,8 +193,8 @@ const StatisticsReport = () => {
                 Đang tải dữ liệu...
               </td>
             </tr>
-          ) : statistics.length > 0 ? (
-            statistics.map((item, index) => (
+          ) : filteredStatistics.length > 0 ? (
+            filteredStatistics.map((item, index) => (
               <tr key={item.teacherId}>
                 <td>{index + 1}</td>
                 <td>{item.teacherName}</td>
@@ -159,14 +219,14 @@ const StatisticsReport = () => {
       </table>
 
       <div className="footer">
-        <div>Hiển thị {statistics.length} kết quả</div>
+        <div>Hiển thị {filteredStatistics.length} kết quả</div>
         <div className="pagination">
           <select>
             <option>10</option>
             <option>25</option>
             <option>50</option>
           </select>
-          <span>Từ 1 đến {statistics.length} bản ghi</span>
+          <span>Từ 1 đến {filteredStatistics.length} bản ghi</span>
           <button>&lt;</button>
           <button>&gt;</button>
         </div>

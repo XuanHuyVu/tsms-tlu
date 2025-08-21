@@ -13,9 +13,9 @@ export const getScheduleChanges = async (params) => {
 
 export const getScheduleChangeDetail = async (id, type) => {
   let endpoint = "";
-  if (type === "MAKE_UP_CLASS") {
+  if (type === "DAY_BU") {
     endpoint = `/admin/schedule-changes/${id}/make-up-class`;
-  } else if (type === "CLASS_CANCEL") {
+  } else if (type === "HUY_LICH") {
     endpoint = `/admin/schedule-changes/${id}/class-cancel`;
   }
   try {

@@ -3,16 +3,17 @@ import { getScheduleChanges, getScheduleChangeDetail, approveScheduleChange,reje
 import { getAllTeachers } from "../../../api/TeacherApi";
 import dayjs from "dayjs";
 import "../../../styles/ScheduleChangeList.css";
-import { FaSearch, FaInfoCircle, FaRegCheckSquare } from "react-icons/fa";
+import { FaSearch, FaInfoCircle, FaRegCheckSquare, FaTimesCircle } from "react-icons/fa";
 import ScheduleChangeDetail from "./ScheduleChangeDetail";
 
 const ScheduleChangeList = () => {
-  const [allChanges, setAllChanges] = useState([]); // toàn bộ dữ liệu
-  const [changes, setChanges] = useState([]); // dữ liệu sau khi lọc
+  const [allChanges, setAllChanges] = useState([]); 
+  const [changes, setChanges] = useState([]); 
 
   const [filters, setFilters] = useState({
     type: "Tất cả",
     teacher: "Tất cả",
+    status: "Tất cả",
     fromDate: dayjs().startOf("month").format("YYYY-MM-DD"),
     toDate: dayjs().endOf("month").format("YYYY-MM-DD"),
     search: "",
@@ -26,8 +27,8 @@ const ScheduleChangeList = () => {
   const [teachers, setTeachers] = useState([]);
 
   const typeMapping = {
-    MAKE_UP_CLASS: "Lịch bù",
-    CLASS_CANCEL: "Lịch hủy",
+    DAY_BU: "Lịch bù",
+    HUY_LICH: "Lịch hủy",
   };
 
   const statusLabels = {
@@ -53,7 +54,6 @@ const ScheduleChangeList = () => {
 
   const fetchAllChanges = async () => {
     try {
-      // lấy tất cả dữ liệu (không filter ở BE)
       const data = await getScheduleChanges({});
       const content = Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
       setAllChanges(content);
@@ -62,28 +62,26 @@ const ScheduleChangeList = () => {
     }
   };
 
-  // Lọc ở FE mỗi khi filters hoặc allChanges thay đổi
   useEffect(() => {
-    const filtered = allChanges.filter((item) => {
-      // Lọc theo loại
-      if (filters.type !== "Tất cả" && item.type !== filters.type) return false;
+const filtered = allChanges.filter((item) => {
+  if (filters.type !== "Tất cả" && item.type !== filters.type) return false;
 
-      // Lọc theo giảng viên
-      const teacherName = item.teachingSchedule?.classSection?.teacher?.fullName || "";
-      if (filters.teacher !== "Tất cả" && teacherName !== filters.teacher) return false;
+  const teacherName = item.classSection?.teacher?.fullName || "";
+  if (filters.teacher !== "Tất cả" && teacherName !== filters.teacher) return false;
 
-      // Lọc theo ngày tạo
-      const created = dayjs(item.createdAt).format("YYYY-MM-DD");
-      if (created < filters.fromDate || created > filters.toDate) return false;
+  if (filters.status !== "Tất cả" && item.status !== filters.status) return false;
 
-      // Lọc theo search (tìm trong tên lớp học phần)
-      const className = item.teachingSchedule?.classSection?.name?.toLowerCase() || "";
-      if (filters.search && !className.includes(filters.search.toLowerCase())) return false;
+  const created = dayjs(item.createdAt).format("YYYY-MM-DD");
+  if (created < filters.fromDate || created > filters.toDate) return false;
 
-      return true;
-    });
+  const className = item.classSection?.name?.toLowerCase() || "";
+  if (filters.search && !className.includes(filters.search.toLowerCase())) return false;
 
-    setPage(1); // reset về trang 1 khi lọc
+  return true;
+});
+setChanges(filtered);
+
+    setPage(1);
     setChanges(filtered);
   }, [filters, allChanges]);
 
@@ -97,19 +95,22 @@ const ScheduleChangeList = () => {
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleViewDetails = async (change) => {
-    try {
-      let detailData = await getScheduleChangeDetail(change.id, change.type);
-      detailData.type = change.type;
-      if (!detailData.teachingSchedule && change.teachingSchedule) {
-        detailData.teachingSchedule = change.teachingSchedule;
-      }
-      setSelectedChange(detailData);
-      setShowModal(true);
-    } catch (err) {
-      console.error("Lỗi khi mở chi tiết:", err);
+ const handleViewDetails = async (change) => {
+  try {
+    let detailData = await getScheduleChangeDetail(change.id, change.type);
+    console.log("Data detail nhận được:", detailData);
+    detailData.type = change.type;
+
+    if (!detailData.teachingSchedule && change.teachingSchedule) {
+      detailData.teachingSchedule = change.teachingSchedule;
     }
-  };
+    setSelectedChange(detailData);
+    setShowModal(true);
+  } catch (err) {
+    console.error("Lỗi khi mở chi tiết:", err);
+  }
+};
+
 
   const handleCloseModal = () => {
     setShowModal(false);
@@ -118,10 +119,8 @@ const ScheduleChangeList = () => {
 
 const handleApproveSchedule = async (changeToApprove) => {
   try {
-    // Gọi API duyệt
     const res = await approveScheduleChange(changeToApprove.id);
 
-    // Cập nhật state nếu API trả về thành công
     setAllChanges(prevChanges =>
       prevChanges.map(change =>
         change.id === changeToApprove.id
@@ -140,10 +139,8 @@ const handleApproveSchedule = async (changeToApprove) => {
 
   const handleRejectSchedule = async (changeToReject) => {
     try {
-      // Gọi API từ chối
       const res = await rejectScheduleChange(changeToReject.id);
 
-      // Cập nhật state nếu API trả về thành công
       setAllChanges(prevChanges =>
         prevChanges.map(change =>
           change.id === changeToReject.id
@@ -160,7 +157,6 @@ const handleApproveSchedule = async (changeToApprove) => {
     }
   };
 
-  // Phân trang FE
   const totalPages = Math.ceil(changes.length / pageSize);
   const paginatedChanges = changes.slice((page - 1) * pageSize, page * pageSize);
 
@@ -172,8 +168,8 @@ const handleApproveSchedule = async (changeToApprove) => {
             <label>Loại thay đổi</label>
             <select name="type" value={filters.type} onChange={handleFilterChange}>
               <option value="Tất cả">Tất cả</option>
-              <option value="CLASS_CANCEL">Lịch hủy</option>
-              <option value="MAKE_UP_CLASS">Lịch bù</option>
+              <option value="HUY_LICH">Lịch hủy</option>
+              <option value="DAY_BU">Lịch bù</option>
             </select>
           </div>
           <div className="filter-item">
@@ -201,6 +197,18 @@ const handleApproveSchedule = async (changeToApprove) => {
             <label>Đến ngày</label>
             <input type="date" name="toDate" value={filters.toDate} onChange={handleFilterChange} />
           </div>
+
+          <div className="filter-item">
+            <label>Trạng thái</label>
+            <select name="status" value={filters.status} onChange={handleFilterChange}>
+              <option value="Tất cả">Tất cả</option>
+              <option value="DA_DUYET">Đã duyệt</option>
+              <option value="CHUA_DUYET">Chưa duyệt</option>
+              <option value="TU_CHOI">Đã từ chối</option>
+            </select>
+
+          </div>
+
         </div>
         <div className="search-container">
           <input
@@ -215,7 +223,6 @@ const handleApproveSchedule = async (changeToApprove) => {
         </div>
       </div>
 
-      {/* Table */}
       <table className="schedule-table">
         <thead>
           <tr>
@@ -228,30 +235,51 @@ const handleApproveSchedule = async (changeToApprove) => {
             <th>Thao tác</th>
           </tr>
         </thead>
-        <tbody>
-          {paginatedChanges.length > 0 ? (
-            paginatedChanges.map((item, index) => (
-              <tr key={item.id}>
-                <td>{(page - 1) * pageSize + index + 1}</td>
-                <td>{typeMapping[item.type] || "-"}</td>
-                <td>{item.teachingSchedule?.classSection?.teacher?.fullName || "-"}</td>
-                <td>{item.teachingSchedule?.classSection?.name || "-"}</td>
-                <td>{item.createdAt ? dayjs(item.createdAt).format("DD/MM/YYYY") : "-"}</td>
-                <td>{statusLabels[item.status] || item.status || "Chưa duyệt"}</td>
-                <td className="actions">
-                  <FaInfoCircle className="icon info" title="Chi tiết" onClick={() => handleViewDetails(item)} />
-                  <FaRegCheckSquare className="icon check" title="Duyệt" onClick={() => handleApproveSchedule(item)} />
+          <tbody>
+            {paginatedChanges.length > 0 ? (
+              paginatedChanges.map((item, index) => (
+                <tr key={item.id}>
+                  <td>{(page - 1) * pageSize + index + 1}</td>
+                  <td>{typeMapping[item.type] || item.type || "-"}</td> 
+                  <td>{item.classSection?.teacher?.fullName || "-"}</td> 
+                  <td>{item.classSection?.name || "-"}</td> 
+                  <td>{item.createdAt ? dayjs(item.createdAt).format("DD/MM/YYYY") : "-"}</td>
+                  <td>{statusLabels[item.status] || item.status || "Chưa duyệt"}</td>
+                  <td className="actions">
+                    <FaInfoCircle
+                      className="icon info"
+                      title="Chi tiết"
+                      onClick={() => handleViewDetails(item)}
+                    />
+                    {(item.status !== "DA_DUYET" && item.status !== "TU_CHOI") && (
+                      <>
+                        <FaRegCheckSquare
+                          className="icon check"
+                          title="Duyệt"
+                          onClick={() => handleApproveSchedule(item)}
+                          style={{ cursor: "pointer", marginLeft: 8 }}
+                        />
+                        <FaTimesCircle
+                          className="icon reject"
+                          title="Từ chối"
+                          onClick={() => handleRejectSchedule(item)}
+                          style={{ cursor: "pointer", marginLeft: 8 }}
+                        />
+                      </>
+                    )}
+                  </td>
+
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="7" style={{ textAlign: "center" }}>
+                  Không có dữ liệu
                 </td>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="6" style={{ textAlign: "center" }}>
-                Không có dữ liệu
-              </td>
-            </tr>
-          )}
-        </tbody>
+            )}
+          </tbody>
+
       </table>
 
       {/* Pagination */}

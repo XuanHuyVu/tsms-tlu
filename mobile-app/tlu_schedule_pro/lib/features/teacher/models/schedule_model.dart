@@ -3,7 +3,45 @@ import '../../../core/extensions/extensions.dart';
 
 enum ScheduleStatus { upcoming, ongoing, done, canceled, unknown }
 
+// ===== Helpers map status <-> API =====
+ScheduleStatus statusFromApi(String? s) {
+  switch ((s ?? '').toUpperCase()) {
+    case 'DA_DAY':
+    case 'DONE':
+      return ScheduleStatus.done;
+    case 'NGHI_DAY':
+    case 'CANCELED':
+      return ScheduleStatus.canceled;
+    case 'DANG_DAY':
+    case 'ONGOING':
+      return ScheduleStatus.ongoing;
+    case 'SAP_DAY':
+    case 'UPCOMING':
+      return ScheduleStatus.upcoming;
+    default:
+      return ScheduleStatus.unknown;
+  }
+}
+
+String statusToApi(ScheduleStatus s) {
+  switch (s) {
+    case ScheduleStatus.done:
+      return 'DA_DAY';
+    case ScheduleStatus.canceled:
+      return 'NGHI_DAY';
+    case ScheduleStatus.ongoing:
+      return 'DANG_DAY';
+    case ScheduleStatus.upcoming:
+      return 'SAP_DAY';
+    default:
+      return 'UNKNOWN';
+  }
+}
+
 class ScheduleModel {
+  // 🔹 Thêm id để thao tác API theo từng lịch (ví dụ /details/{id}/attendance)
+  final int id;
+
   final DateTime? teachingDate;
 
   final String? periodStartRaw; // "Tiết 1"
@@ -20,6 +58,7 @@ class ScheduleModel {
   final ScheduleStatus status;
 
   const ScheduleModel({
+    required this.id,
     required this.teachingDate,
     required this.periodStartRaw,
     required this.periodEndRaw,
@@ -54,20 +93,42 @@ class ScheduleModel {
   int get periodsCount =>
       (periodStart > 0 && periodEnd >= periodStart) ? (periodEnd - periodStart + 1) : 1;
 
+  // ===== Common parsing =====
+  static DateTime? _parseDateFlexible(String? s) {
+    if (s == null || s.isEmpty) return null;
+    final iso = DateTime.tryParse(s);
+    if (iso != null) return iso;
+    final m = RegExp(r'^(\d{2})/(\d{2})/(\d{4})$').firstMatch(s);
+    if (m != null) {
+      return DateTime(
+        int.parse(m.group(3)!),
+        int.parse(m.group(2)!),
+        int.parse(m.group(1)!),
+      );
+    }
+    return null;
+  }
+
+  static int _toInt(dynamic v) {
+    if (v == null) return 0;
+    if (v is int) return v;
+    return int.tryParse(v.toString()) ?? 0;
+  }
+
+  // Fallback status theo ngày nếu API không có status
+  static ScheduleStatus _fallbackStatusByDate(DateTime? date) {
+    if (date == null) return ScheduleStatus.unknown;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final d = DateTime(date.year, date.month, date.day);
+    if (d.isBefore(today)) return ScheduleStatus.done;
+    if (d.isAfter(today)) return ScheduleStatus.upcoming;
+    return ScheduleStatus.upcoming;
+  }
+
   // ========== Factory từ JSON đã "phẳng" ==========
   factory ScheduleModel.fromJson(Map<String, dynamic> json) {
-    DateTime? parseDate(String? s) {
-      if (s == null || s.isEmpty) return null;
-      final iso = DateTime.tryParse(s);
-      if (iso != null) return iso;
-      final m = RegExp(r'^(\d{2})/(\d{2})/(\d{4})$').firstMatch(s);
-      if (m != null) {
-        return DateTime(int.parse(m.group(3)!), int.parse(m.group(2)!), int.parse(m.group(1)!));
-      }
-      return null;
-    }
-
-    final date = parseDate(json['teachingDate']?.toString());
+    final date = _parseDateFlexible(json['teachingDate']?.toString());
     final psRaw = json['periodStart']?.toString();
     final peRaw = json['periodEnd']?.toString();
     final ps    = extractPeriodNumber(psRaw ?? json['periodStart']?.toString());
@@ -79,19 +140,17 @@ class ScheduleModel {
     final type      = (json['type'] ?? '').toString();
     final chapter   = json['chapter']?.toString();
 
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    ScheduleStatus st;
-    if (date == null) {
-      st = ScheduleStatus.unknown;
-    } else {
-      final d = DateTime(date.year, date.month, date.day);
-      if (d.isBefore(today)) st = ScheduleStatus.done;
-      else if (d.isAfter(today)) st = ScheduleStatus.upcoming;
-      else st = ScheduleStatus.upcoming;
-    }
+    // 🔹 id có thể là 'id' hoặc 'detailId' tuỳ backend
+    final id        = _toInt(json['id'] ?? json['detailId']);
+
+    // Ưu tiên status từ API; nếu không có thì fallback theo ngày
+    final stApi     = statusFromApi(json['status'] as String?);
+    final st        = stApi == ScheduleStatus.unknown
+        ? _fallbackStatusByDate(date)
+        : stApi;
 
     return ScheduleModel(
+      id: id,
       teachingDate: date,
       periodStartRaw: psRaw,
       periodEndRaw: peRaw,
@@ -116,36 +175,21 @@ class ScheduleModel {
     final room      = (section['room']?['name'] ?? '').toString();
     final type      = (detail['type'] ?? '').toString();
 
-    DateTime? parseDate(String? s) {
-      if (s == null || s.isEmpty) return null;
-      final iso = DateTime.tryParse(s);
-      if (iso != null) return iso;
-      final m = RegExp(r'^(\d{2})/(\d{2})/(\d{4})$').firstMatch(s);
-      if (m != null) {
-        return DateTime(int.parse(m.group(3)!), int.parse(m.group(2)!), int.parse(m.group(1)!));
-      }
-      return null;
-    }
-
-    final date = parseDate(detail['teachingDate']?.toString());
+    final date  = _parseDateFlexible(detail['teachingDate']?.toString());
     final psRaw = detail['periodStart']?.toString();
     final peRaw = detail['periodEnd']?.toString();
     final ps    = extractPeriodNumber(psRaw);
     final pe    = extractPeriodNumber(peRaw);
 
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    ScheduleStatus st;
-    if (date == null) {
-      st = ScheduleStatus.unknown;
-    } else {
-      final d = DateTime(date.year, date.month, date.day);
-      if (d.isBefore(today)) st = ScheduleStatus.done;
-      else if (d.isAfter(today)) st = ScheduleStatus.upcoming;
-      else st = ScheduleStatus.upcoming;
-    }
+    final id    = _toInt(detail['id']); // 🔹 id detail theo payload bạn đưa
+
+    final stApi = statusFromApi(detail['status'] as String?);
+    final st    = stApi == ScheduleStatus.unknown
+        ? _fallbackStatusByDate(date)
+        : stApi;
 
     return ScheduleModel(
+      id: id,
       teachingDate: date,
       periodStartRaw: psRaw,
       periodEndRaw: peRaw,
@@ -157,6 +201,37 @@ class ScheduleModel {
       roomName: room,
       chapter: null,
       status: st,
+    );
+  }
+
+  // ===== tiện cho cập nhật trong ViewModel
+  ScheduleModel copyWith({
+    int? id,
+    DateTime? teachingDate,
+    String? periodStartRaw,
+    String? periodEndRaw,
+    int? periodStart,
+    int? periodEnd,
+    String? type,
+    String? subjectName,
+    String? classCode,
+    String? roomName,
+    String? chapter,
+    ScheduleStatus? status,
+  }) {
+    return ScheduleModel(
+      id: id ?? this.id,
+      teachingDate: teachingDate ?? this.teachingDate,
+      periodStartRaw: periodStartRaw ?? this.periodStartRaw,
+      periodEndRaw: periodEndRaw ?? this.periodEndRaw,
+      periodStart: periodStart ?? this.periodStart,
+      periodEnd: periodEnd ?? this.periodEnd,
+      type: type ?? this.type,
+      subjectName: subjectName ?? this.subjectName,
+      classCode: classCode ?? this.classCode,
+      roomName: roomName ?? this.roomName,
+      chapter: chapter ?? this.chapter,
+      status: status ?? this.status,
     );
   }
 }

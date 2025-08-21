@@ -12,23 +12,13 @@ const _brandBlue = Color(0xFF4A90E2);
 String _two(int n) => n.toString().padLeft(2, '0');
 String _ddMMyyyy(DateTime d) => '${_two(d.day)}/${_two(d.month)}/${d.year}';
 
-// Viết tắt cho thanh chọn trong Tab "Tuần"
 String _weekdayShort(DateTime d) {
   const names = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
   return names[d.weekday % 7];
 }
 
-// Đầy đủ để hiển thị tiêu đề ngày
 String _weekdayFull(DateTime d) {
-  const names = [
-    'Chủ Nhật',
-    'Thứ Hai',
-    'Thứ Ba',
-    'Thứ Tư',
-    'Thứ Năm',
-    'Thứ Sáu',
-    'Thứ Bảy'
-  ];
+  const names = ['Chủ Nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
   return names[d.weekday % 7];
 }
 
@@ -77,17 +67,12 @@ class _BodyState extends State<_Body> with TickerProviderStateMixin {
     return SafeArea(
       child: Column(
         children: [
-          /// AppBar xanh: luôn có mũi tên trở lại
           _ScheduleAppBar(
             title: 'LỊCH DẠY',
             onBack: () => Navigator.of(context).maybePop(),
             notifCount: 0,
           ),
-
-          /// Khoảng cách rõ ràng giữa AppBar và TabBar
           const SizedBox(height: 8),
-
-          /// Tab bar: Ngày / Tuần - tab chưa chọn nền xám nhạt
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: DecoratedBox(
@@ -107,16 +92,12 @@ class _BodyState extends State<_Body> with TickerProviderStateMixin {
                   dividerColor: Colors.transparent,
                   labelColor: Colors.white,
                   unselectedLabelColor: Colors.black87,
-                  tabs: const [Tab(text: 'Ngày'), Tab(text: 'Tuần')],
+                  tabs: const [Tab(text: 'Hôm nay'), Tab(text: 'Tuần này')],
                 ),
               ),
             ),
           ),
-
-          /// Khoảng cách dưới TabBar cho thông thoáng
           const SizedBox(height: 8),
-
-          /// Nội dung từng tab
           Expanded(
             child: TabBarView(
               controller: _tab,
@@ -149,21 +130,10 @@ class _ScheduleAppBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(4, 8, 12, 8),
       child: Row(
         children: [
-          IconButton(
-            onPressed: onBack,
-            icon: const Icon(
-              Icons.arrow_back_ios_new_rounded,
-              color: Colors.white,
-            ),
-          ),
           const SizedBox(width: 4),
           Text(
             title.toUpperCase(),
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-            ),
+            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800),
           ),
           const Spacer(),
           Stack(
@@ -179,19 +149,12 @@ class _ScheduleAppBar extends StatelessWidget {
                   top: 6,
                   child: Container(
                     padding: const EdgeInsets.all(3),
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
+                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
                     constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                     child: Text(
                       '$notifCount',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -216,42 +179,41 @@ class _DayTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       children: [
-        /// Thẻ thông tin ngày (đã bỏ nút "Chọn ngày")
         Container(
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
-              BoxShadow(
-                color: _brandBlue.withOpacity(.06),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
+              BoxShadow(color: _brandBlue.withValues(alpha: .06), blurRadius: 10, offset: const Offset(0, 4)),
             ],
-            border: Border.all(color: _brandBlue.withOpacity(.18)),
+            border: Border.all(color: _brandBlue.withValues(alpha: .18)),
           ),
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
           child: Column(
             children: [
-              Text(
-                '${d.day}',
-                style: const TextStyle(
-                  fontSize: 56,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
+              Text('${d.day}', style: const TextStyle(fontSize: 56, fontWeight: FontWeight.w900)),
               const SizedBox(height: 6),
-              Text(
-                '${_weekdayFull(d)}, ${d.day} tháng ${d.month} năm ${d.year}',
-                style: const TextStyle(color: Colors.black87),
-              ),
+              Text('${_weekdayFull(d)}, ${d.day} tháng ${d.month} năm ${d.year}',
+                  style: const TextStyle(color: Colors.black87)),
             ],
           ),
         ),
         const SizedBox(height: 12),
 
-        /// Danh sách lịch trong ngày
-        ...vm.daySchedules.map((e) => ScheduleCard(item: e)),
+        /// ✅ KÍCH HOẠT 2 NÚT: truyền callback vào ScheduleCard
+        ...vm.daySchedules.map(
+              (e) => ScheduleCard(
+            item: e,
+            onMarkDone: () => context.read<TeacherScheduleViewModel>().markDone(e),
+            onRequestCancel: (reason, fileUrl) =>
+                context.read<TeacherScheduleViewModel>().requestCancel(
+                  e,
+                  reason: reason,
+                  fileUrl: fileUrl,
+                ),
+          ),
+        ),
+
         if (vm.daySchedules.isEmpty)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 40),
@@ -264,8 +226,6 @@ class _DayTab extends StatelessWidget {
 
 /// ---- Tab: Tuần --------------------------------------------------------------
 
-/// ---- Tab: Tuần --------------------------------------------------------------
-
 class _WeekTab extends StatelessWidget {
   const _WeekTab();
 
@@ -273,66 +233,50 @@ class _WeekTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final vm = context.watch<TeacherScheduleViewModel>();
 
-    final monday =
-    vm.selectedDate.subtract(Duration(days: vm.selectedDate.weekday - 1));
+    final monday = vm.selectedDate.subtract(Duration(days: vm.selectedDate.weekday - 1));
     final days = List.generate(7, (i) => monday.add(Duration(days: i)));
 
     return Column(
       children: [
-        /// Thanh chọn ngày trong tuần - ĐÃ SỬA
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
           child: Row(
             children: [
-              IconButton(
-                onPressed: () => vm.shiftWeek(-1),
-                icon: const Icon(Icons.chevron_left),
-              ),
+              IconButton(onPressed: () => vm.shiftWeek(-1), icon: const Icon(Icons.chevron_left)),
               Expanded(
-                child: Container(
-                  height: 64, // Chiều cao cố định cho thanh chọn ngày
+                child: SizedBox(
+                  height: 64,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: days.length,
-                    separatorBuilder: (context, index) => const SizedBox(width: 4),
+                    separatorBuilder: (_, __) => const SizedBox(width: 4),
                     itemBuilder: (context, i) {
                       final day = days[i];
-                      final isSelected = day.day == vm.selectedDate.day &&
+                      final isSelected = day.year == vm.selectedDate.year &&
                           day.month == vm.selectedDate.month &&
-                          day.year == vm.selectedDate.year;
-
+                          day.day == vm.selectedDate.day;
                       return GestureDetector(
                         onTap: () => vm.pickDate(day),
                         child: Container(
-                          width: 44, // Chiều rộng cố định cho mỗi ô ngày
+                          width: 44,
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           decoration: BoxDecoration(
                             color: isSelected ? _brandBlue : Colors.transparent,
                             border: Border.all(
-                              color: isSelected
-                                  ? _brandBlue
-                                  : _brandBlue.withOpacity(.25),
+                              color: isSelected ? _brandBlue : _brandBlue.withValues(alpha: .25),
                             ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
-                                _weekdayShort(day),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: isSelected ? Colors.white : Colors.black54,
-                                ),
-                              ),
+                              Text(_weekdayShort(day),
+                                  style: TextStyle(fontSize: 12, color: isSelected ? Colors.white : Colors.black54)),
                               const SizedBox(height: 4),
-                              Text(
-                                '${day.day}',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  color: isSelected ? Colors.white : Colors.black87,
-                                ),
-                              ),
+                              Text('${day.day}',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      color: isSelected ? Colors.white : Colors.black87)),
                             ],
                           ),
                         ),
@@ -341,16 +285,12 @@ class _WeekTab extends StatelessWidget {
                   ),
                 ),
               ),
-              IconButton(
-                onPressed: () => vm.shiftWeek(1),
-                icon: const Icon(Icons.chevron_right),
-              ),
+              IconButton(onPressed: () => vm.shiftWeek(1), icon: const Icon(Icons.chevron_right)),
             ],
           ),
         ),
         const SizedBox(height: 4),
 
-        /// Lịch từng ngày trong tuần (grouped)
         Expanded(
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -362,13 +302,23 @@ class _WeekTab extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: Text(
                     '${_weekdayFull(date)}, ${_ddMMyyyy(date)}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      color: _brandBlue,
-                    ),
+                    style: const TextStyle(fontWeight: FontWeight.w800, color: _brandBlue),
                   ),
                 ),
-                ...list.map((e) => ScheduleCard(item: e)),
+
+                /// ✅ KÍCH HOẠT 2 NÚT cho từng item trong tuần
+                ...list.map(
+                      (e) => ScheduleCard(
+                    item: e,
+                    onMarkDone: () => context.read<TeacherScheduleViewModel>().markDone(e),
+                    onRequestCancel: (reason, fileUrl) =>
+                        context.read<TeacherScheduleViewModel>().requestCancel(
+                          e,
+                          reason: reason,
+                          fileUrl: fileUrl,
+                        ),
+                  ),
+                ),
               ];
             }).toList(),
           ),

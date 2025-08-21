@@ -10,6 +10,10 @@ import com.example.tsmstlu.dto.major.MajorCreateDto;
 import com.example.tsmstlu.dto.major.MajorDto;
 import com.example.tsmstlu.dto.major.MajorListDto;
 import com.example.tsmstlu.dto.major.MajorUpdateDto;
+import com.example.tsmstlu.dto.notification.NotificationCreateRequestDto;
+import com.example.tsmstlu.dto.notification.NotificationDto;
+import com.example.tsmstlu.dto.notification.NotificationRecipientDto;
+import com.example.tsmstlu.dto.notification.UserNotificationDto;
 import com.example.tsmstlu.dto.room.RoomCreateDto;
 import com.example.tsmstlu.dto.room.RoomDto;
 import com.example.tsmstlu.dto.room.RoomListDto;
@@ -37,6 +41,8 @@ import com.example.tsmstlu.entity.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+
+import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface MapperUtils {
@@ -157,4 +163,27 @@ public interface MapperUtils {
     StudentClassSectionEntity toStudentClassSectionEntity(StudentClassSectionCreateDto dto);
     StudentClassSectionEntity toStudentClassSectionEntity(StudentClassSectionUpdateDto dto);
     void copyEntity(StudentClassSectionUpdateDto dto, @MappingTarget StudentClassSectionEntity entity);
+
+    // notification
+    @Mapping(target = "relatedScheduleChangeId", source = "relatedScheduleChange.id")
+    NotificationDto toNotificationDto(NotificationEntity entity);
+
+    @Mapping(target = "id", source = "notification.id")
+    @Mapping(target = "title", source = "notification.title")
+    @Mapping(target = "content", source = "notification.content")
+    @Mapping(target = "type", source = "notification.type")
+    @Mapping(target = "relatedScheduleChangeId", source = "notification.relatedScheduleChange.id")
+    @Mapping(target = "createdAt", source = "notification.createdAt")
+    @Mapping(target = "updatedAt", source = "notification.updatedAt")
+    @Mapping(target = "isRead", source = "isRead")
+    UserNotificationDto toUserNotificationDto(NotificationRecipientEntity entity);
+
+    @Mapping(target = "relatedScheduleChange", ignore = true)
+    @Mapping(target = "recipients", ignore = true)
+    NotificationEntity toNotificationEntity(NotificationCreateRequestDto dto);
+
+    @Mapping(target = "userId", source = "user.id")
+    NotificationRecipientDto toNotificationRecipientDto(NotificationRecipientEntity entity);
+
+    List<NotificationDto> toNotificationDtoList(List<NotificationEntity> entities);
 }

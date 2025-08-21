@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import TeachingScheduleApi from "../../../api/TeachingScheduleApi";
 import { FaSearch, FaInfoCircle, FaPen, FaTrash } from "react-icons/fa";
 import "../../../styles/DepartmentList.css";
+import "../../../styles/Toast.css"; // <- CSS cho toast
 import TeachingScheduleForm from "./TeachingScheduleForm";
 import TeachingScheduleDetail from "./TeachingScheduleDetail";
 import DeleteConfirmModal from "../../../components/DeleteConfirmModal";
+import AppToast from "../../../components/AppToast"; // <- Toast component nhẹ
 
 export default function TeachingScheduleList() {
   const [rows, setRows] = useState([]);
@@ -20,13 +22,13 @@ export default function TeachingScheduleList() {
   const [showDetail, setShowDetail] = useState(false);
   const [detailId, setDetailId] = useState(null);
 
-  // Delete confirmation modal state
   const [showDelete, setShowDelete] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
 
   const fetchedDetailIds = useRef(new Set());
+  const toastRef = useRef(null);
 
-  const load = async (signal) => {
+  const load = async (abortSignal) => {
     setLoading(true);
     try {
       const res = await TeachingScheduleApi.fetchPage({
@@ -35,32 +37,35 @@ export default function TeachingScheduleList() {
         search: search.trim(),
         sort: "id,asc",
       });
-      if (signal?.aborted) return;
-      setRows(res.content);
-      setTotal(res.totalElements);
-      setTotalPages(res.totalPages);
+      if (abortSignal?.aborted) return;
+      setRows(res?.content ?? []);
+      setTotal(res?.totalElements ?? 0);
+      setTotalPages(res?.totalPages ?? 0);
     } catch (err) {
-      if (!signal?.aborted) {
+      if (!abortSignal?.aborted) {
         console.error("[List] load error", err);
         setRows([]);
         setTotal(0);
         setTotalPages(0);
+        toastRef.current?.error("Không thể tải danh sách lịch dạy");
       }
     } finally {
-      if (!signal?.aborted) setLoading(false);
+      if (!abortSignal?.aborted) setLoading(false);
     }
   };
 
+  // Load page
   useEffect(() => {
     const ctrl = new AbortController();
-    load(ctrl);
+    load(ctrl.signal);
     return () => ctrl.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, size, search]);
 
+  // Bổ sung số buổi nếu API page chưa có
   useEffect(() => {
     const need = rows.filter(
-      (r) => r.sessions === 0 && !fetchedDetailIds.current.has(r.id)
+      (r) => (r.sessions === 0 || r.sessions == null) && !fetchedDetailIds.current.has(r.id)
     );
     if (need.length === 0) return;
 
@@ -80,16 +85,15 @@ export default function TeachingScheduleList() {
           }
         });
         if (cancelled) return;
-        setRows((prev) =>
-          prev.map((r) => (map[r.id] ? { ...r, sessions: map[r.id] } : r))
-        );
+        setRows((prev) => prev.map((r) => (map[r.id] != null ? { ...r, sessions: map[r.id] } : r)));
       } catch (e) {
-        if (!cancelled) console.error("[List] fetch details error", e);
+        if (!cancelled) {
+          console.error("[List] fetch details error", e);
+          toastRef.current?.error("Không thể tải chi tiết số buổi");
+        }
       }
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [rows]);
 
   const handleSearch = (e) => {
@@ -97,13 +101,11 @@ export default function TeachingScheduleList() {
     setPage(0);
   };
 
-  // Open delete modal
   const promptDelete = (id) => {
     setDeleteId(id);
     setShowDelete(true);
   };
 
-  // Confirm delete action
   const confirmDelete = async () => {
     if (!deleteId) return;
     setShowDelete(false);
@@ -112,9 +114,10 @@ export default function TeachingScheduleList() {
       // refresh list
       if (rows.length === 1 && page > 0) setPage((p) => p - 1);
       else load({});
+      toastRef.current?.success("Đã xoá lịch dạy thành công");
     } catch (err) {
       console.error("[List] delete error", err);
-      // could show notification
+      toastRef.current?.error("Xoá lịch dạy thất bại");
     }
   };
 
@@ -126,13 +129,19 @@ export default function TeachingScheduleList() {
 
   return (
     <div className="container">
+      {/* Toast */}
+      <AppToast ref={toastRef} />
+
       {/* POPUPS */}
       {showForm && (
         <TeachingScheduleForm
           open={showForm}
           initialData={editing}
           onClose={() => setShowForm(false)}
-          onSuccess={() => {
+          onSuccess={(_, mode) => {
+            // mode: "create" | "update" (nếu form chưa trả về mode, fallback theo editing)
+            const isUpdate = mode ? mode === "update" : Boolean(editing?.id);
+            toastRef.current?.success(isUpdate ? "Cập nhật lịch dạy thành công" : "Thêm lịch dạy thành công");
             setShowForm(false);
             load({});
           }}
@@ -212,17 +221,11 @@ export default function TeachingScheduleList() {
                   <div className="actions">
                     <FaInfoCircle
                       className="icon info"
-                      onClick={() => {
-                        setDetailId(r.id);
-                        setShowDetail(true);
-                      }}
+                      onClick={() => { setDetailId(r.id); setShowDetail(true); }}
                     />
                     <FaPen
                       className="icon edit"
-                      onClick={() => {
-                        setEditing(r);
-                        setShowForm(true);
-                      }}
+                      onClick={() => { setEditing(r); setShowForm(true); }}
                     />
                     <FaTrash
                       className="icon delete"
@@ -246,11 +249,11 @@ export default function TeachingScheduleList() {
             value={size}
             onChange={(e) => {
               setPage(0);
-              setSize(+e.target.value);
+              setSize(Number(e.target.value));
             }}
           >
             {[10, 20, 50, 100].map((n) => (
-              <option key={n}>{n}</option>
+              <option key={n} value={n}>{n}</option>
             ))}
           </select>
           <span>{rangeText}</span>

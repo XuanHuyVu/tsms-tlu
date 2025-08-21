@@ -87,7 +87,6 @@ const Sidebar = () => {
             </span>
           </div>
           <ul className={`submenu ${openMenus.lichHoc ? 'open' : ''}`}>
-            <li><NavLink to="/thoi-khoa-bieu" className="submenu-link">THỜI KHÓA BIỂU</NavLink></li>
             <li><NavLink to="/schedulechanges" className="submenu-link">LỊCH THAY ĐỔI</NavLink></li>
             <li><NavLink to="/semesters" className="submenu-link">HỌC KỲ</NavLink></li>
           </ul>
@@ -101,6 +100,10 @@ const Sidebar = () => {
         {/* TÀI KHOẢN */}
         <li>
           <NavLink to="/accounts" className="menu-link-standalone">TÀI KHOẢN</NavLink>
+        </li>
+
+        <li>
+          <NavLink to="/notifications" className="menu-link-standalone">THÔNG BÁO</NavLink>
         </li>
       </ul>
     </div>

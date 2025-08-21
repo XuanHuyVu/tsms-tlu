@@ -2,11 +2,13 @@ package com.example.tsmstlu.repository;
 
 import com.example.tsmstlu.dto.teaching_log.TeacherStatsDto;
 import com.example.tsmstlu.entity.TeachingScheduleDetailEntity;
+import com.example.tsmstlu.entity.TeachingScheduleEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface TeachingScheduleDetailRepository extends JpaRepository<TeachingScheduleDetailEntity, Long> {
 
@@ -50,4 +52,13 @@ public interface TeachingScheduleDetailRepository extends JpaRepository<Teaching
         GROUP BY t.id, s.id, t.fullName, s.name
     """)
     List<TeacherStatsDto> getTeacherStats(@Param("teacherId") Long teacherId, @Param("semesterId") Long semesterId);
+
+    @Query("""
+        select d from TeachingScheduleDetailEntity d
+        left join fetch d.schedule s
+        left join fetch s.details
+        where d.id = :id
+    """)
+    Optional<TeachingScheduleDetailEntity> findByIdWithScheduleDetails(@Param("id") Long id);
+
 }

@@ -13,5 +13,5 @@ import java.util.Optional;
 @Repository
 public interface ScheduleChangeRepository extends JpaRepository<ScheduleChangeEntity, Long> {
     List<ScheduleChangeEntity> findByStatus(String status);
-    List<ScheduleChangeEntity> findByTeachingScheduleTeacherUserUsername(String username);
+    List<ScheduleChangeEntity> findByTeachingScheduleDetailScheduleTeacherUserUsername(String username);
 }

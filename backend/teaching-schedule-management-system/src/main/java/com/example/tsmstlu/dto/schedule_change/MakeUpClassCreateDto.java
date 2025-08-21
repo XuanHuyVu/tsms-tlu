@@ -6,7 +6,7 @@ import java.util.Date;
 
 @Data
 public class MakeUpClassCreateDto {
-    private Long teachingScheduleId;
+    private Long teachingScheduleDetailId;
     private String newPeriodStart;
     private String newPeriodEnd;
     private Date newDate;

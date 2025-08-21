@@ -5,14 +5,13 @@ import com.example.tsmstlu.entity.RoomEntity;
 import com.example.tsmstlu.entity.ScheduleChangeEntity;
 import com.example.tsmstlu.repository.RoomRepository;
 import com.example.tsmstlu.repository.ScheduleChangeRepository;
-import com.example.tsmstlu.repository.TeachingScheduleRepository;
+import com.example.tsmstlu.repository.TeachingScheduleDetailRepository;
 import com.example.tsmstlu.service.ScheduleChangeService;
 import com.example.tsmstlu.utils.MapperUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,7 +22,7 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
 
     private final ScheduleChangeRepository scheduleChangeRepository;
     private final MapperUtils mapper;
-    private final TeachingScheduleRepository teachingScheduleRepository;
+    private final TeachingScheduleDetailRepository teachingScheduleDetailRepository;
     private final RoomRepository roomRepository;
 
     @Override
@@ -43,21 +42,23 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
 
     @Override
     public ClassCancelDto createClassCancel(ClassCancelCreateDto dto) {
-        var teachingSchedule = teachingScheduleRepository.findByIdWithDetails(dto.getTeachingScheduleId())
+        var detail = teachingScheduleDetailRepository.findById(dto.getTeachingScheduleDetailId())
                 .orElseThrow(() -> new EntityNotFoundException(
-                        "Teaching schedule not found with id: " + dto.getTeachingScheduleId()
+                        "Teaching schedule detail not found with id: " + dto.getTeachingScheduleDetailId()
                 ));
 
         ScheduleChangeEntity entity = new ScheduleChangeEntity();
-        entity.setTeachingSchedule(teachingSchedule);
+        entity.setTeachingScheduleDetail(detail);
         entity.setReason(dto.getReason());
         entity.setFileUrl(dto.getFileUrl());
-        entity.setType("CLASS_CANCEL");
+        entity.setType("HUY_LICH");
         entity.setStatus("CHUA_DUYET");
 
         ScheduleChangeEntity saved = scheduleChangeRepository.save(entity);
+
         return mapper.toClassCancelDto(saved);
     }
+
 
     @Override
     public MakeUpClassDto getMakeUpClassById(Long id) {
@@ -68,14 +69,12 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
 
     @Override
     public MakeUpClassDto createMakeUpClass(MakeUpClassCreateDto dto) {
-        var teachingSchedule = teachingScheduleRepository.findByIdWithDetails(dto.getTeachingScheduleId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Teaching schedule not found with id: " + dto.getTeachingScheduleId()
-                ));
+        var detail = teachingScheduleDetailRepository.findByIdWithScheduleDetails(dto.getTeachingScheduleDetailId())
+                .orElseThrow(() -> new EntityNotFoundException("Teaching schedule detail not found with id: " + dto.getTeachingScheduleDetailId()));
 
         ScheduleChangeEntity entity = new ScheduleChangeEntity();
-        entity.setTeachingSchedule(teachingSchedule);
-        entity.setType("MAKE_UP_CLASS");
+        entity.setTeachingScheduleDetail(detail);
+        entity.setType("DAY_BU");
         entity.setNewPeriodStart(Integer.valueOf(dto.getNewPeriodStart()));
         entity.setNewPeriodEnd(Integer.valueOf(dto.getNewPeriodEnd()));
         entity.setNewDate(dto.getNewDate());
@@ -125,8 +124,7 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
 
     @Override
     public List<ScheduleChangeDto> getByTeacherUsername(String username) {
-        List<ScheduleChangeEntity> entities =
-                scheduleChangeRepository.findByTeachingScheduleTeacherUserUsername(username);
+        List<ScheduleChangeEntity> entities = scheduleChangeRepository.findByTeachingScheduleDetailScheduleTeacherUserUsername(username);
 
         return entities.stream()
                 .map(mapper::toScheduleChangeDto)

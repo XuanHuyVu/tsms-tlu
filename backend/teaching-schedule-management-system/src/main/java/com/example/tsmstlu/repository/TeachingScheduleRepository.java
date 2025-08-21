@@ -35,13 +35,4 @@ public interface TeachingScheduleRepository extends JpaRepository<TeachingSchedu
         ORDER BY d.teachingDate, d.periodStart
     """)
     List<StudentScheduleDto> findStudentSchedule(@Param("studentId") Long studentId);
-
-
-
-    @Query("""
-        select ts from TeachingScheduleEntity ts
-        left join fetch ts.details
-        where ts.id = :id
-    """)
-    Optional<TeachingScheduleEntity> findByIdWithDetails(@Param("id") Long id);
 }

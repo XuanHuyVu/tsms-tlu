@@ -19,8 +19,8 @@
         private Long id;
 
         @ManyToOne(optional = false)
-        @JoinColumn(name = "teaching_schedule_id")
-        private TeachingScheduleEntity teachingSchedule;
+        @JoinColumn(name = "teaching_schedule_detail_id", nullable = false)
+        private TeachingScheduleDetailEntity teachingScheduleDetail;
 
         private String type;
         private String reason;

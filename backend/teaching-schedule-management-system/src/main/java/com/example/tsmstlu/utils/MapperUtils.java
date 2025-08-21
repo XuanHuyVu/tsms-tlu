@@ -38,6 +38,7 @@ import com.example.tsmstlu.dto.user.UserCreateDto;
 import com.example.tsmstlu.dto.user.UserDto;
 import com.example.tsmstlu.entity.*;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
@@ -122,8 +123,12 @@ public interface MapperUtils {
     ScheduleChangeDto toScheduleChangeListDto(ScheduleChangeEntity entity);
     ScheduleChangeDto toScheduleChangeDto(ScheduleChangeEntity entity);
     ScheduleChangeApprovedDto toScheduleChangeApprovedDto(ScheduleChangeEntity entity);
+    @Mapping(target = "details", source = "teachingScheduleDetail")
+    @Mapping(target = "classSection", source = "teachingScheduleDetail.schedule.classSection")
     ClassCancelDto toClassCancelDto(ScheduleChangeEntity entity);
     ScheduleChangeEntity toScheduleChangeEntity(ClassCancelCreateDto dto);
+    @Mapping(target = "details", source = "teachingScheduleDetail")
+    @Mapping(target = "classSection", source = "teachingScheduleDetail.schedule.classSection")
     MakeUpClassDto toMakeUpClassDto(ScheduleChangeEntity entity);
     ScheduleChangeEntity toScheduleChangeEntity(MakeUpClassCreateDto dto);
 

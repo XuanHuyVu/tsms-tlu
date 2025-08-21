@@ -1,10 +1,17 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faChevronDown, faBell, faUser, faCog, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
-import '../styles/Header.css';
-import avatar from '../assets/images/avt.jpg';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useState, useRef, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faBars,
+  faChevronDown,
+  faBell,
+  faUser,
+  faCog,
+  faSignOutAlt,
+} from "@fortawesome/free-solid-svg-icons";
+import "../styles/Header.css";
+import avatar from "../assets/images/avt.jpg";
+import { useAuth } from "../contexts/AuthContext";
 
 const Header = () => {
   const location = useLocation();
@@ -15,22 +22,22 @@ const Header = () => {
 
   const getPageTitle = (pathname) => {
     switch (pathname) {
-      case '/teacher-dashboard':
-        return 'TRANG CHỦ';
-      case '/teacher-dashboard/schedule-management':
-        return 'QUẢN LÝ LỊCH DẠY';
-      case '/teacher-dashboard/attendance':
-        return 'GHI NHẬN GIỜ DẠY';
-      case '/teacher-dashboard/statistics':
-        return 'THỐNG KÊ GIỜ DẠY';
+      case "/teacher-dashboard":
+        return "TRANG CHỦ";
+      case "/teacher-dashboard/schedule-management":
+        return "QUẢN LÝ LỊCH DẠY";
+      case "/teacher-dashboard/attendance":
+        return "GHI NHẬN GIỜ DẠY";
+      case "/teacher-dashboard/statistics":
+        return "THỐNG KÊ GIỜ DẠY ";
       default:
-        return 'TRANG CHỦ';
+        return "THỐNG KÊ GIỜ DẠY";
     }
   };
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   const handleClickOutside = (event) => {
@@ -40,17 +47,17 @@ const Header = () => {
   };
 
   useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // Lấy ngày hiện tại
   const today = new Date();
-  const formattedDate = today.toLocaleDateString('vi-VN', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+  const formattedDate = today.toLocaleDateString("vi-VN", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 
   return (
@@ -64,12 +71,13 @@ const Header = () => {
 
         <div className="header-title">
           <div className="page-title">{getPageTitle(location.pathname)}</div>
-      
-            <span className="page-date2" style={{ fontSize: '12px', color: '#999' }}>
-  {formattedDate}
-</span>
 
-        
+          <span
+            className="page-date2"
+            style={{ fontSize: "12px", color: "#999" }}
+          >
+            {formattedDate}
+          </span>
         </div>
 
         <div className="header-right">
@@ -79,13 +87,19 @@ const Header = () => {
           </div>
 
           <div className="header-user-wrapper" ref={dropdownRef}>
-            <div className="header-user" onClick={() => setDropdownOpen(!dropdownOpen)}>
+            <div
+              className="header-user"
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+            >
               <img src={avatar} alt="User Avatar" className="header-avatar" />
               <div className="header-user-info">
                 <span className="header-user-name">Nguyễn Văn A</span>
                 <span className="header-user-role">Giảng viên</span>
               </div>
-              <FontAwesomeIcon icon={faChevronDown} className="dropdown-arrow" />
+              <FontAwesomeIcon
+                icon={faChevronDown}
+                className="dropdown-arrow"
+              />
             </div>
 
             {dropdownOpen && (

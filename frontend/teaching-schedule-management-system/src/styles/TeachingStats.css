@@ -1,163 +1,90 @@
-.teaching-stats-page {
-  padding: 32px 24px 0 24px;
-  background: #f4f6fa;
-  min-height: 100vh;
+/* src/features/teacher/statistics/TeachingStats.css */
+
+.teaching-stats-container {
+  padding: 20px;
+  background-color: #f6f8fc;
+  border-radius: 10px;
 }
 
-.stats-header-row {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  margin-bottom: 24px;
-}
-
-.stats-header-label {
-  font-size: 1.15rem;
-  font-weight: 600;
-  color: #222e3a;
-}
-
-.stats-month-select {
-  font-size: 1rem;
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  background: #fff;
-  font-weight: 500;
-  color: #1d4ed8;
-  outline: none;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-  transition: border 0.2s;
-}
-
-.stats-month-select:focus {
-  border: 1.5px solid #2563eb;
-}
-
-.stats-cards-row {
-  display: flex;
-  gap: 32px;
-  margin-bottom: 32px;
+.teaching-stats-container h2 {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #2d2f31;
 }
 
 .stats-card {
-  background: #e3edfb;
-  border-radius: 16px;
-  padding: 28px 0 18px 0;
-  min-width: 160px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-}
-
-.stats-card-value {
-  font-size: 2.2rem;
-  font-weight: 700;
-  color: #2563eb;
-  margin-bottom: 6px;
-}
-
-.stats-card-label {
-  font-size: 1.1rem;
-  color: #222e3a;
-  font-weight: 600;
-}
-
-.stats-section {
   background: #fff;
-  border-radius: 16px;
-  padding: 28px 32px 24px 32px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  margin-top: 18px;
+  padding: 20px;
+  margin-top: 30px;
+  margin-bottom: 25px;
+  border-radius: 12px;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.08);
 }
 
-.stats-section-title {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #1d3557;
-  margin-bottom: 18px;
-}
-
-.stats-subject-list {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-}
-
-.stats-subject-card {
-  background: none;
-  border-radius: 10px;
-  padding: 0 0 0 0;
-}
-
-.stats-subject-title {
-  font-size: 1.1rem;
+.stats-card h3 {
+  font-size: 16px;
   font-weight: 600;
-  color: #222e3a;
+  margin-bottom: 20px;
+  color: #1f4e79;
+}
+
+.stats-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+.stat-box {
+  background: #eaf1fb;
+  border-radius: 10px;
+  padding: 15px;
+  text-align: center;
+}
+
+.stat-value {
+  display: block;
+  font-size: 24px;
+  font-weight: bold;
+  color: #1f4e79;
   margin-bottom: 8px;
 }
 
-.stats-progress-bar-wrapper {
+.stat-label {
+  font-size: 14px;
+  color: #555;
+}
+
+.stats-header {
+  display: flex;
+  margin-top: 25px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.semester-select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+.filters {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 4px;
+  gap: 12px;
 }
 
-.stats-progress-bar-bg {
-  background: #e5e7eb;
-  border-radius: 8px;
-  height: 10px;
-  width: 100%;
-  min-width: 280px;
-  max-width: 100%;
-  position: relative;
-  overflow: hidden;
-}
-
-.stats-progress-bar-fg {
-  background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);
-  height: 100%;
-  border-radius: 8px;
-  transition: width 0.5s;
-}
-
-.stats-progress-percent {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #2563eb;
-  min-width: 40px;
-  text-align: right;
-}
-
-.stats-progress-label {
-  font-size: 0.98rem;
-  color: #4b5563;
+.filter-label {
+  font-size: 14px;
   font-weight: 500;
+  margin-right: 6px;
 }
 
-@media (max-width: 900px) {
-  .stats-cards-row {
-    flex-direction: column;
-    gap: 18px;
-  }
-  .stats-section {
-    padding: 18px 8px 16px 8px;
-  }
-}
-
-@media (max-width: 600px) {
-  .teaching-stats-page {
-    padding: 12px 2px 0 2px;
-  }
-  .stats-section {
-    padding: 10px 2px 10px 2px;
-  }
-  .stats-header-row {
-    flex-direction: column;
-    gap: 8px;
-    align-items: flex-start;
-  }
+.semester-select,
+.year-select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
 }

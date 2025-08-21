@@ -118,7 +118,6 @@ class _HomeTab extends StatelessWidget {
                   ),
                 ),
               ]),
-              TextButton(onPressed: onSeeAll, child: const Text('Xem tất cả')),
             ],
           ),
 

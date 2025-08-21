@@ -6,10 +6,8 @@ import '../services/teacher_schedule_service.dart';
 import '../../auth/services/auth_service.dart';
 
 class TeacherScheduleViewModel extends ChangeNotifier {
-  // Lấy toàn bộ lịch (tuỳ API của bạn)
   final _service = TeacherService();
 
-  // Service gọi attendance, tự gắn Authorization từ SharedPreferences
   final TeacherScheduleService _scheduleService = TeacherScheduleService(
     authHeaders: () async {
       final t = await AuthService.getToken();
@@ -23,14 +21,12 @@ class TeacherScheduleViewModel extends ChangeNotifier {
   DateTime selectedDate = DateTime.now();
   List<ScheduleModel> all = const [];
 
-  /// Tải dữ liệu lịch
   Future<void> load() async {
     loading = true;
     error = null;
     notifyListeners();
     try {
       all = await _service.fetchAllSchedules();
-      // Sắp theo tiết tăng dần cho ổn định
       all = [...all]..sort((a, b) => a.periodStart.compareTo(b.periodStart));
     } catch (e) {
       error = e.toString();
@@ -40,7 +36,6 @@ class TeacherScheduleViewModel extends ChangeNotifier {
     }
   }
 
-  /// Lịch theo ngày đang chọn
   List<ScheduleModel> get daySchedules {
     final list = all.where((s) {
       final d = s.teachingDate;
@@ -53,7 +48,6 @@ class TeacherScheduleViewModel extends ChangeNotifier {
     return list;
   }
 
-  /// Nhóm lịch theo từng ngày trong tuần chứa `selectedDate`
   Map<DateTime, List<ScheduleModel>> get weekGrouped {
     if (all.isEmpty) return {};
     final monday = selectedDate.subtract(Duration(days: selectedDate.weekday - 1));
@@ -89,7 +83,6 @@ class TeacherScheduleViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Áp trạng thái cho 1 lịch theo id (đồng bộ chéo giữa các màn hình)
   void applyStatus(int id, ScheduleStatus status) {
     final i = all.indexWhere((e) => e.id == id);
     if (i != -1) {
@@ -98,32 +91,40 @@ class TeacherScheduleViewModel extends ChangeNotifier {
     }
   }
 
-  // ============== HOÀN THÀNH ==============
   Future<void> markDone(ScheduleModel item) async {
     final idx = all.indexWhere((e) => e.id == item.id);
     if (idx == -1) return;
 
-    // 1) Optimistic update
     final prev = all[idx];
     all[idx] = prev.copyWith(status: ScheduleStatus.done);
     notifyListeners();
 
     try {
-      // 2) Gọi API attendance (PUT/POST tuỳ backend)
       final res = await _scheduleService.markAsDone(item.id);
-
-      // 3) Nếu backend trả status thì map lại
       final st = statusFromApi(res['status'] as String?);
       if (st != ScheduleStatus.unknown) {
         all[idx] = prev.copyWith(status: st);
         notifyListeners();
       }
-      // (tuỳ chọn) đồng bộ tuyệt đối: await load();
     } catch (e) {
-      // Lỗi -> rollback
       all[idx] = prev;
       notifyListeners();
       rethrow;
     }
+  }
+
+  /// Gửi yêu cầu NGHỈ DẠY
+  Future<Map<String, dynamic>> requestCancel(
+      ScheduleModel item, {
+        required String reason,
+        String? fileUrl,
+      }) async {
+    if (item.id == 0) throw Exception('Thiếu detailId để gửi nghỉ dạy');
+    final res = await _scheduleService.requestClassCancel(
+      detailId: item.id,
+      reason: reason,
+      fileUrl: fileUrl,
+    );
+    return res;
   }
 }

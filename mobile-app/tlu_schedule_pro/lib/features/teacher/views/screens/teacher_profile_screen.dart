@@ -145,8 +145,8 @@ class TeacherProfileScreen extends StatelessWidget {
                               _buildInfoRow(Icons.school, "Bộ môn",
                                   profile.department?.name ?? ''),
                               const Divider(height: 20),
-                              _buildInfoRow(
-                                  Icons.info, "Trạng thái", profile.status),
+                              _buildInfoRow(Icons.info, "Trạng thái",
+                                  _mapStatus(profile.status)), // ✅ đổi sang tiếng Việt
                             ],
                           ),
                         ),
@@ -205,5 +205,19 @@ class TeacherProfileScreen extends StatelessWidget {
     return "${date.day.toString().padLeft(2, '0')}/"
         "${date.month.toString().padLeft(2, '0')}/"
         "${date.year}";
+  }
+
+  // ✅ Hàm chuyển đổi trạng thái từ API sang tiếng Việt
+  String _mapStatus(String? status) {
+    if (status == null) return "Chưa cập nhật";
+
+    switch (status.toUpperCase()) {
+      case "ACTIVE":
+        return "Đang công tác";
+      case "INACTIVE":
+        return "Ngừng công tác";
+      default:
+        return status;
+    }
   }
 }

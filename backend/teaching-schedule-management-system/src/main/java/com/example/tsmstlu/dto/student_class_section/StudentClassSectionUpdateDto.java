@@ -6,5 +6,4 @@ import lombok.Data;
 public class StudentClassSectionUpdateDto {
     private Long studentId;
     private Long classSectionId;
-    private String practiseGroup;
 }

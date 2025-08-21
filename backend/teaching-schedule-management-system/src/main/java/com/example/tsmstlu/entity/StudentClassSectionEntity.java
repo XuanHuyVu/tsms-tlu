@@ -28,9 +28,6 @@ public class StudentClassSectionEntity extends BaseEntity{
     @MapsId("classSectionId")
     @JoinColumn(name = "class_section_id", nullable = false)
     private ClassSectionEntity classSection;
-
-    @Column(name = "practise_group")
-    private String practiseGroup;
 }
 
 

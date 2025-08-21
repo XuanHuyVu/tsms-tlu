@@ -1,9 +1,6 @@
 package com.example.tsmstlu.utils;
 
-import com.example.tsmstlu.dto.class_section.ClassSectionCreateDto;
-import com.example.tsmstlu.dto.class_section.ClassSectionDto;
-import com.example.tsmstlu.dto.class_section.ClassSectionListDto;
-import com.example.tsmstlu.dto.class_section.ClassSectionUpdateDto;
+import com.example.tsmstlu.dto.class_section.*;
 import com.example.tsmstlu.dto.department.DepartmentCreateDto;
 import com.example.tsmstlu.dto.department.DepartmentDto;
 import com.example.tsmstlu.dto.department.DepartmentListDto;
@@ -96,6 +93,7 @@ public interface MapperUtils {
      void copyEntity(SubjectUpdateDto dto, @MappingTarget SubjectEntity entity);
 
      //Class Section
+     ClassSectionResponseDto toClassSectionResponseDto(ClassSectionEntity entity);
     ClassSectionListDto toClassSectionListDto(ClassSectionEntity entity);
     ClassSectionDto toClassSectionDetailDto(ClassSectionEntity entity);
     ClassSectionCreateDto toClassSectionCreateDto(ClassSectionEntity entity);

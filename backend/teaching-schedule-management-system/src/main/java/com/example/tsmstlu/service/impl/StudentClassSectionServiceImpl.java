@@ -1,8 +1,6 @@
 package com.example.tsmstlu.service.impl;
 
-import com.example.tsmstlu.dto.student_class_section.StudentClassSectionCreateDto;
-import com.example.tsmstlu.dto.student_class_section.StudentClassSectionDto;
-import com.example.tsmstlu.dto.student_class_section.StudentInClassDto;
+import com.example.tsmstlu.dto.student_class_section.*;
 import com.example.tsmstlu.entity.*;
 import com.example.tsmstlu.repository.*;
 import com.example.tsmstlu.service.StudentClassSectionService;
@@ -34,8 +32,23 @@ public class StudentClassSectionServiceImpl implements StudentClassSectionServic
                 .map(scs -> StudentInClassDto.builder()
                         .studentId(scs.getStudent().getId())
                         .fullName(scs.getStudent().getFullName())
-                        .practiseGroup(scs.getPractiseGroup())
                         .build())
+                .toList();
+    }
+
+    @Override
+    public List<StudentClassSectionListDto> getAllClassSectionsWithStudentCount() {
+        List<Object[]> results = studentClassSectionRepository.getAllClassSectionsWithStudentCount();
+
+        return results.stream()
+                .map(obj -> {
+                    ClassSectionEntity classSection = (ClassSectionEntity) obj[0];
+                    Long studentCount = (Long) obj[1];
+                    return StudentClassSectionListDto.builder()
+                            .classSection(mapper.toClassSectionResponseDto(classSection))
+                            .studentCount(studentCount)
+                            .build();
+                })
                 .toList();
     }
 
@@ -65,7 +78,6 @@ public class StudentClassSectionServiceImpl implements StudentClassSectionServic
         entity.setId(id);
         entity.setStudent(student);
         entity.setClassSection(classSection);
-        entity.setPractiseGroup(dto.getPractiseGroup());
 
         StudentClassSectionEntity saved = studentClassSectionRepository.save(entity);
         log.info("Added student {} to class section {}", dto.getStudentId(), dto.getClassSectionId());
@@ -79,8 +91,6 @@ public class StudentClassSectionServiceImpl implements StudentClassSectionServic
 
         StudentClassSectionEntity entity = studentClassSectionRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Student not found in this class section"));
-
-        entity.setPractiseGroup(dto.getPractiseGroup());
 
         StudentClassSectionEntity updated = studentClassSectionRepository.save(entity);
 

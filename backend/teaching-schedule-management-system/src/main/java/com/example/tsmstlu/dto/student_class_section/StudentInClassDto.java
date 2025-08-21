@@ -12,5 +12,4 @@ import lombok.NoArgsConstructor;
 public class StudentInClassDto {
     private Long studentId;
     private String fullName;
-    private String practiseGroup;
 }

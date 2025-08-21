@@ -22,4 +22,16 @@ public interface StudentClassSectionRepository extends JpaRepository<StudentClas
 
     boolean existsById(StudentClassSectionId id);
     void deleteById(StudentClassSectionId id);
+
+//    @Query("""
+//        select count(scs) from StudentClassSectionEntity scs
+//        where scs.classSection.id = :classSectionId
+//    """)
+//    Long countStudentsInClassSection(@Param("classSectionId") Long classSectionId);
+
+    @Query("SELECT sc, COUNT(scs.student.id) " +
+            "FROM StudentClassSectionEntity scs " +
+            "JOIN scs.classSection sc " +
+            "GROUP BY sc")
+    List<Object[]> getAllClassSectionsWithStudentCount();
 }

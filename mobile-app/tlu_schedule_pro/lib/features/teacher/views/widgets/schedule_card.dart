@@ -19,7 +19,7 @@ class ScheduleCard extends StatelessWidget {
     this.onRequestCancel,
   });
 
-  // ---------------- Dialog helper ----------------
+  // ---------------- Dialog helpers ----------------
   Future<void> _showCustomDialog(
       BuildContext context, {
         required String title,
@@ -39,10 +39,15 @@ class ScheduleCard extends StatelessWidget {
             children: [
               if (icon != null) Icon(icon, size: 48, color: iconColor ?? titleColor),
               if (icon != null) const SizedBox(height: 16),
-              Text(title,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold, color: titleColor)),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: titleColor,
+                ),
+              ),
               const SizedBox(height: 12),
               Text(message, textAlign: TextAlign.center),
               const SizedBox(height: 20),
@@ -53,7 +58,9 @@ class ScheduleCard extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: titleColor,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                   child: const Text('OK'),
@@ -64,6 +71,75 @@ class ScheduleCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<bool> _showConfirmDialog(
+      BuildContext context, {
+        required String title,
+        required String message,
+        Color color = const Color(0xFF2E7D32),
+      }) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.help_outline, size: 48, color: color),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(message, textAlign: TextAlign.center),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(ctx).pop(false),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.black26),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text('Hủy'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(ctx).pop(true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: color,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text('Xác nhận'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    return ok == true;
   }
 
   // --------------- Time helpers ---------------
@@ -93,7 +169,9 @@ class ScheduleCard extends StatelessWidget {
     final now = DateTime.now();
     final d = item.teachingDate;
     if (d == null) {
-      return item.status == ScheduleStatus.unknown ? ScheduleStatus.upcoming : item.status;
+      return item.status == ScheduleStatus.unknown
+          ? ScheduleStatus.upcoming
+          : item.status;
     }
 
     final today = DateTime(now.year, now.month, now.day);
@@ -105,7 +183,9 @@ class ScheduleCard extends StatelessWidget {
 
     final range = _parseRangeForDate(today);
     if (range == null) {
-      return item.status == ScheduleStatus.unknown ? ScheduleStatus.upcoming : item.status;
+      return item.status == ScheduleStatus.unknown
+          ? ScheduleStatus.upcoming
+          : item.status;
     }
     final (start, end) = range;
 
@@ -153,23 +233,38 @@ class ScheduleCard extends StatelessWidget {
     final today = DateTime(now.year, now.month, now.day);
     final thatDay = DateTime(d.year, d.month, d.day);
     if (!_isSameDay(today, thatDay)) {
-      return (false, 'Chỉ có thể đánh dấu trong đúng ngày diễn ra buổi học.', null, null);
+      return (
+      false,
+      'Chỉ có thể đánh dấu trong đúng ngày diễn ra buổi học.',
+      null,
+      null
+      );
     }
 
     final range = _parseRangeForDate(today);
-    if (range == null) return (false, 'Không xác định được khung giờ của buổi học.', null, null);
+    if (range == null) {
+      return (false, 'Không xác định được khung giờ của buổi học.', null, null);
+    }
     final (_, end) = range;
 
     final windowStart = end.subtract(const Duration(minutes: 60));
     final windowEnd = end.add(const Duration(minutes: 60));
 
     if (now.isBefore(windowStart)) {
-      return (false, 'Chưa đến thời gian: chỉ được đánh dấu trong 60 phút trước khi kết thúc.',
-      windowStart, windowEnd);
+      return (
+      false,
+      'Chưa đến thời gian: chỉ được đánh dấu trong 60 phút trước khi kết thúc.',
+      windowStart,
+      windowEnd
+      );
     }
     if (now.isAfter(windowEnd)) {
-      return (false, 'Quá thời gian: đã quá 60 phút sau khi kết thúc.',
-      windowStart, windowEnd);
+      return (
+      false,
+      'Quá thời gian: đã quá 60 phút sau khi kết thúc.',
+      windowStart,
+      windowEnd
+      );
     }
     return (true, null, windowStart, windowEnd);
   }
@@ -177,23 +272,24 @@ class ScheduleCard extends StatelessWidget {
   String _formatHm(DateTime t) =>
       '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
-  Widget _chipStatic(String text, Color fg, Color bg) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-    decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
-    child:
-    Text(text, style: TextStyle(color: fg, fontWeight: FontWeight.w700, fontSize: 12)),
-  );
-
-  Widget _chipButton(String text, Color fg, Color bg, VoidCallback? onTap) => InkWell(
-    onTap: onTap,
-    borderRadius: BorderRadius.circular(8),
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
-      child: Text(text,
-          style: TextStyle(color: fg, fontWeight: FontWeight.w700, fontSize: 12)),
-    ),
-  );
+  Widget _chipButton(String text, Color fg, Color bg, VoidCallback? onTap) =>
+      InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration:
+          BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
+          child: Text(
+            text,
+            style: TextStyle(
+              color: fg,
+              fontWeight: FontWeight.w700,
+              fontSize: 12,
+            ),
+          ),
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -201,8 +297,8 @@ class ScheduleCard extends StatelessWidget {
         ? 'Tiết ${item.periodStart} → ${item.periodEnd} (${item.timeRange})'
         : item.periodText;
 
-    final locked = (item.status == ScheduleStatus.done ||
-        item.status == ScheduleStatus.canceled);
+    final locked =
+    (item.status == ScheduleStatus.done || item.status == ScheduleStatus.canceled);
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -212,7 +308,7 @@ class ScheduleCard extends StatelessWidget {
         border: Border.all(color: Colors.black12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.15),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -242,25 +338,41 @@ class ScheduleCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Row(children: <Widget>[
-                      Text(header,
-                          style: TextStyle(color: statusColor, fontWeight: FontWeight.w700)),
+                      Text(
+                        header,
+                        style: TextStyle(
+                          color: statusColor,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                       const Spacer(),
                       if (statusLabel.isNotEmpty)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: statusColor.withOpacity(.12),
+                            color: statusColor.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Text(statusLabel,
-                              style: TextStyle(
-                                  color: statusColor, fontSize: 12, fontWeight: FontWeight.w700)),
+                          child: Text(
+                            statusLabel,
+                            style: TextStyle(
+                              color: statusColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                         ),
                     ]),
                     const SizedBox(height: 10),
 
-                    Text(item.subjectName,
-                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                    Text(
+                      item.subjectName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                      ),
+                    ),
                     const SizedBox(height: 4),
                     Text(item.classCode, style: const TextStyle(color: Colors.grey)),
                     const SizedBox(height: 8),
@@ -295,63 +407,89 @@ class ScheduleCard extends StatelessWidget {
                         locked
                             ? null
                             : () async {
+                          // 1) Hỏi xác nhận trước
+                          final confirm = await _showConfirmDialog(
+                            context,
+                            title: 'Xác nhận hoàn thành?',
+                            message:
+                            'Bạn có muốn đánh dấu buổi học này là HOÀN THÀNH không?',
+                            color: const Color(0xFF2E7D32),
+                          );
+                          if (!confirm) return;
+
+                          // 2) Sau khi xác nhận mới kiểm tra điều kiện thời gian
                           final (ok, reason, from, to) = _canCompleteNow();
                           if (!ok) {
                             var msg = reason ?? 'Không thể cập nhật.';
                             if (from != null && to != null) {
-                              msg += '\nCửa sổ cho phép: ${_formatHm(from)} → ${_formatHm(to)}';
+                              msg +=
+                              '\nCửa sổ cho phép: ${_formatHm(from)} → ${_formatHm(to)}';
                             }
-                            // Dialog đẹp
+
+                            // Dialog đẹp theo loại lỗi
                             if (reason?.contains('Chưa đến thời gian') == true) {
-                              await _showCustomDialog(context,
-                                  title: 'Chưa đến thời gian',
-                                  message: msg,
-                                  titleColor: const Color(0xFFFFA726),
-                                  icon: Icons.access_time,
-                                  iconColor: const Color(0xFFFFA726));
+                              await _showCustomDialog(
+                                context,
+                                title: 'Chưa đến thời gian',
+                                message: msg,
+                                titleColor: const Color(0xFFFFA726),
+                                icon: Icons.access_time,
+                                iconColor: const Color(0xFFFFA726),
+                              );
                             } else if (reason?.contains('Quá thời gian') == true) {
-                              await _showCustomDialog(context,
-                                  title: 'Quá thời gian',
-                                  message: msg,
-                                  titleColor: const Color(0xFFE53935),
-                                  icon: Icons.error_outline,
-                                  iconColor: const Color(0xFFE53935));
+                              await _showCustomDialog(
+                                context,
+                                title: 'Quá thời gian',
+                                message: msg,
+                                titleColor: const Color(0xFFE53935),
+                                icon: Icons.error_outline,
+                                iconColor: const Color(0xFFE53935),
+                              );
                             } else if (reason?.contains('ngày diễn ra') == true) {
-                              await _showCustomDialog(context,
-                                  title: 'Không đúng ngày',
-                                  message: msg,
-                                  titleColor: const Color(0xFFE53935),
-                                  icon: Icons.calendar_today,
-                                  iconColor: const Color(0xFFE53935));
+                              await _showCustomDialog(
+                                context,
+                                title: 'Không đúng ngày',
+                                message: msg,
+                                titleColor: const Color(0xFFE53935),
+                                icon: Icons.calendar_today,
+                                iconColor: const Color(0xFFE53935),
+                              );
                             } else {
-                              await _showCustomDialog(context,
-                                  title: 'Không thể hoàn thành',
-                                  message: msg,
-                                  titleColor: const Color(0xFFE53935),
-                                  icon: Icons.error_outline,
-                                  iconColor: const Color(0xFFE53935));
+                              await _showCustomDialog(
+                                context,
+                                title: 'Không thể hoàn thành',
+                                message: msg,
+                                titleColor: const Color(0xFFE53935),
+                                icon: Icons.error_outline,
+                                iconColor: const Color(0xFFE53935),
+                              );
                             }
                             return;
                           }
 
+                          // 3) Hợp lệ → gọi cập nhật
                           if (onMarkDone == null) return;
                           try {
                             await onMarkDone!();
                             if (!context.mounted) return;
-                            await _showCustomDialog(context,
-                                title: 'Thành công',
-                                message: 'Đã cập nhật: Hoàn thành',
-                                titleColor: const Color(0xFF43A047),
-                                icon: Icons.check_circle,
-                                iconColor: const Color(0xFF43A047));
+                            await _showCustomDialog(
+                              context,
+                              title: 'Thành công',
+                              message: 'Đã cập nhật: Hoàn thành',
+                              titleColor: const Color(0xFF43A047),
+                              icon: Icons.check_circle,
+                              iconColor: const Color(0xFF43A047),
+                            );
                           } catch (e) {
                             if (!context.mounted) return;
-                            await _showCustomDialog(context,
-                                title: 'Lỗi',
-                                message: e.toString(),
-                                titleColor: const Color(0xFFE53935),
-                                icon: Icons.error_outline,
-                                iconColor: const Color(0xFFE53935));
+                            await _showCustomDialog(
+                              context,
+                              title: 'Lỗi',
+                              message: e.toString(),
+                              titleColor: const Color(0xFFE53935),
+                              icon: Icons.error_outline,
+                              iconColor: const Color(0xFFE53935),
+                            );
                           }
                         },
                       ),
@@ -365,7 +503,8 @@ class ScheduleCard extends StatelessWidget {
                         onRequestCancel == null
                             ? null
                             : () async {
-                          final result = await Navigator.push<Map<String, dynamic>?>(
+                          final result =
+                          await Navigator.push<Map<String, dynamic>?>(
                             context,
                             MaterialPageRoute(
                               builder: (_) => ClassCancelScreen(

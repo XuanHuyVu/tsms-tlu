@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -18,9 +19,11 @@ String _weekdayShort(DateTime d) {
 }
 
 String _weekdayFull(DateTime d) {
-  const names = ['Chủ Nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
+  const names = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
   return names[d.weekday % 7];
 }
+
+DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
 /// ---- Entry Screen -----------------------------------------------------------
 
@@ -184,9 +187,9 @@ class _DayTab extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
-              BoxShadow(color: _brandBlue.withValues(alpha: .06), blurRadius: 10, offset: const Offset(0, 4)),
+              BoxShadow(color: _brandBlue.withAlpha(15), blurRadius: 10, offset: const Offset(0, 4)),
             ],
-            border: Border.all(color: _brandBlue.withValues(alpha: .18)),
+            border: Border.all(color: _brandBlue.withAlpha(45)),
           ),
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
           child: Column(
@@ -200,7 +203,6 @@ class _DayTab extends StatelessWidget {
         ),
         const SizedBox(height: 12),
 
-        /// ✅ KÍCH HOẠT 2 NÚT: truyền callback vào ScheduleCard
         ...vm.daySchedules.map(
               (e) => ScheduleCard(
             item: e,
@@ -229,101 +231,186 @@ class _DayTab extends StatelessWidget {
 class _WeekTab extends StatelessWidget {
   const _WeekTab();
 
+  /// 7 ngày của tuần (T2..CN) chứa [base]
+  List<DateTime> _weekFromMonday(DateTime base) {
+    final monday = base.subtract(Duration(days: base.weekday - 1));
+    return List.generate(7, (i) => _dateOnly(DateTime(monday.year, monday.month, monday.day + i)));
+  }
+
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<TeacherScheduleViewModel>();
+    final weekDays = _weekFromMonday(vm.selectedDate);
 
-    final monday = vm.selectedDate.subtract(Duration(days: vm.selectedDate.weekday - 1));
-    final days = List.generate(7, (i) => monday.add(Duration(days: i)));
+    // Chuẩn hóa key trong grouped
+    final Map<DateTime, List<ScheduleModel>> grouped = {
+      for (final e in vm.weekGrouped.entries) _dateOnly(e.key): e.value
+    };
 
     return Column(
       children: [
+        // Thanh chọn ngày (full tuần) - ĐÃ SỬA ĐỂ HIỂN THỊ ĐẦY ĐỦ KHÔNG CẦN CUỘN
         Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           child: Row(
             children: [
-              IconButton(onPressed: () => vm.shiftWeek(-1), icon: const Icon(Icons.chevron_left)),
+              IconButton(
+                onPressed: () => vm.shiftWeek(-1),
+                icon: const Icon(Icons.chevron_left, size: 24),
+              ),
+              // Thay thế ListView bằng Expanded với Row để hiển thị tất cả các ngày
               Expanded(
-                child: SizedBox(
-                  height: 64,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: days.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 4),
-                    itemBuilder: (context, i) {
-                      final day = days[i];
-                      final isSelected = day.year == vm.selectedDate.year &&
-                          day.month == vm.selectedDate.month &&
-                          day.day == vm.selectedDate.day;
-                      return GestureDetector(
-                        onTap: () => vm.pickDate(day),
-                        child: Container(
-                          width: 44,
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          decoration: BoxDecoration(
-                            color: isSelected ? _brandBlue : Colors.transparent,
-                            border: Border.all(
-                              color: isSelected ? _brandBlue : _brandBlue.withValues(alpha: .25),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: weekDays.map((day) {
+                    final isSelected = _dateOnly(day) == _dateOnly(vm.selectedDate);
+                    final isToday = _dateOnly(day) == _dateOnly(DateTime.now());
+                    final hasSchedules = (grouped[day] ?? const <ScheduleModel>[]).isNotEmpty;
+
+                    return Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: GestureDetector(
+                          onTap: () => vm.pickDate(day),
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(vertical: 4),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? _brandBlue
+                                  : (isToday ? const Color(0x144A90E2) : Colors.transparent),
+                              border: Border.all(
+                                color: isSelected
+                                    ? _brandBlue
+                                    : (isToday ? _brandBlue : const Color(0x404A90E2)),
+                                width: 1.3,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(_weekdayShort(day),
-                                  style: TextStyle(fontSize: 12, color: isSelected ? Colors.white : Colors.black54)),
-                              const SizedBox(height: 4),
-                              Text('${day.day}',
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  _weekdayShort(day),
+                                  softWrap: false,
+                                  overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      color: isSelected ? Colors.white : Colors.black87)),
-                            ],
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: isSelected ? Colors.white : Colors.black54,
+                                  ),
+                                ),
+                                Text(
+                                  '${day.day}',
+                                  softWrap: false,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w800,
+                                    color: isSelected ? Colors.white : Colors.black87,
+                                  ),
+                                ),
+                                // Dấu chấm chiếm chỗ cố định
+                                Opacity(
+                                  opacity: hasSchedules ? 1 : 0,
+                                  child: Container(
+                                    width: 6,
+                                    height: 6,
+                                    decoration: BoxDecoration(
+                                      color: isSelected ? Colors.white : _brandBlue,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ),
-              IconButton(onPressed: () => vm.shiftWeek(1), icon: const Icon(Icons.chevron_right)),
+              IconButton(
+                onPressed: () => vm.shiftWeek(1),
+                icon: const Icon(Icons.chevron_right, size: 24),
+              ),
             ],
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 8),
 
+        // Danh sách lịch học
         Expanded(
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            children: vm.weekGrouped.entries.expand((entry) {
-              final date = entry.key;
-              final list = entry.value;
-              return [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Text(
-                    '${_weekdayFull(date)}, ${_ddMMyyyy(date)}',
-                    style: const TextStyle(fontWeight: FontWeight.w800, color: _brandBlue),
-                  ),
-                ),
-
-                /// ✅ KÍCH HOẠT 2 NÚT cho từng item trong tuần
-                ...list.map(
-                      (e) => ScheduleCard(
-                    item: e,
-                    onMarkDone: () => context.read<TeacherScheduleViewModel>().markDone(e),
-                    onRequestCancel: (reason, fileUrl) =>
-                        context.read<TeacherScheduleViewModel>().requestCancel(
-                          e,
-                          reason: reason,
-                          fileUrl: fileUrl,
-                        ),
-                  ),
-                ),
-              ];
-            }).toList(),
-          ),
+          child: _buildScheduleList(context, grouped, weekDays),
         ),
       ],
     );
+  }
+
+  Widget _buildScheduleList(
+      BuildContext context,
+      Map<DateTime, List<ScheduleModel>> grouped,
+      List<DateTime> weekDays,
+      ) {
+    final vm = context.watch<TeacherScheduleViewModel>();
+    final selectedDate = _dateOnly(vm.selectedDate);
+
+    // Tìm những ngày có lịch trong tuần
+    final daysWithSchedules =
+    weekDays.where((day) => (grouped[day] ?? const <ScheduleModel>[]).isNotEmpty).toList();
+
+    if (daysWithSchedules.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            'Tuần này không có lịch.',
+            style: TextStyle(color: Colors.black.withAlpha(178)),
+          ),
+        ),
+      );
+    }
+
+    // Sắp xếp: ngày đang chọn lên đầu nếu có, còn lại theo thứ tự tăng dần
+    final sortedDays = _sortDaysStartingFromSelected(daysWithSchedules, selectedDate);
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      children: sortedDays.expand((date) {
+        final list = grouped[date] ?? const <ScheduleModel>[];
+        return [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Text(
+              '${_weekdayFull(date)}, ${_ddMMyyyy(date)}',
+              style: const TextStyle(fontWeight: FontWeight.w800, color: _brandBlue),
+            ),
+          ),
+          ...list.map(
+                (e) => ScheduleCard(
+              item: e,
+              onMarkDone: () => context.read<TeacherScheduleViewModel>().markDone(e),
+              onRequestCancel: (reason, fileUrl) =>
+                  context.read<TeacherScheduleViewModel>().requestCancel(
+                    e,
+                    reason: reason,
+                    fileUrl: fileUrl,
+                  ),
+            ),
+          ),
+        ];
+      }).toList(),
+    );
+  }
+
+  List<DateTime> _sortDaysStartingFromSelected(List<DateTime> days, DateTime selectedDate) {
+    final sel = _dateOnly(selectedDate);
+    if (days.contains(sel)) {
+      final idx = days.indexOf(sel);
+      return [sel, ...days.sublist(0, idx), ...days.sublist(idx + 1)];
+    }
+    final sorted = [...days]..sort();
+    return sorted;
   }
 }

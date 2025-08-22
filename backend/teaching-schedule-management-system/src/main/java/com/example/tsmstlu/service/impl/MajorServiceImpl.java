@@ -14,6 +14,10 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,6 +32,7 @@ public class MajorServiceImpl implements MajorService {
     private final FacultyRepository facultyRepository;
 
     @Override
+    @Cacheable(value = "majorCache", key = "'all'")
     public List<MajorListDto> getAll() {
         return majorRepository.findAll()
                 .stream()
@@ -36,6 +41,7 @@ public class MajorServiceImpl implements MajorService {
     }
 
     @Override
+    @Cacheable(value = "majorCache", key = "#id")
     public MajorDto getById(Long id) {
         MajorEntity entity = majorRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Major not found with id: " + id));
@@ -43,6 +49,10 @@ public class MajorServiceImpl implements MajorService {
     }
 
     @Override
+    @Caching(
+            put = { @CachePut(value = "majorCache", key = "#result.id") },
+            evict = { @CacheEvict(value = "majorCache", key = "'all'") }
+    )
     public MajorDto create(MajorCreateDto dto) {
         MajorEntity entity = mapper.toMajorEntity(dto);
 
@@ -57,6 +67,10 @@ public class MajorServiceImpl implements MajorService {
     }
 
     @Override
+    @Caching(
+            put = { @CachePut(value = "majorCache", key = "#id") },
+            evict = { @CacheEvict(value = "majorCache", key = "'all'") }
+    )
     public MajorDto update(Long id, MajorUpdateDto dto) {
         MajorEntity entity = majorRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Major not found with id: " + id));
@@ -74,6 +88,10 @@ public class MajorServiceImpl implements MajorService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "majorCache", key = "#id"),
+            @CacheEvict(value = "majorCache", key = "'all'")
+    })
     public void delete(Long id) {
         if (!majorRepository.existsById(id)) {
             throw new EntityNotFoundException("Major not found with id: " + id);

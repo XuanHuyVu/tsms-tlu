@@ -17,6 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +33,7 @@ public class TeacherServiceImpl implements TeacherService {
     private final UserRepository userRepository;
 
     @Override
+    @Cacheable(value = "teacherCache", key = "'all'")
    public List<TeacherListDto> getAll() {
         return teacherRepository.findAll()
                 .stream()
@@ -38,6 +42,7 @@ public class TeacherServiceImpl implements TeacherService {
     }
 
     @Override
+    @Cacheable(value = "teacherCache", key = "#id")
     public TeacherDto getById(Long id) {
         TeacherEntity entity = teacherRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Teacher not found with id: " + id));
@@ -45,6 +50,11 @@ public class TeacherServiceImpl implements TeacherService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "teacherCache", key = "'all'"),
+            @CacheEvict(value = "teacherCache", allEntries = true),
+            @CacheEvict(value = "teacherProfileCache", allEntries = true)
+    })
     public TeacherDto create(TeacherCreateDto dto) {
         TeacherEntity entity = mapper.toTeacherEntity(dto);
 
@@ -67,6 +77,11 @@ public class TeacherServiceImpl implements TeacherService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "teacherCache", key = "#id"),
+            @CacheEvict(value = "teacherCache", key = "'all'"),
+            @CacheEvict(value = "teacherProfileCache", allEntries = true)
+    })
     public TeacherDto update(Long id, TeacherUpdateDto dto) {
         TeacherEntity entity = teacherRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Teacher not found with id: " + id));
@@ -96,6 +111,11 @@ public class TeacherServiceImpl implements TeacherService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "teacherCache", key = "#id"),
+            @CacheEvict(value = "teacherCache", key = "'all'"),
+            @CacheEvict(value = "teacherProfileCache", allEntries = true)
+    })
     public void delete(Long id) {
         if (!teacherRepository.existsById(id)) {
             throw new EntityNotFoundException("Teacher not found with id: " + id);
@@ -105,6 +125,7 @@ public class TeacherServiceImpl implements TeacherService {
     }
 
     @Override
+    @Cacheable(value = "teacherProfileCache", key = "#username")
     public TeacherProfileDto getTeacherProfileByUsername(String username) {
         return teacherRepository.findByUserUsername(username)
                 .map(mapper::toTeacherProfileDto)

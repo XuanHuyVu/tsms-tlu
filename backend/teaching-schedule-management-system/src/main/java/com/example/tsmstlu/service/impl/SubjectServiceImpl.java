@@ -10,14 +10,15 @@ import com.example.tsmstlu.entity.SubjectEntity;
 import com.example.tsmstlu.repository.DepartmentRepository;
 import com.example.tsmstlu.repository.FacultyRepository;
 import com.example.tsmstlu.repository.SubjectRepository;
-import com.example.tsmstlu.service.DepartmentService;
-import com.example.tsmstlu.service.FacultyService;
 import com.example.tsmstlu.service.SubjectService;
 import com.example.tsmstlu.utils.MapperUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,6 +34,7 @@ public class SubjectServiceImpl implements SubjectService {
     private final FacultyRepository facultyRepository;
 
     @Override
+    @Cacheable(value = "subjectCache", key = "'all'")
     public List<SubjectListDto> getAll() {
         return subjectRepository.findAll()
                 .stream()
@@ -41,6 +43,7 @@ public class SubjectServiceImpl implements SubjectService {
     }
 
     @Override
+    @Cacheable(value = "subjectCache", key = "#id")
     public SubjectDto getById(Long id) {
         SubjectEntity entity = subjectRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Subject not found with id: " + id));
@@ -48,6 +51,10 @@ public class SubjectServiceImpl implements SubjectService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "subjectCache", key = "'all'"),
+            @CacheEvict(value = "subjectCache", allEntries = true)
+    })
     public SubjectDto create(SubjectCreateDto dto) {
         SubjectEntity entity = mapper.toSubjectEntity(dto);
 
@@ -68,6 +75,10 @@ public class SubjectServiceImpl implements SubjectService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "subjectCache", key = "#id"),
+            @CacheEvict(value = "subjectCache", key = "'all'")
+    })
     public SubjectDto update(Long id, SubjectUpdateDto dto) {
         SubjectEntity entity = subjectRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Subject not found with id: " + id));
@@ -91,6 +102,10 @@ public class SubjectServiceImpl implements SubjectService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "subjectCache", key = "#id"),
+            @CacheEvict(value = "subjectCache", key = "'all'")
+    })
     public void delete(Long id) {
         if (!subjectRepository.existsById(id)) {
             throw new EntityNotFoundException("Subject not found with id: " + id);

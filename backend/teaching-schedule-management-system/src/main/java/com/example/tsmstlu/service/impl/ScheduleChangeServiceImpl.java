@@ -11,6 +11,9 @@ import com.example.tsmstlu.utils.MapperUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,6 +29,7 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
     private final RoomRepository roomRepository;
 
     @Override
+    @Cacheable(value = "scheduleChangeCache", key = "'all'")
     public List<ScheduleChangeDto> getAll() {
         return scheduleChangeRepository.findAll()
                 .stream()
@@ -34,6 +38,7 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
     }
 
     @Override
+    @Cacheable(value = "scheduleChangeCache", key = "'classCancel_' + #id")
     public ClassCancelDto getClassCancelById(Long id) {
         ScheduleChangeEntity entity = scheduleChangeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Schedule change not found with id: " + id));
@@ -41,6 +46,10 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "scheduleChangeCache", key = "'all'"),
+            @CacheEvict(value = "scheduleChangeCache", allEntries = true)
+    })
     public ClassCancelDto createClassCancel(ClassCancelCreateDto dto) {
         var detail = teachingScheduleDetailRepository.findById(dto.getTeachingScheduleDetailId())
                 .orElseThrow(() -> new EntityNotFoundException(
@@ -61,6 +70,7 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
 
 
     @Override
+    @Cacheable(value = "scheduleChangeCache", key = "'makeUpClass_' + #id")
     public MakeUpClassDto getMakeUpClassById(Long id) {
         ScheduleChangeEntity entity = scheduleChangeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Make-up class not found with id: " + id));
@@ -68,6 +78,10 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "scheduleChangeCache", key = "'all'"),
+            @CacheEvict(value = "scheduleChangeCache", allEntries = true)
+    })
     public MakeUpClassDto createMakeUpClass(MakeUpClassCreateDto dto) {
         var detail = teachingScheduleDetailRepository.findByIdWithScheduleDetails(dto.getTeachingScheduleDetailId())
                 .orElseThrow(() -> new EntityNotFoundException("Teaching schedule detail not found with id: " + dto.getTeachingScheduleDetailId()));
@@ -94,6 +108,7 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
     }
 
     @Override
+    @Cacheable(value = "scheduleChangeCache", key = "'approved'")
     public List<ScheduleChangeDto> getApprovedSchedules() {
         List<ScheduleChangeEntity> entities = scheduleChangeRepository.findByStatus("DA_DUYET");
         return entities.stream()
@@ -101,6 +116,11 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
                 .collect(Collectors.toList());
     }
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "scheduleChangeCache", key = "'all'"),
+            @CacheEvict(value = "scheduleChangeCache", key = "'approved'"),
+            @CacheEvict(value = "scheduleChangeCache", allEntries = true)
+    })
     public ScheduleChangeApprovedDto approveScheduleChange(Long id) {
         ScheduleChangeEntity entity = scheduleChangeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Schedule change not found with id: " + id));
@@ -112,6 +132,11 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "scheduleChangeCache", key = "'all'"),
+            @CacheEvict(value = "scheduleChangeCache", key = "'approved'"),
+            @CacheEvict(value = "scheduleChangeCache", allEntries = true)
+    })
     public ScheduleChangeApprovedDto rejectScheduleChange(Long id) {
         ScheduleChangeEntity entity = scheduleChangeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Schedule change not found with id: " + id));
@@ -123,6 +148,7 @@ public class ScheduleChangeServiceImpl implements ScheduleChangeService {
     }
 
     @Override
+    @Cacheable(value = "scheduleChangeCache", key = "'teacher_' + #username")
     public List<ScheduleChangeDto> getByTeacherUsername(String username) {
         List<ScheduleChangeEntity> entities = scheduleChangeRepository.findByTeachingScheduleDetailScheduleTeacherUserUsername(username);
 

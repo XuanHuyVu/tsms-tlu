@@ -7,6 +7,8 @@ import com.example.tsmstlu.repository.*;
 import com.example.tsmstlu.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"notifications", "notificationsByUser", "notificationsByUsername"}, allEntries = true)
     public NotificationDto createNotification(NotificationCreateRequestDto request) {
         NotificationEntity entity = mapper.toNotificationEntity(request);
 
@@ -36,7 +39,6 @@ public class NotificationServiceImpl implements NotificationService {
 
         entity = notificationRepository.save(entity);
 
-        // Gán recipients
         List<NotificationRecipientEntity> recipients = new ArrayList<>();
         for (Long userId : request.getRecipientUserIds()) {
             UserEntity user = userRepository.findById(userId)
@@ -56,11 +58,13 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Cacheable(value = "notifications")
     public List<NotificationDto> getAll() {
         return mapper.toNotificationDtoList(notificationRepository.findAll());
     }
 
     @Override
+    @Cacheable(value = "notificationsByUser", key = "#userId")
     public List<NotificationDto> getByUser(Long userId) {
         List<NotificationRecipientEntity> recs = recipientRepository.findByUserId(userId);
         List<NotificationEntity> notifications = recs.stream()
@@ -71,6 +75,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"notificationsByUser", "notificationsByUsername"}, allEntries = true)
     public void markAsRead(Long recipientId) {
         NotificationRecipientEntity rec = recipientRepository.findById(recipientId)
                 .orElseThrow(() -> new RuntimeException("Recipient not found"));
@@ -79,6 +84,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Cacheable(value = "notificationsByUsername", key = "#username")
     public List<UserNotificationDto> getByUsername(String username) {
         List<NotificationRecipientEntity> recipientEntities = recipientRepository.findByUserUsername(username);
         return recipientEntities.stream()

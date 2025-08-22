@@ -7,6 +7,8 @@ import com.example.tsmstlu.repository.TeachingScheduleDetailRepository;
 import com.example.tsmstlu.service.TeachingScheduleDetailService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,8 @@ public class TeachingScheduleDetailServiceImpl implements TeachingScheduleDetail
 
     @Override
     @Transactional
+    @CachePut(value = "teachingScheduleDetailCache", key = "#detailId")
+    @CacheEvict(value = "teachingScheduleDetailCache", key = "'all'")
     public TeachingScheduleDetailDto markAttendance(Long detailId) {
         TeachingScheduleDetailEntity entity = detailRepository.findById(detailId)
                 .orElseThrow(() -> new EntityNotFoundException("Detail not found with id: " + detailId));
@@ -34,6 +38,4 @@ public class TeachingScheduleDetailServiceImpl implements TeachingScheduleDetail
 
         return mapperUtils.toTeachingScheduleDetailDto(entity);
     }
-
-
 }

@@ -14,6 +14,10 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,6 +32,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     private final MapperUtils mapper;
 
     @Override
+    @Cacheable(value = "departmentCache", key = "'all'")
     public List<DepartmentListDto> getAll() {
         return departmentRepository.findAll()
                 .stream()
@@ -36,6 +41,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    @Cacheable(value = "departmentCache", key = "#id")
     public DepartmentDto getById(Long id) {
         DepartmentEntity entity = departmentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Department not found with id: " + id));
@@ -43,6 +49,10 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    @Caching(
+            put = { @CachePut(value = "departmentCache", key = "#result.id") },
+            evict = { @CacheEvict(value = "departmentCache", key = "'all'") }
+    )
     public DepartmentDto create(DepartmentCreateDto dto) {
         DepartmentEntity entity = mapper.toDepartmentEntity(dto);
 
@@ -55,6 +65,10 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    @Caching(
+            put = { @CachePut(value = "departmentCache", key = "#id") },
+            evict = { @CacheEvict(value = "departmentCache", key = "'all'") }
+    )
     public DepartmentDto update(Long id, DepartmentUpdateDto dto) {
         DepartmentEntity entity = departmentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Department not found with id: " + id));
@@ -72,6 +86,10 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "departmentCache", key = "#id"),
+            @CacheEvict(value = "departmentCache", key = "'all'")
+    })
     public void delete(Long id) {
         if (!departmentRepository.existsById(id)) {
             throw new EntityNotFoundException("Department not found with id: " + id);

@@ -11,10 +11,13 @@ import com.example.tsmstlu.utils.MapperUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Repository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -25,14 +28,16 @@ public class RoomServiceImpl implements RoomService {
     private final MapperUtils mapper;
 
     @Override
+    @Cacheable(value = "roomCache", key = "'all'")
     public List<RoomListDto> getAll() {
         return roomRepository.findAll()
                 .stream()
                 .map(mapper::toRoomListDto)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Override
+    @Cacheable(value = "roomCache", key = "#id")
     public RoomDto getById(Long id) {
         RoomEntity entity = roomRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Room not found with id: " + id));
@@ -40,6 +45,10 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "roomCache", key = "'all'"),
+            @CacheEvict(value = "roomCache", allEntries = true)
+    })
     public RoomDto create(RoomCreateDto roomCreateDto) {
         RoomEntity entity = mapper.toRoomEntity(roomCreateDto);
         RoomEntity saved = roomRepository.save(entity);
@@ -47,6 +56,10 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "roomCache", key = "#id"),
+            @CacheEvict(value = "roomCache", key = "'all'")
+    })
     public RoomDto update(Long id, RoomUpdateDto roomUpdateDto) {
         RoomEntity entity = roomRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Room not found with id: " + id));
@@ -57,6 +70,10 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "roomCache", key = "#id"),
+            @CacheEvict(value = "roomCache", key = "'all'")
+    })
     public void delete(Long id) {
         if(!roomRepository.existsById(id)) {
             throw new EntityNotFoundException("Room not found with id: " + id);

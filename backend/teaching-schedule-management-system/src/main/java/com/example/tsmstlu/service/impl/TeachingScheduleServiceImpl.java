@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 
 @Slf4j
 @Service
@@ -22,6 +25,7 @@ public class TeachingScheduleServiceImpl implements TeachingScheduleService {
     private final ClassSectionRepository classSectionRepository;
 
     @Override
+    @Cacheable(value = "teachingScheduleCache", key = "'all'")
     public List<TeachingScheduleListDto> getAll() {
         return teachingScheduleRepository.findAll()
                 .stream()
@@ -30,6 +34,7 @@ public class TeachingScheduleServiceImpl implements TeachingScheduleService {
     }
 
     @Override
+    @Cacheable(value = "teachingScheduleCache", key = "#id")
     public TeachingScheduleDto getById(Long id) {
         TeachingScheduleEntity entity = teachingScheduleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Schedule not found"));
@@ -38,6 +43,10 @@ public class TeachingScheduleServiceImpl implements TeachingScheduleService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "teachingScheduleCache", key = "'all'"),
+            @CacheEvict(value = "teachingScheduleCache", allEntries = true)
+    })
     public TeachingScheduleDto create(TeachingScheduleCreateDto dto) {
         TeachingScheduleEntity schedule = mapperUtils.toTeachingScheduleEntity(dto);
 
@@ -65,7 +74,12 @@ public class TeachingScheduleServiceImpl implements TeachingScheduleService {
     }
 
     @Override
-    @Transactional
+    @Transactional@Caching(evict = {
+            @CacheEvict(value = "teachingScheduleCache", key = "#id"),
+            @CacheEvict(value = "teachingScheduleCache", key = "'all'"),
+            @CacheEvict(value = "teachingScheduleByTeacher", allEntries = true)
+    })
+
     public TeachingScheduleDto update(Long id, TeachingScheduleUpdateDto dto) {
         TeachingScheduleEntity schedule = teachingScheduleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Schedule not found"));
@@ -95,6 +109,11 @@ public class TeachingScheduleServiceImpl implements TeachingScheduleService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "teachingScheduleCache", key = "#id"),
+            @CacheEvict(value = "teachingScheduleCache", key = "'all'"),
+            @CacheEvict(value = "teachingScheduleByTeacher", allEntries = true)
+    })
     public void delete(Long id) {
         if (!teachingScheduleRepository.existsById(id)) {
             throw new RuntimeException("Schedule not found");
@@ -104,6 +123,7 @@ public class TeachingScheduleServiceImpl implements TeachingScheduleService {
     }
 
     @Override
+    @Cacheable(value = "teachingScheduleByTeacher", key = "#teacherId")
     public List<TeachingScheduleDto> getTeachingScheduleByTeacherId(Long teacherId) {
         List<TeachingScheduleEntity> schedules = teachingScheduleRepository.findByTeacherId(teacherId);
 

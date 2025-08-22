@@ -7,6 +7,9 @@ import com.example.tsmstlu.service.StudentClassSectionService;
 import com.example.tsmstlu.utils.MapperUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -24,6 +27,7 @@ public class StudentClassSectionServiceImpl implements StudentClassSectionServic
     private final MapperUtils mapper;
 
     @Override
+    @Cacheable(value = "studentsInClassSection", key = "#classSectionId")
     public List<StudentInClassDto> getStudentsInClassSection(Long classSectionId) {
         List<StudentClassSectionEntity> students =
                 studentClassSectionRepository.findAllByClassSectionIdFetchAll(classSectionId);
@@ -33,10 +37,11 @@ public class StudentClassSectionServiceImpl implements StudentClassSectionServic
                         .studentId(scs.getStudent().getId())
                         .fullName(scs.getStudent().getFullName())
                         .build())
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Override
+    @Cacheable(value = "classSectionsWithCount", key = "'all'")
     public List<StudentClassSectionListDto> getAllClassSectionsWithStudentCount() {
         List<Object[]> results = studentClassSectionRepository.getAllClassSectionsWithStudentCount();
 
@@ -49,10 +54,11 @@ public class StudentClassSectionServiceImpl implements StudentClassSectionServic
                             .studentCount(studentCount)
                             .build();
                 })
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Override
+    @Cacheable(value = "studentClassSection", key = "#classSectionId + '_' + #studentId")
     public StudentClassSectionDto getById(Long classSectionId, Long studentId) {
         StudentClassSectionId id = new StudentClassSectionId(studentId, classSectionId);
         StudentClassSectionEntity entity = studentClassSectionRepository.findById(id)
@@ -62,6 +68,8 @@ public class StudentClassSectionServiceImpl implements StudentClassSectionServic
     }
 
     @Override
+    @CachePut(value = "studentClassSection", key = "#dto.classSectionId + '_' + #dto.studentId")
+    @CacheEvict(value = {"studentsInClassSection", "classSectionsWithCount"}, allEntries = true)
     public StudentClassSectionDto create(StudentClassSectionCreateDto dto) {
         StudentEntity student = studentRepository.findById(dto.getStudentId())
                 .orElseThrow(() -> new EntityNotFoundException("Student not found with ID: " + dto.getStudentId()));
@@ -86,6 +94,8 @@ public class StudentClassSectionServiceImpl implements StudentClassSectionServic
 
 
     @Override
+    @CachePut(value = "studentClassSection", key = "#classSectionId + '_' + #studentId")
+    @CacheEvict(value = {"studentsInClassSection", "classSectionsWithCount"}, allEntries = true)
     public StudentClassSectionDto update(Long classSectionId, Long studentId, StudentClassSectionCreateDto dto) {
         StudentClassSectionId id = new StudentClassSectionId(studentId, classSectionId);
 
@@ -93,12 +103,12 @@ public class StudentClassSectionServiceImpl implements StudentClassSectionServic
                 .orElseThrow(() -> new EntityNotFoundException("Student not found in this class section"));
 
         StudentClassSectionEntity updated = studentClassSectionRepository.save(entity);
-
         return mapper.toStudentClassSectionDto(updated);
     }
 
 
     @Override
+    @CacheEvict(value = {"studentClassSection", "studentsInClassSection", "classSectionsWithCount"}, allEntries = true)
     public void delete(Long classSectionId, Long studentId) {
         StudentClassSectionId id = new StudentClassSectionId(studentId, classSectionId);
         if (!studentClassSectionRepository.existsById(id)) {

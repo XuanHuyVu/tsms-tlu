@@ -11,8 +11,11 @@ import com.example.tsmstlu.utils.MapperUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
-
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.CacheEvict;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,6 +34,7 @@ public class ClassSectionServiceImpl implements ClassSectionService {
     private final SemesterRepository semesterRepository;
 
     @Override
+    @Cacheable(value = "classSectionCache", key = "'all'")
     public List<ClassSectionListDto> getAll() {
         return classSectionRepository.findAll()
                 .stream()
@@ -39,6 +43,7 @@ public class ClassSectionServiceImpl implements ClassSectionService {
     }
 
     @Override
+    @Cacheable(value = "classSectionCache", key = "#id")
     public ClassSectionDto getById(Long id) {
         ClassSectionEntity entity = classSectionRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Class Section not found with id: " + id));
@@ -46,6 +51,10 @@ public class ClassSectionServiceImpl implements ClassSectionService {
     }
 
     @Override
+    @Caching(
+            put = { @CachePut(value = "classSectionCache", key = "#result.id") },
+            evict = { @CacheEvict(value = "classSectionCache", key = "'all'") }
+    )
     public ClassSectionDto create(ClassSectionCreateDto dto) {
         ClassSectionEntity entity = mapper.toClassSectionEntity(dto);
 
@@ -90,6 +99,10 @@ public class ClassSectionServiceImpl implements ClassSectionService {
     }
 
     @Override
+    @Caching(
+            put = { @CachePut(value = "classSectionCache", key = "#id") },
+            evict = { @CacheEvict(value = "classSectionCache", key = "'all'") }
+    )
     public ClassSectionDto update(Long id, ClassSectionUpdateDto dto) {
         ClassSectionEntity entity = classSectionRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Class Section not found with id: " + id));
@@ -137,6 +150,10 @@ public class ClassSectionServiceImpl implements ClassSectionService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "classSectionCache", key = "#id"),
+            @CacheEvict(value = "classSectionCache", key = "'all'")
+    })
     public void delete(Long id) {
         if(!classSectionRepository.existsById(id)) {
             throw new EntityNotFoundException("Class Section not found with id: " + id);

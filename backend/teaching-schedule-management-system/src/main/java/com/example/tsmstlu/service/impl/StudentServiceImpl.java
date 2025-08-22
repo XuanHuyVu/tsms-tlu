@@ -14,6 +14,9 @@ import com.example.tsmstlu.utils.MapperUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,6 +33,7 @@ public class StudentServiceImpl implements StudentService {
     private final FacultyRepository facultyRepository;
 
     @Override
+    @Cacheable(value = "studentCache", key = "'all'")
     public List<StudentListDto> getAll() {
         return studentRepository.findAll()
                 .stream()
@@ -38,6 +42,7 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    @Cacheable(value = "studentCache", key = "#id")
     public StudentDto getById(Long id) {
         StudentEntity entity = studentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Student not found with id: " + id));
@@ -45,6 +50,10 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "studentCache", key = "'all'"),
+            @CacheEvict(value = "studentCache", allEntries = true)
+    })
     public StudentDto create(StudentCreateDto dto) {
         StudentEntity entity = mapperUtils.toStudentEntity(dto);
 
@@ -71,6 +80,10 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "studentCache", key = "#id"),
+            @CacheEvict(value = "studentCache", key = "'all'")
+    })
     public StudentDto update(Long id, StudentUpdateDto dto) {
         StudentEntity entity = studentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Student not found with id: " + id));
@@ -100,6 +113,10 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "studentCache", key = "#id"),
+            @CacheEvict(value = "studentCache", key = "'all'")
+    })
     public void delete(Long id) {
         if (!studentRepository.existsById(id)) {
             throw new RuntimeException("Student not found with id: " + id);
@@ -109,6 +126,7 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    @Cacheable(value = "studentCache", key = "'profile_' + #id")
     public StudentProfileDto getStudentProfile(Long id) {
         StudentEntity student = studentRepository.findByUserId(id)
                 .orElseThrow(() -> new RuntimeException("Student not found with id: " + id));
@@ -116,6 +134,7 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    @Cacheable(value = "studentCache", key = "'profile_username_' + #username")
     public StudentProfileDto getStudentProfileByUsername(String username) {
         return studentRepository.findByUserUsername(username)
                 .map(mapperUtils::toStudentProfileDto)

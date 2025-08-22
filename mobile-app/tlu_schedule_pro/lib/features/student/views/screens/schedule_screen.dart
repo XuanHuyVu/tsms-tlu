@@ -5,6 +5,7 @@ import 'package:tlu_schedule_pro/features/student/views/screens/profile_screen.d
 import '../../viewmodels/schedule_viewmodel.dart';
 import '../widgets/schedule_card.dart';
 import '../widgets/week_calendar.dart';
+import 'package:tlu_schedule_pro/features/student/views/screens/notification_screen.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
@@ -42,7 +43,27 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           IconButton(
             icon: const Icon(Icons.notifications, color: Colors.white),
             onPressed: () {
-              debugPrint('Notification tapped');
+              print('Button pressed');
+              try {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const NotificationScreen(),
+                  ),
+                );
+              } catch (e) {
+                print('Navigation error: $e');
+                // Test với screen đơn giản
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Scaffold(
+                      appBar: AppBar(title: Text('Test')),
+                      body: Center(child: Text('Navigation works!')),
+                    ),
+                  ),
+                );
+              }
             },
           ),
           IconButton(

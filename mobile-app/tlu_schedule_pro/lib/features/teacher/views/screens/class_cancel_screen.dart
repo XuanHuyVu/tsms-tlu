@@ -119,6 +119,7 @@ class _ClassCancelScreenState extends State<ClassCancelScreen> {
           children: [
             // Header với thông tin buổi học
             Container(
+              width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.orange[50],

@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import "../../../styles/ScheduleChangeList.css";
 import { FaSearch, FaInfoCircle, FaRegCheckSquare, FaTimesCircle,FaPaperPlane } from "react-icons/fa";
 import ScheduleChangeDetail from "./ScheduleChangeDetail";
+import "../../../styles/NotificationForm.css"; 
 
 const ScheduleChangeList = () => {
   const [allChanges, setAllChanges] = useState([]); 
@@ -339,7 +340,7 @@ const handleApproveSchedule = async (changeToApprove) => {
                         />
                       </>
                     )}
-                    {item.status === "DA_DUYET" && (
+                    {(item.status === "DA_DUYET" || item.status === "TU_CHOI") && (
                       <FaPaperPlane
                         className="icon send"
                         title="Tạo thông báo"
@@ -375,7 +376,6 @@ const handleApproveSchedule = async (changeToApprove) => {
 
       </table>
 
-      {/* Pagination */}
       <div className="footer">
         <div>Hiển thị {paginatedChanges.length} / {changes.length} kết quả</div>
         <div className="pagination">
@@ -402,56 +402,69 @@ const handleApproveSchedule = async (changeToApprove) => {
       )}
 
 {showNotificationForm && (
-  <div className="notification-form-overlay" onClick={() => setShowNotificationForm(false)}>
-    <div className="notification-form" onClick={e => e.stopPropagation()}>
-      <h3>Tạo thông báo</h3>
+  <div className="modal-noti-overlay" onClick={() => setShowNotificationForm(false)}>
+    <div className="modal-noti-content" onClick={e => e.stopPropagation()}>
+      
+      {/* Header */}
+      <div className="modal-noti-header">
+        <h2>Tạo thông báo</h2>
+        <button className="close-button" onClick={() => setShowNotificationForm(false)}>×</button>
+      </div>
 
-      <label>Tiêu đề:</label>
-      <input
-        type="text"
-        value={notificationData.title}
-        onChange={(e) => setNotificationData(prev => ({ ...prev, title: e.target.value }))}
-        style={{ width: "100%", marginBottom: 12 }}
-        placeholder="Nhập tiêu đề thông báo"
-      />
+      {/* Form */}
+      <div className="noti-form">
+        <div className="form-grid">
+          <div className="form-group">
+            <label>Tiêu đề:</label>
+            <input
+              type="text"
+              value={notificationData.title}
+              onChange={(e) => setNotificationData(prev => ({ ...prev, title: e.target.value }))}
+              placeholder="Nhập tiêu đề thông báo"
+            />
+          </div>
 
-      <label>Nội dung:</label>
-      <textarea
-        value={notificationData.content}
-        onChange={(e) => setNotificationData(prev => ({ ...prev, content: e.target.value }))}
-        rows={4}
-        style={{ width: "100%", marginBottom: 12 }}
-        placeholder="Nhập nội dung thông báo"
-      />
+          <div className="form-group">
+            <label>Loại thông báo:</label>
+            <select
+              value={notificationData.type}
+              onChange={e => setNotificationData(prev => ({ ...prev, type: e.target.value }))}
+            >
+              <option value="THAY_DOI_LICH">Thay đổi lịch</option>
+              <option value="HUY_LICH">Hủy lịch</option>
+            </select>
+          </div>
 
-      <label>Loại thông báo:</label>
-      <select
-        value={notificationData.type}
-        onChange={e => setNotificationData(prev => ({ ...prev, type: e.target.value }))}
-        style={{ width: "100%", marginBottom: 12 }}
-      >
-        <option value="THAY_DOI_LICH">Thay đổi lịch</option>
-        <option value="HUY_LICH">Hủy lịch</option>
-      </select>
+          <div className="form-group" style={{ gridColumn: "1 / span 2" }}>
+            <label>Nội dung:</label>
+            <textarea
+              value={notificationData.content}
+              onChange={(e) => setNotificationData(prev => ({ ...prev, content: e.target.value }))}
+              rows={4}
+              style={{ padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
+              placeholder="Nhập nội dung thông báo"
+            />
+          </div>
 
-      <label>Người nhận (ID, cách nhau dấu phẩy):</label>
-      <input
-        type="text"
-        value={recipientInput}
-        onChange={e => setRecipientInput(e.target.value)}
-        style={{ width: "100%", marginBottom: 12 }}
-        placeholder="VD: 7,8,10,12"
-      />
-      <div style={{ marginTop: 16 }}>
-        <button onClick={handleSendNotification} style={{ marginRight: 10 }}>Gửi thông báo</button>
-        <button onClick={() => setShowNotificationForm(false)}>Hủy</button>
+          <div className="form-group" style={{ gridColumn: "1 / span 2" }}>
+            <label>Người nhận:</label>
+            <input
+              type="text"
+              value={recipientInput}
+              onChange={e => setRecipientInput(e.target.value)}
+              placeholder="VD: 7,8,10,12"
+            />
+          </div>
+        </div>
+
+        <div className="form-actions">
+          <button className="submit-button" onClick={handleSendNotification}>Gửi thông báo</button>
+          <button className="cancel-button" onClick={() => setShowNotificationForm(false)}>Hủy</button>
+        </div>
       </div>
     </div>
   </div>
 )}
-
-
-
     </div>
   );
 };

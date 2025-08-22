@@ -12,18 +12,25 @@ import {
   getTeachingSchedules,
   confirmTeachingHour,
 } from "../../../api/TeachingHoursApi";
+import { useAuth } from "../../../contexts/AuthContext"; // ✅ lấy context
 import "../../../styles/TeachingHoursTracking.css";
 
 const TeachingHoursTracking = () => {
+  const { user } = useAuth(); // ✅ user lấy từ AuthContext
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [confirmingId, setConfirmingId] = useState(null);
-  const teacherId = 1; // sau này thay bằng ID khi login
 
   useEffect(() => {
     const fetchSchedules = async () => {
+      if (!user?.teacherId) {
+        console.warn("Không tìm thấy teacherId trong user, bỏ qua fetch");
+        setLoading(false);
+        return;
+      }
+
       try {
-        const data = await getTeachingSchedules(teacherId);
+        const data = await getTeachingSchedules(user.teacherId); // ✅ dùng teacherId từ login
 
         const mappedSchedules = data.flatMap((schedule) =>
           schedule.details.map((detail) => {
@@ -58,13 +65,12 @@ const TeachingHoursTracking = () => {
     };
 
     fetchSchedules();
-  }, []);
+  }, [user]); // ✅ chạy lại khi user thay đổi (login/logout)
 
   const handleConfirm = async (schedule) => {
     const now = new Date();
     const classDate = new Date(schedule.teachingDate);
 
-    // Nếu chưa đến ngày dạy
     if (now < classDate.setHours(0, 0, 0, 0)) {
       alert("Chưa đến ngày dạy, không thể xác nhận!");
       return;
@@ -72,7 +78,7 @@ const TeachingHoursTracking = () => {
 
     try {
       setConfirmingId(schedule.id);
-      await confirmTeachingHour(schedule.rawDetail);
+      await confirmTeachingHour(schedule.id); // ✅ chỉ truyền id, đã sửa TeachingHoursApi.js
 
       setSchedules((prev) =>
         prev.map((s) =>
@@ -92,37 +98,31 @@ const TeachingHoursTracking = () => {
     }
   };
 
-  // kiểm tra trong khung giờ cho phép
   const canConfirm = (schedule) => {
     const now = new Date();
     const classDate = new Date(schedule.teachingDate);
 
-    // chỉ chấm công trong đúng ngày dạy
     if (now.toDateString() !== classDate.toDateString()) return false;
 
-    const startHour = 7; // tiết 1 bắt đầu 7h00
+    const startHour = 7;
     const minutesPerPeriod = 50;
 
     const endTime = new Date(classDate);
     endTime.setHours(startHour, 0, 0, 0);
     endTime.setMinutes(endTime.getMinutes() + schedule.periodEnd * minutesPerPeriod);
 
-    // Chỉ cho phép chấm công từ 30p trước khi kết thúc đến khi kết thúc
     const confirmStart = new Date(endTime.getTime() - 30 * 60 * 1000);
     const confirmEnd = endTime;
 
     return now >= confirmStart && now <= confirmEnd;
   };
 
-  // kiểm tra đã hết hạn (quá ngày hoặc quá giờ cho phép)
   const isExpired = (schedule) => {
     const now = new Date();
     const classDate = new Date(schedule.teachingDate);
 
-    // Nếu ngày đã qua -> hết hạn
     if (now > classDate.setHours(23, 59, 59, 999)) return true;
 
-    // Nếu trong ngày nhưng đã qua giờ cho phép -> hết hạn
     if (!canConfirm(schedule) && now.toDateString() === classDate.toDateString()) {
       const startHour = 7;
       const minutesPerPeriod = 50;

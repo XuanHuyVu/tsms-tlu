@@ -4,7 +4,7 @@ import axiosInstance from "./axiosInstance";
 // Gọi API lấy danh sách lịch dạy của giáo viên
 export const getTeachingSchedules = async (teacherId) => {
   try {
-    const response = await axiosInstance.get(`teacher/schedules/${teacherId}`);
+    const response = await axiosInstance.get(`/teacher/schedules/${teacherId}`);
     return response.data;
   } catch (error) {
     console.error("Lỗi khi lấy danh sách lịch dạy:", error);
@@ -13,12 +13,11 @@ export const getTeachingSchedules = async (teacherId) => {
 };
 
 // Xác nhận chấm công (PUT)
-export const confirmTeachingHour = async (detail) => {
+export const confirmTeachingHour = async (scheduleDetailId) => {
   try {
     const response = await axiosInstance.put(
-      `/teacher/teaching-schedule-details/${detail.id}/attendance`,
+      `/teacher/teaching-schedule-details/${scheduleDetailId}/attendance`,
       {
-        ...detail,
         status: "DA_DAY", // Đánh dấu đã dạy
       }
     );

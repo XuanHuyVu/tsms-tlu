@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { getScheduleChanges, getScheduleChangeDetail, approveScheduleChange,rejectScheduleChange} from "../../../api/ScheduleChangeApi";
+import { getScheduleChanges, getScheduleChangeDetail, approveScheduleChange,rejectScheduleChange,createNotification } from "../../../api/ScheduleChangeApi";
 import { getAllTeachers } from "../../../api/TeacherApi";
 import dayjs from "dayjs";
 import "../../../styles/ScheduleChangeList.css";
-import { FaSearch, FaInfoCircle, FaRegCheckSquare, FaTimesCircle } from "react-icons/fa";
+import { FaSearch, FaInfoCircle, FaRegCheckSquare, FaTimesCircle,FaPaperPlane } from "react-icons/fa";
 import ScheduleChangeDetail from "./ScheduleChangeDetail";
 
 const ScheduleChangeList = () => {
@@ -35,6 +35,70 @@ const ScheduleChangeList = () => {
   DA_DUYET: "Đã duyệt",
   TU_CHOI: "Từ chối",
   CHUA_DUYET: "Chưa duyệt"
+
+  
+};
+const [showNotificationForm, setShowNotificationForm] = useState(false);
+const [notificationData, setNotificationData] = useState({
+  title: "",
+  content: "",
+  type: "",
+  relatedScheduleChangeId: null,
+  recipientUserIds: []
+});
+const [recipientInput, setRecipientInput] = useState("");
+
+const handleSendNotification = async () => {
+  const recipientUserIds = recipientInput
+    .split(",")
+    .map(id => Number(id.trim()))
+    .filter(id => !isNaN(id) && id > 0);
+
+  if (!notificationData.title.trim() || !notificationData.content.trim()) {
+    alert("Vui lòng nhập đầy đủ tiêu đề và nội dung!");
+    return;
+  }
+  if (!notificationData.relatedScheduleChangeId) {
+    alert("Thiếu mã lịch thay đổi liên quan!");
+    return;
+  }
+  if (!notificationData.type) {
+    alert("Vui lòng chọn loại thông báo!");
+    return;
+  }
+  if (recipientUserIds.length === 0) {
+    alert("Vui lòng nhập danh sách người nhận hợp lệ!");
+    return;
+  }
+
+  const payload = {
+    ...notificationData,
+    recipientUserIds,
+  };
+
+  console.log("Dữ liệu gửi thông báo:", payload);
+
+  try {
+    await createNotification(payload);
+    alert("Đã gửi thông báo thành công!");
+    setShowNotificationForm(false);
+    setNotificationData({
+      title: "",
+      content: "",
+      type: "",
+      relatedScheduleChangeId: null,
+      recipientUserIds: []
+    });
+    setRecipientInput("");
+  } catch (error) {
+    if (error.response) {
+      console.error('Lỗi gửi thông báo:', error.response.status, error.response.data);
+      alert(`Lỗi ${error.response.status}: ${JSON.stringify(error.response.data)}`);
+    } else {
+      console.error("Lỗi khi gửi thông báo:", error);
+      alert("Gửi thông báo thất bại, vui lòng thử lại.");
+    }
+  }
 };
 
 
@@ -119,15 +183,22 @@ setChanges(filtered);
 
 const handleApproveSchedule = async (changeToApprove) => {
   try {
-    const res = await approveScheduleChange(changeToApprove.id);
+    await approveScheduleChange(changeToApprove.id);
 
     setAllChanges(prevChanges =>
       prevChanges.map(change =>
         change.id === changeToApprove.id
-          ? { ...change, status: "Đã duyệt" } 
+          ? { ...change, status: "DA_DUYET" }
           : change
       )
     );
+
+    setNotificationData(prev => ({
+      ...prev,
+      relatedScheduleChangeId: changeToApprove.id,
+      recipientUserIds: changeToApprove.recipientUserIds || [] 
+    }));
+    setShowNotificationForm(true);
 
     alert(`Đã duyệt lịch ID: ${changeToApprove.id}`);
     handleCloseModal();
@@ -136,6 +207,7 @@ const handleApproveSchedule = async (changeToApprove) => {
     alert("Duyệt lịch thất bại! Vui lòng thử lại.");
   }
 };
+
 
   const handleRejectSchedule = async (changeToReject) => {
     try {
@@ -267,7 +339,28 @@ const handleApproveSchedule = async (changeToApprove) => {
                         />
                       </>
                     )}
+                    {item.status === "DA_DUYET" && (
+                      <FaPaperPlane
+                        className="icon send"
+                        title="Tạo thông báo"
+                        onClick={() => {
+                          setNotificationData(prev => ({
+                            ...prev,
+                            relatedScheduleChangeId: item.id,
+                            recipientUserIds: item.recipientUserIds || [],
+                            title: "",
+                            content: "",
+                            type: "THAY_DOI_LICH",
+                          }));
+                          setRecipientInput((item.recipientUserIds || []).join(","));
+                          setShowNotificationForm(true);
+                        }}
+                        style={{ cursor: "pointer", marginLeft: 8 }}
+                      />
+                    )}
+
                   </td>
+
 
                 </tr>
               ))
@@ -307,6 +400,58 @@ const handleApproveSchedule = async (changeToApprove) => {
           onReject={() => handleRejectSchedule(selectedChange)}
         />
       )}
+
+{showNotificationForm && (
+  <div className="notification-form-overlay" onClick={() => setShowNotificationForm(false)}>
+    <div className="notification-form" onClick={e => e.stopPropagation()}>
+      <h3>Tạo thông báo</h3>
+
+      <label>Tiêu đề:</label>
+      <input
+        type="text"
+        value={notificationData.title}
+        onChange={(e) => setNotificationData(prev => ({ ...prev, title: e.target.value }))}
+        style={{ width: "100%", marginBottom: 12 }}
+        placeholder="Nhập tiêu đề thông báo"
+      />
+
+      <label>Nội dung:</label>
+      <textarea
+        value={notificationData.content}
+        onChange={(e) => setNotificationData(prev => ({ ...prev, content: e.target.value }))}
+        rows={4}
+        style={{ width: "100%", marginBottom: 12 }}
+        placeholder="Nhập nội dung thông báo"
+      />
+
+      <label>Loại thông báo:</label>
+      <select
+        value={notificationData.type}
+        onChange={e => setNotificationData(prev => ({ ...prev, type: e.target.value }))}
+        style={{ width: "100%", marginBottom: 12 }}
+      >
+        <option value="THAY_DOI_LICH">Thay đổi lịch</option>
+        <option value="HUY_LICH">Hủy lịch</option>
+      </select>
+
+      <label>Người nhận (ID, cách nhau dấu phẩy):</label>
+      <input
+        type="text"
+        value={recipientInput}
+        onChange={e => setRecipientInput(e.target.value)}
+        style={{ width: "100%", marginBottom: 12 }}
+        placeholder="VD: 7,8,10,12"
+      />
+      <div style={{ marginTop: 16 }}>
+        <button onClick={handleSendNotification} style={{ marginRight: 10 }}>Gửi thông báo</button>
+        <button onClick={() => setShowNotificationForm(false)}>Hủy</button>
+      </div>
+    </div>
+  </div>
+)}
+
+
+
     </div>
   );
 };

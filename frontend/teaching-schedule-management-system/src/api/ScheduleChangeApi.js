@@ -54,4 +54,22 @@ export const rejectScheduleChange = async (id) => {
   }
 };
 
+export const createNotification = async (notificationData) => {
+  try {
+    console.log('Gửi lên server:', notificationData);
+    const res = await axiosInstance.post("/admin/notifications", notificationData);
+    console.log("Kết quả trả về:", res.data);
+    return res.data;
+  } catch (error) {
+    if (error.response) {
+      console.error('Lỗi Backend:', error.response.status, error.response.data);
+    } else {
+      console.error('Lỗi khác:', error);
+    }
+    throw error;
+  }
+};
+
+
+
 

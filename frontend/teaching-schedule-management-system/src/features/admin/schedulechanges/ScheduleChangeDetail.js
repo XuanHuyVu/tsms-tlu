@@ -180,11 +180,10 @@ export default function ScheduleChangeDetail({ change, onClose, onApprove, onRej
                     </div>
                 </div>
 
-                <div className="schedulechange-detail-footer">
-                    <button className="approve-btn" onClick={onApprove}>Duyệt</button>
-                    <button className="reject-btn" onClick={onReject}>Từ chối</button>
-                </div>
-            </div>
+          <div className="form-actions">
+            <button type="button" className="cancel-button" onClick={onClose}>Quay lại</button>
+          </div>
+        </div>
         </div>
     );
 }

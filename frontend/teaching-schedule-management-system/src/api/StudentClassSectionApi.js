@@ -1,66 +1,174 @@
-const BASE = "/api/admin/student-class-sections";
+// src/api/StudentClassSectionApi.js
+import axiosInstance from "./axiosInstance";
 
-function buildQuery(params = {}) {
-  const q = new URLSearchParams();
+/* ================================================================
+ * BASE (mặc định ADMIN). Có thể override qua REACT_APP_SCS_BASE
+ * ================================================================ */
+const BASE = process.env.REACT_APP_SCS_BASE || "/admin/student-class-sections";
+
+/* -------------------- utils -------------------- */
+const sanitizeParams = (params = {}) => {
+  const out = {};
   Object.entries(params).forEach(([k, v]) => {
-    if (v !== undefined && v !== null && v !== "") q.append(k, v);
+    if (v === undefined || v === null) return;
+    if (typeof v === "string") {
+      const t = v.trim();
+      if (t !== "") out[k] = t;
+    } else out[k] = v;
   });
-  return q.toString();
-}
+  return out;
+};
 
-async function http(method, url, body) {
-  const opts = { method, headers: { "Content-Type": "application/json" } };
-  if (body) opts.body = JSON.stringify(body);
-  const res = await fetch(url, opts);
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`[StudentClassSectionApi] ${method} ${url} => ${res.status} ${text}`);
+const getCreatedAtTs = (it) => {
+  const raw = it?.createdAt || it?.classSection?.createdAt || null;
+  const ts = raw ? Date.parse(raw) : NaN;
+  return Number.isNaN(ts) ? 0 : ts;
+};
+
+export const normalizeSCSItem = (it, index = 0, page = 0, size = 10) => {
+  const cs = it?.classSection || {};
+  const subject = cs?.subject || {};
+  const teacher = cs?.teacher || {};
+  const semester = cs?.semester || {};
+
+  const subjectCode = cs?.name ?? "";
+  const subjectName = subject?.name ?? "";
+  const teacherName = teacher?.fullName ?? "";
+
+  const parts = [];
+  if (semester?.name || semester?.term)
+    parts.push(semester?.name || semester?.term);
+  if (semester?.academicYear) parts.push(semester?.academicYear);
+  const semesterText = parts.join(" - ");
+
+  return {
+    stt: page * size + index + 1,
+    subjectCode,
+    subjectName,
+    teacherName,
+    semesterText,
+    studentCount: it?.studentCount ?? 0,
+    createdAt: it?.createdAt || cs?.createdAt || null,
+    raw: it,
+  };
+};
+
+/* -------------------- CRUD + paging -------------------- */
+export const fetchPage = async ({
+  page = 0,
+  size = 10,
+  search = "",
+  sort = "createdAt,desc",
+  studentId,
+  classSectionId,
+} = {}) => {
+  const params = sanitizeParams({
+    page,
+    size,
+    search,
+    sort,
+    studentId,
+    classSectionId,
+  });
+  const { data } = await axiosInstance.get(BASE, { params });
+  return data;
+};
+
+export const fetchPageNormalized = async (args = {}) => {
+  const {
+    page = 0,
+    size = 10,
+    search = "",
+    sort = "createdAt,desc",
+    studentId,
+    classSectionId,
+  } = args;
+
+  const raw = await fetchPage({
+    page,
+    size,
+    search,
+    sort,
+    studentId,
+    classSectionId,
+  });
+
+  if (Array.isArray(raw)) {
+    const sorted = [...raw].sort((a, b) => getCreatedAtTs(b) - getCreatedAtTs(a));
+    const totalAll = sorted.length;
+    const start = page * size;
+    const end = start + size;
+    const paged = sorted.slice(start, end);
+    return {
+      content: paged.map((it, i) => normalizeSCSItem(it, i, page, size)),
+      totalElements: totalAll,
+      totalPages: Math.max(1, Math.ceil(totalAll / size)),
+      number: page,
+      size,
+    };
+    }
+
+  const content = Array.isArray(raw?.content) ? raw.content : [];
+  const contentSorted = [...content].sort(
+    (a, b) => getCreatedAtTs(b) - getCreatedAtTs(a)
+  );
+  return { ...raw, content: contentSorted.map((it, i) => normalizeSCSItem(it, i, page, size)) };
+};
+
+export const getById = async (id) =>
+  (await axiosInstance.get(`${BASE}/${id}`)).data;
+
+/* ---------- APIs theo cặp studentId/classSectionId ---------- */
+export const getByPair = async (studentId, classSectionId) =>
+  (await axiosInstance.get(`${BASE}/${studentId}/${classSectionId}`)).data;
+
+export const updatePair = async (
+  oldStudentId,
+  oldClassSectionId,
+  payload // { studentId, classSectionId }
+) =>
+  (
+    await axiosInstance.put(
+      `${BASE}/${oldStudentId}/${oldClassSectionId}`,
+      payload
+    )
+  ).data;
+
+/* ---------- create / delete / bulk ---------- */
+export const create = async (payload) => {
+  const body = {
+    studentId: payload?.studentId,
+    classSectionId: payload?.classSectionId,
+  };
+  return (await axiosInstance.post(BASE, body)).data;
+};
+
+export const remove = async (id) =>
+  (await axiosInstance.delete(`${BASE}/${id}`)).data;
+
+export const bulkCreate = async (list = []) => {
+  const arr = Array.isArray(list) ? list : [];
+  const results = [];
+  for (const it of arr) {
+    const body = {
+      studentId: it?.studentId,
+      classSectionId: it?.classSectionId,
+    };
+    const { data } = await axiosInstance.post(BASE, body);
+    results.push(data);
   }
-  // backend trang phân trang trả về JSON kiểu { content, totalElements, totalPages, ... }
-  return res.status !== 204 ? res.json() : null;
-}
+  return results;
+};
 
 const StudentClassSectionApi = {
-  /**
-   * Lấy trang danh sách đăng ký lớp học phần
-   * @param {object} params { page, size, search, sort, studentId }
-   */
-  async fetchPage({ page = 0, size = 10, search = "", sort = "id,asc", studentId } = {}) {
-    const qs = buildQuery({ page, size, search: search.trim(), sort, studentId });
-    return http("GET", `${BASE}?${qs}`);
-  },
-
-  /** Lấy chi tiết 1 đăng ký theo id */
-  async getById(id) {
-    return http("GET", `${BASE}/${id}`);
-  },
-
-  /** Tạo mới đăng ký lớp học phần */
-  async create(payload) {
-    // payload: { studentId, classSectionId, practiseGroup }
-    return http("POST", BASE, payload);
-  },
-
-  /** Cập nhật đăng ký lớp học phần */
-  async update(id, payload) {
-    return http("PUT", `${BASE}/${id}`, payload);
-  },
-
-  /** Xoá đăng ký */
-  async delete(id) {
-    return http("DELETE", `${BASE}/${id}`);
-  },
-
-  /** Đổi nhóm thực hành nhanh */
-  async updatePractiseGroup(id, practiseGroup) {
-    return http("PATCH", `${BASE}/${id}/practise-group`, { practiseGroup });
-  },
-
-  /** Đăng ký hàng loạt (tuỳ backend hỗ trợ) */
-  async bulkCreate(list) {
-    // list: Array<{ studentId, classSectionId, practiseGroup }>
-    return http("POST", `${BASE}/bulk`, list);
-  },
+  fetchPage,
+  fetchPageNormalized,
+  getById,
+  getByPair,
+  updatePair,
+  create,
+  delete: remove,
+  bulkCreate,
 };
 
 export default StudentClassSectionApi;

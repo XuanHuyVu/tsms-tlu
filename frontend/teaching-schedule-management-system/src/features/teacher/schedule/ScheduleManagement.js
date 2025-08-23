@@ -1,29 +1,56 @@
 // src/features/teacher/schedule/ScheduleManagement.js
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { FaCalendarAlt, FaClock, FaMapMarkerAlt } from "react-icons/fa";
 import { getScheduleChanges } from "../../../api/TeachingScheduleChangeApi";
+import RegisterLeaveModal from "./RegisterLeaveModal";
 import "../../../styles/ScheduleManagement.css";
 
 const ScheduleManagement = () => {
   const [scheduleChanges, setScheduleChanges] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [errMsg, setErrMsg] = useState("");
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await getScheduleChanges();
-        setScheduleChanges(data);
-      } catch (err) {
-        console.error("Không lấy được dữ liệu:", err);
-      }
-    };
-    fetchData();
+  // ===== Helpers =====
+  const ts = (v) => {
+    // parse timestamp an toàn, trả về số ms hoặc -Infinity nếu không hợp lệ
+    const d = v ? new Date(v) : null;
+    return d && !isNaN(d) ? d.getTime() : Number.NEGATIVE_INFINITY;
+  };
+
+  const num = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : Number.NEGATIVE_INFINITY;
+  };
+
+  const sortByCreatedDesc = useCallback((arr) => {
+    return [...(Array.isArray(arr) ? arr : [])].sort((a, b) => {
+      // Ưu tiên createdAt ↓, sau đó updatedAt ↓, rồi id ↓
+      const ca = ts(a?.createdAt);
+      const cb = ts(b?.createdAt);
+      if (cb !== ca) return cb - ca;
+
+      const ua = ts(a?.updatedAt);
+      const ub = ts(b?.updatedAt);
+      if (ub !== ua) return ub - ua;
+
+      return num(b?.id) - num(a?.id);
+    });
   }, []);
 
+  const formatDate = (tsOrIso) => {
+    if (!tsOrIso) return "";
+    const date = new Date(tsOrIso);
+    return isNaN(date.getTime()) ? "" : date.toLocaleDateString("vi-VN");
+  };
+
   const getStatusLabel = (status) => {
+    if (!status) return { label: "Không xác định", className: "status-unknown" };
     switch (status) {
       case "DA_DUYET":
         return { label: "Đã duyệt", className: "status-approved" };
       case "CHO_DUYET":
+      case "CHUA_DUYET":
         return { label: "Chờ duyệt", className: "status-pending" };
       case "TU_CHOI":
         return { label: "Từ chối", className: "status-rejected" };
@@ -33,6 +60,7 @@ const ScheduleManagement = () => {
   };
 
   const getTypeLabel = (type) => {
+    if (!type) return "Không rõ";
     switch (type) {
       case "HUY_LICH":
         return "Nghỉ dạy";
@@ -43,55 +71,116 @@ const ScheduleManagement = () => {
     }
   };
 
-  const formatDate = (timestamp) => {
-    if (!timestamp) return "";
-    const date = new Date(timestamp);
-    return date.toLocaleDateString("vi-VN");
-  };
+  // ===== Fetch & sort =====
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setErrMsg("");
+      const data = await getScheduleChanges();
+      setScheduleChanges(sortByCreatedDesc(data));
+    } catch (err) {
+      console.error("Không lấy được dữ liệu:", err);
+      setErrMsg("Không lấy được dữ liệu.");
+      setScheduleChanges([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [sortByCreatedDesc]);
 
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // ===== Modal success handler =====
+  const handleLeaveSuccess = useCallback(
+    (newItem) => {
+      // Nếu modal trả về newItem => thêm vào đầu & sort; nếu không => refetch để đồng bộ
+      if (newItem) {
+        setScheduleChanges((prev) =>
+          sortByCreatedDesc([newItem, ...prev.filter((x) => x?.id !== newItem?.id)])
+        );
+      } else {
+        // phòng khi modal chưa truyền object trả về
+        fetchData();
+      }
+      setShowLeaveModal(false);
+    },
+    [fetchData, sortByCreatedDesc]
+  );
+
+  // ===== Render =====
   return (
     <div className="schedule-management">
       <div className="schedule-header-top">
         <h2>Danh sách đăng ký nghỉ dạy & dạy bù</h2>
         <div className="action-buttons">
-          <button className="btn-leave">x Đăng ký nghỉ dạy</button>
-          <button className="btn-makeup">+ Đăng ký dạy bù</button>
+          <button className="btn-leave" onClick={() => setShowLeaveModal(true)}>
+            + Đăng ký nghỉ dạy
+          </button>
+          <button className="btn-makeup" disabled>
+            + Đăng ký dạy bù
+          </button>
         </div>
       </div>
 
-      {scheduleChanges.length === 0 ? (
+      {loading ? (
+        <p>Đang tải dữ liệu...</p>
+      ) : errMsg ? (
+        <p>{errMsg}</p>
+      ) : scheduleChanges.length === 0 ? (
         <p>Không có dữ liệu</p>
       ) : (
         <ul className="schedule-list">
           {scheduleChanges.map((item) => {
-            const status = getStatusLabel(item.status);
+            const status = getStatusLabel(item?.status);
+            const key =
+              item?.id ??
+              `${item?.type || "TYPE"}-${item?.classSection?.name || "CLS"}-${
+                item?.details?.teachingDate || Math.random()
+              }`;
+
             return (
-              <li key={item.id} className="schedule-item">
+              <li key={key} className="schedule-item">
                 <div className="schedule-header">
                   <strong>
-                    {getTypeLabel(item.type)} - {item.classSection.subject.name} ({item.classSection.name})
+                    {getTypeLabel(item?.type)} - {item?.classSection?.subject?.name || "Không rõ"} (
+                    {item?.classSection?.name || "N/A"})
                   </strong>
-                  <span className={`status-badge ${status.className}`}>
-                    {status.label}
-                  </span>
+                  <span className={`status-badge ${status.className}`}>{status.label}</span>
                 </div>
 
                 <div className="schedule-info">
                   <p>
-                    <FaCalendarAlt /> Ngày: {formatDate(item.details.teachingDate)}
+                    <FaCalendarAlt /> Ngày: {formatDate(item?.details?.teachingDate)}
                   </p>
                   <p>
-                    <FaClock /> Tiết {item.details.periodStart} - {item.details.periodEnd}
+                    <FaClock /> Tiết {item?.details?.periodStart ?? "?"} -{" "}
+                    {item?.details?.periodEnd ?? "?"}
                   </p>
                   <p>
-                    <FaMapMarkerAlt /> {item.classSection.room.name}
+                    <FaMapMarkerAlt /> {item?.classSection?.room?.name || "Không rõ"}
                   </p>
                 </div>
+
+                {/* Nếu muốn hiển thị thêm "Ngày tạo" để thấy rõ lý do sắp xếp */}
+                {/* <div className="schedule-meta">
+                  <small>Tạo lúc: {formatDate(item?.createdAt)}</small>
+                </div> */}
               </li>
             );
           })}
         </ul>
       )}
+
+      {/* Modal đăng ký nghỉ dạy */}
+      {showLeaveModal && (
+        <RegisterLeaveModal
+          isOpen={showLeaveModal}
+          onClose={() => setShowLeaveModal(false)}
+          onSuccess={handleLeaveSuccess}
+        />
+      )}
+      
     </div>
   );
 };

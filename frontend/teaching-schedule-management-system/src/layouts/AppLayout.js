@@ -21,6 +21,7 @@ import MajorList from '../features/admin/majors/MajorList';
 import StudentClassSectionList from '../features/admin/student-class-sections/StudentClassSectionList';
 import StudentList from '../features/admin/students/StudentList';
 import StatisticList from '../features/admin/statistics/StatisticList';
+import NotificationsList from '../features/admin/notifications/NotificationList';
 
 function AppLayout() {
   return (
@@ -53,6 +54,7 @@ function AppLayout() {
                 <Route path="/student-class-sections" element={<div><StudentClassSectionList defaultStudentId={null} /></div>} />
                 <Route path="/students" element={<div><StudentList /></div>} />
                 <Route path="/statistics" element={<div><StatisticList /></div>} />
+                <Route path="/notifications" element={<div><NotificationsList /></div>} />
                 <Route path="*" element={<Dashboard />} />
               </Routes>
             </div>

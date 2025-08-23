@@ -5,6 +5,7 @@ import com.example.tsmstlu.entity.*;
 import com.example.tsmstlu.repository.*;
 import com.example.tsmstlu.service.StudentClassSectionService;
 import com.example.tsmstlu.utils.MapperUtils;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -96,22 +97,8 @@ public class StudentClassSectionServiceImpl implements StudentClassSectionServic
 
 
     @Override
-    @CachePut(value = "studentClassSection", key = "#classSectionId + '_' + #studentId")
-    @CacheEvict(value = {"studentsInClassSection", "classSectionsWithCount"}, allEntries = true)
-    public StudentClassSectionDto update(Long classSectionId, Long studentId, StudentClassSectionCreateDto dto) {
-        StudentClassSectionId id = new StudentClassSectionId(studentId, classSectionId);
-
-        StudentClassSectionEntity entity = studentClassSectionRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Student not found in this class section"));
-
-        StudentClassSectionEntity updated = studentClassSectionRepository.save(entity);
-        return mapper.toStudentClassSectionDto(updated);
-    }
-
-
-    @Override
     @CacheEvict(value = {"studentClassSection", "studentsInClassSection", "classSectionsWithCount"}, allEntries = true)
-    public void delete(Long classSectionId, Long studentId) {
+    public void deleteStudentInClass(Long classSectionId, Long studentId) {
         StudentClassSectionId id = new StudentClassSectionId(studentId, classSectionId);
         if (!studentClassSectionRepository.existsById(id)) {
             throw new EntityNotFoundException("Student not found in this class section");
@@ -119,4 +106,41 @@ public class StudentClassSectionServiceImpl implements StudentClassSectionServic
         studentClassSectionRepository.deleteById(id);
         log.info("Removed student {} from class section {}", studentId, classSectionId);
     }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = {"studentClassSection", "studentsInClassSection", "classSectionsWithCount"}, allEntries = true)
+    public void deleteStudentClassSection(Long classSectionId) {
+        if (!classSectionRepository.existsById(classSectionId)) {
+            throw new EntityNotFoundException("Class section not found");
+        }
+        studentClassSectionRepository.deleteByClassSectionId(classSectionId);
+        classSectionRepository.deleteById(classSectionId);
+        log.info("Deleted class section {} and all its student registrations", classSectionId);
+    }
+
+    @Override
+    @CacheEvict(value = {"studentsInClassSection", "classSectionsWithCount"}, allEntries = true)
+    public StudentClassSectionDto addStudentToClassSection(Long classSectionId, Long studentId) {
+        StudentEntity student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new EntityNotFoundException("Student not found with ID: " + studentId));
+
+        ClassSectionEntity classSection = classSectionRepository.findById(classSectionId)
+                .orElseThrow(() -> new EntityNotFoundException("Class section not found with ID: " + classSectionId));
+
+        StudentClassSectionId id = new StudentClassSectionId(studentId, classSectionId);
+        if (studentClassSectionRepository.existsById(id)) {
+            throw new IllegalArgumentException("Student already exists in this class section");
+        }
+
+        StudentClassSectionEntity entity = new StudentClassSectionEntity();
+        entity.setId(id);
+        entity.setStudent(student);
+        entity.setClassSection(classSection);
+
+        StudentClassSectionEntity saved = studentClassSectionRepository.save(entity);
+        log.info("Added student {} to class section {}", studentId, classSectionId);
+        return mapper.toStudentClassSectionDto(saved);
+    }
+
 }

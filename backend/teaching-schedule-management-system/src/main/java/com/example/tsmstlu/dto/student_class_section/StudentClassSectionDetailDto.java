@@ -6,12 +6,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class StudentClassSectionListDto {
+@NoArgsConstructor
+public class StudentClassSectionDetailDto {
     private Long id;
     private ClassSectionResponseDto classSection;
-    private Long studentCount;
+    private List<StudentInClassDto> students;
 }

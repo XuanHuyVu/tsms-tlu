@@ -10,7 +10,9 @@ public interface StudentClassSectionService {
     List<StudentInClassDto> getStudentsInClassSection(Long classSectionId);
     StudentClassSectionDto getById(Long classSectionId, Long studentId);
     StudentClassSectionDto create(StudentClassSectionCreateDto dto);
-    StudentClassSectionDto update(Long classSectionId, Long studentId, StudentClassSectionCreateDto dto);
-    void delete(Long classSectionId, Long studentId);
+    void deleteStudentInClass(Long classSectionId, Long studentId);
     List<StudentClassSectionListDto> getAllClassSectionsWithStudentCount();
+    void deleteStudentClassSection(Long classSectionId);
+    StudentClassSectionDto addStudentToClassSection(Long classSectionId, Long studentId);
+
 }

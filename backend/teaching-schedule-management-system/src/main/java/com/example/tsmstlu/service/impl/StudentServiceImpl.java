@@ -126,14 +126,6 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    @Cacheable(value = "studentCache", key = "'profile_' + #id")
-    public StudentProfileDto getStudentProfile(Long id) {
-        StudentEntity student = studentRepository.findByUserId(id)
-                .orElseThrow(() -> new RuntimeException("Student not found with id: " + id));
-        return mapperUtils.toStudentProfileDto(student);
-    }
-
-    @Override
     @Cacheable(value = "studentCache", key = "'profile_username_' + #username")
     public StudentProfileDto getStudentProfileByUsername(String username) {
         return studentRepository.findByUserUsername(username)

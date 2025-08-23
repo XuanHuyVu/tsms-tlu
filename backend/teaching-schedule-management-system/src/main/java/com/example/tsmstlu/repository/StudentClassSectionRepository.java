@@ -34,4 +34,7 @@ public interface StudentClassSectionRepository extends JpaRepository<StudentClas
             "JOIN scs.classSection sc " +
             "GROUP BY sc")
     List<Object[]> getAllClassSectionsWithStudentCount();
+
+    void deleteByClassSectionId(Long classSectionId);
+
 }

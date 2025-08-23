@@ -23,7 +23,7 @@ public class StudentClassSectionController {
         this.studentClassSectionService = service;
     }
 
-    @GetMapping("/class-section/{classSectionId}")
+    @GetMapping("/{classSectionId}/students")
     public ResponseEntity<List<StudentInClassDto>> getByClassSection(@PathVariable Long classSectionId) {
         return ResponseEntity.ok(studentClassSectionService.getStudentsInClassSection(classSectionId));
     }
@@ -34,10 +34,8 @@ public class StudentClassSectionController {
     }
 
 
-    @GetMapping("/{studentId}/{classSectionId}")
-    public ResponseEntity<StudentClassSectionDto> getById(
-            @PathVariable Long studentId,
-            @PathVariable Long classSectionId) {
+    @GetMapping("/{classSectionId}")
+    public ResponseEntity<StudentClassSectionDto> getById(@PathVariable Long studentId, @PathVariable Long classSectionId) {
         return ResponseEntity.ok(studentClassSectionService.getById(studentId, classSectionId));
     }
 
@@ -46,19 +44,24 @@ public class StudentClassSectionController {
         return ResponseEntity.ok(studentClassSectionService.create(dto));
     }
 
-    @PutMapping("/{studentId}/{classSectionId}")
-    public ResponseEntity<StudentClassSectionDto> update(
-            @PathVariable Long studentId,
+    @PostMapping("/{classSectionId}/students/{studentId}")
+    public ResponseEntity<StudentClassSectionDto> addStudentToClassSection(
             @PathVariable Long classSectionId,
-            @RequestBody StudentClassSectionCreateDto dto) {
-        return ResponseEntity.ok(studentClassSectionService.update(classSectionId, studentId, dto));
+            @PathVariable Long studentId) {
+        return ResponseEntity.ok(studentClassSectionService.addStudentToClassSection(classSectionId, studentId));
     }
 
-    @DeleteMapping("/{studentId}/{classSectionId}")
-    public ResponseEntity<Void> delete(
+    @DeleteMapping("/{classSectionId}/students/{studentId}")
+    public ResponseEntity<Void> deleteStudentInClass(
             @PathVariable Long studentId,
             @PathVariable Long classSectionId) {
-        studentClassSectionService.delete(studentId, classSectionId);
+        studentClassSectionService.deleteStudentInClass(studentId, classSectionId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{classSectionId}")
+    public ResponseEntity<Void> delete(@PathVariable Long classSectionId) {
+        studentClassSectionService.deleteStudentClassSection(classSectionId);
         return ResponseEntity.noContent().build();
     }
 }

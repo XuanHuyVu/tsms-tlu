@@ -3,6 +3,7 @@ package com.example.tsmstlu.controller.student;
 import com.example.tsmstlu.dto.notification.NotificationDto;
 import com.example.tsmstlu.dto.notification.UserNotificationDto;
 import com.example.tsmstlu.service.NotificationService;
+import com.example.tsmstlu.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -18,6 +19,7 @@ import java.util.List;
 public class StudentNotificationController {
 
     private final NotificationService notificationService;
+    private final JwtUtils jwtUtils;
 
     @GetMapping
     public ResponseEntity<List<UserNotificationDto>> getMyNotifications() {
@@ -28,9 +30,10 @@ public class StudentNotificationController {
         return ResponseEntity.ok(notifications);
     }
 
-    @PutMapping("/read/{recipientId}")
-    public ResponseEntity<Void> markAsRead(@PathVariable Long recipientId) {
-        notificationService.markAsRead(recipientId);
+    @PutMapping("/read/{notificationId}")
+    public ResponseEntity<Void> markAsRead(@PathVariable Long notificationId, Authentication authentication) {
+        String username = authentication.getName();
+        notificationService.markAsReadByNotificationId(notificationId, username);
         return ResponseEntity.noContent().build();
     }
 }

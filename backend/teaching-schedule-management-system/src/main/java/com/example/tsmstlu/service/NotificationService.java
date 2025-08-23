@@ -7,6 +7,6 @@ public interface NotificationService {
     NotificationDto createNotification(NotificationCreateRequestDto request);
     List<NotificationDto> getAll();
     List<NotificationDto> getByUser(Long userId);
-    void markAsRead(Long recipientId);
+    void markAsReadByNotificationId(Long notificationId, String username);
     List<UserNotificationDto> getByUsername(String username);
 }

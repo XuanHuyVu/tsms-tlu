@@ -29,9 +29,10 @@ public class TeacherNotificationController {
         return ResponseEntity.ok(notifications);
     }
 
-    @PutMapping("/read/{recipientId}")
-    public ResponseEntity<Void> markAsRead(@PathVariable Long recipientId) {
-        notificationService.markAsRead(recipientId);
+    @PutMapping("/read/{notificationId}")
+    public ResponseEntity<Void> markAsRead(@PathVariable Long notificationId, Authentication authentication) {
+        String username = authentication.getName();
+        notificationService.markAsReadByNotificationId(notificationId, username);
         return ResponseEntity.noContent().build();
     }
 }

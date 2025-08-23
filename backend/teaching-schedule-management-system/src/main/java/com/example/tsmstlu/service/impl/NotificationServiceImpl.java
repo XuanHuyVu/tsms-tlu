@@ -76,12 +76,19 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     @CacheEvict(value = {"notificationsByUser", "notificationsByUsername"}, allEntries = true)
-    public void markAsRead(Long recipientId) {
-        NotificationRecipientEntity rec = recipientRepository.findById(recipientId)
+    public void markAsReadByNotificationId(Long notificationId, String username) {
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        NotificationRecipientEntity rec = recipientRepository
+                .findByNotificationIdAndUserId(notificationId, user.getId())
                 .orElseThrow(() -> new RuntimeException("Recipient not found"));
+
         rec.setIsRead(true);
         recipientRepository.save(rec);
     }
+
+
 
     @Override
     @Cacheable(value = "notificationsByUsername", key = "#username")

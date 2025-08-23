@@ -1,268 +1,110 @@
-/* RegisterLeaveModal.css */
-.modal-overlay {
-  position: fixed;
+/* Lớp phủ toàn màn hình */
+.rl-overlay {
+  position: fixed; /* Quan trọng: để đè lên toàn bộ trang */
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4); /* nền mờ */
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(2px);
+  z-index: 9999; /* đảm bảo nổi trên cùng */
 }
 
-.modal-container {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-  max-width: 500px;
-  width: 90%;
-  max-height: 90vh;
+/* Hộp modal */
+.rl-modal {
+  background: #fff;
+  width: 600px;
+  max-width: 90%;
+  max-height: 90%;
   overflow-y: auto;
-  animation: modalSlideIn 0.3s ease-out;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.3s ease-in-out;
 }
 
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-30px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.modal-header {
-  background: #4f75db;
-  color: white;
-  padding: 16px 20px;
-  border-radius: 12px 12px 0 0;
+/* Header */
+.rl-header {
+  background: #1e40af;
+  color: #fff;
+  padding: 12px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  position: relative;
 }
 
-.modal-header h2 {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin: 0;
-  margin-left: 20px;
-  letter-spacing: 0.5px;
-  color: white;
-}
-
-.close-btn {
+/* Nút đóng */
+.rl-close {
   background: transparent;
   border: none;
-  color: white;
-  font-size: 1.2rem;
+  color: #fff;
+  font-size: 18px;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: all 0.2s ease;
 }
 
-.close-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.modal-form {
-  padding: 24px 28px 28px 28px;
-}
-
-.form-row {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.form-group {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group.full-width {
-  flex: 100%;
-}
-
-.form-group label {
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 6px;
-  font-size: 0.9rem;
-}
-
-.required {
-  color: #dc2626;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-  padding: 10px 12px;
-  border: 2px solid #e5e7eb;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-  background: white;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color: #dc3545;
-  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
-}
-
-.form-group select {
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px;
-  padding-right: 40px;
-}
-
-.form-group textarea {
-  resize: vertical;
-  min-height: 35px;
-}
-
-.file-upload-area {
-  border: 2px dashed #e5e7eb;
-  border-radius: 8px;
-  padding: 12px;
-  text-align: center;
-  background: #f9fafb;
-  transition: all 0.2s ease;
-}
-
-.file-upload-area:hover {
-  border-color: #dc3545;
-  background: #fef2f2;
-}
-
-.file-upload-label {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  color: #6b7280;
-  font-size: 0.9rem;
-}
-
-.upload-icon {
-  font-size: 1.5rem;
-  color: #9ca3af;
-}
-
-.modal-footer {
-  display: flex;
+/* Nội dung */
+.rl-body {
+  padding: 16px;
+  display: grid;
   gap: 12px;
-  justify-content: center;
-  padding-top: 20px;
-  border-top: 1px solid #e5e7eb;
-  margin-top: 20px;
 }
 
-.btn-confirm,
-.btn-cancel {
-  padding: 12px 24px;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
+/* Các trường input/select/textarea */
+.rl-field label {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.rl-field input,
+.rl-field select,
+.rl-field textarea {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.rl-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.rl-primary {
+  background: #1e40af;
+  color: #fff;
   border: none;
-  min-width: 110px;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
-.btn-confirm {
-  background: #2563eb;
-  color: white;
-  order: 1;
+.rl-secondary {
+  background: #e5e7eb;
+  color: #000;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
-.btn-confirm:hover {
-  background: #1d4ed8;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-}
-
-.btn-cancel {
-  background: #6b7280;
-  color: white;
-  order: 2;
-}
-
-.btn-cancel:hover {
-  background: #4b5563;
-}
-
-/* Responsive Design */
-@media (min-width: 1024px) {
-  .modal-container {
-    max-width: 750px;
-    width: 80%;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
   }
-  
-  .form-row {
-    align-items: flex-end;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@media (max-width: 768px) {
-  .modal-container {
-    width: 95%;
-    max-height: 95vh;
-    max-width: 650px;
-  }
-  
-  .modal-form {
-    padding: 16px 20px 20px 20px;
-  }
-  
-  .form-row {
-    flex-direction: column;
-    gap: 16px;
-  }
-  
-  .modal-footer {
-    flex-direction: column-reverse;
-    gap: 12px;
-  }
-  
-  .btn-confirm,
-  .btn-cancel {
-    width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .modal-container {
-    width: 98%;
-    max-width: none;
-  }
-  
-  .modal-header {
-    padding: 14px 16px;
-  }
-  
-  .modal-header h2 {
-    font-size: 1rem;
-  }
-  
-  .modal-form {
-    padding: 12px 16px 16px 16px;
-  }
+/* Định nghĩa hàng 2 cột */
+.rl-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* hai cột bằng nhau */
+  gap: 12px;
 }

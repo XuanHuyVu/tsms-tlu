@@ -1,264 +1,358 @@
-import React, { useState } from 'react';
-import '../../../styles/RegisterLeaveModal.css';
+import React, { useEffect, useMemo, useState } from "react";
+import { getLeaveCandidates, createLeaveRequest } from "../../../api/RegisterLeaveApi";
+import { useAuth } from "../../../contexts/AuthContext";
+import "../../../styles/RegisterLeaveModal.css";
 
-const RegisterLeaveModal = ({ isOpen, onClose, onSubmit }) => {
-  const [formData, setFormData] = useState({
-    scheduleId: '',
-    date: '',
-    period: '',
-    department: '',
-    faculty: '',
-    scheduleType: '',
-    room: '',
-    reason: '',
-    evidence: null
+/* ======================= Helpers ======================= */
+const pad2 = (n) => String(n).padStart(2, "0");
+
+// YYYY-MM-DD theo LOCAL TIME
+const dateKeyLocal = (ts) => {
+  try {
+    const d = new Date(ts);
+    if (isNaN(d)) return "";
+    return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+  } catch {
+    return "";
+  }
+};
+
+// Hiển thị ngày theo vi-VN
+const toVNDate = (ts) => {
+  try {
+    const d = new Date(ts);
+    return isNaN(d)
+      ? ""
+      : d.toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
+  } catch {
+    return "";
+  }
+};
+
+// Khóa ổn định cho classSection
+const classKeyOf = (cls) => {
+  const raw =
+    cls?.id ??
+    cls?.classSectionId ??
+    cls?.code ??
+    cls?.name ??
+    `${cls?.subject?.name || ""}|${cls?.name || ""}|${cls?.semester?.academicYear || ""}`;
+  return String(raw);
+};
+
+// Khử trùng lặp buổi dạy
+const dedupeDetails = (details) => {
+  const map = new Map();
+  details.forEach((d) => {
+    const day = dateKeyLocal(d?.teachingDate);
+    const ps = Number(d?.periodStart);
+    const pe = Number(d?.periodEnd);
+    if (!day || !Number.isFinite(ps) || !Number.isFinite(pe)) return;
+    const key = `${day}|${ps}|${pe}`;
+    if (!map.has(key)) map.set(key, d);
   });
+  return Array.from(map.values());
+};
 
-  const [schedules] = useState([
-    { id: 1, name: "Lập trình phần tán-2-24 (CSE423_001)" },
-    { id: 2, name: "Công nghệ phần mềm-2-24 (CSE481_002)" },
-    { id: 3, name: "Cơ sở dữ liệu-2-24 (CSE301_001)" }
-  ]);
+const RegisterLeaveModal = ({ isOpen, onClose, onSuccess }) => {
+  const { user } = useAuth();
 
-  const periods = [
-    { value: "1-3", label: "Tiết 1-3 (7:00-9:40)" },
-    { value: "4-6", label: "Tiết 4-6 (9:45-12:25)" },
-    { value: "5-6", label: "Tiết 5-6 (10:40-12:25)" },
-    { value: "7-9", label: "Tiết 7-9 (13:00-15:35)" },
-    { value: "9-10", label: "Tiết 9-10 (15:00-16:30)" },
-    { value: "10-12", label: "Tiết 10-12 (15:40-18:20)" }
-  ];
+  const [candidates, setCandidates] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [errMsg, setErrMsg] = useState("");
 
-  const departments = [
-    { value: "CNPM", label: "Công nghệ phần mềm" },
-    { value: "HTTT", label: "Hệ thống thông tin" },
-    { value: "KTXD", label: "Kỹ thuật xây dựng" }
-  ];
+  const [selectedClassId, setSelectedClassId] = useState("");
+  const [selectedDetailId, setSelectedDetailId] = useState("");
+  const [selectedDateKey, setSelectedDateKey] = useState("");
+  const [selectedPeriodStart, setSelectedPeriodStart] = useState("");
+  const [selectedPeriodEnd, setSelectedPeriodEnd] = useState("");
 
-  const faculties = [
-    { value: "CNTT", label: "Khoa Công nghệ thông tin" },
-    { value: "KT", label: "Khoa Kỹ thuật" }
-  ];
+  const [reason, setReason] = useState("");
+  const [fileObj, setFileObj] = useState(null);
 
-  const scheduleTypes = [
-    { value: "LT", label: "Lý thuyết" },
-    { value: "TH", label: "Thực hành" },
-    { value: "BT", label: "Bài tập" }
-  ];
+  useEffect(() => {
+    if (!isOpen) return;
+    if (!user?.teacherId) {
+      setErrMsg("Không tìm thấy teacherId. Vui lòng đăng nhập lại.");
+      return;
+    }
+    setLoading(true);
+    setErrMsg("");
+    (async () => {
+      const list = await getLeaveCandidates(user.teacherId);
+      setCandidates(Array.isArray(list) ? list : []);
+      setLoading(false);
+    })();
+  }, [isOpen, user]);
 
-  const rooms = [
-    { value: "B5-208", label: "B5-208" },
-    { value: "B5-209", label: "B5-209" },
-    { value: "A1-301", label: "A1-301" }
-  ];
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleFileChange = (e) => {
-    setFormData(prev => ({
-      ...prev,
-      evidence: e.target.files[0]
-    }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit(formData);
-    setFormData({
-      scheduleId: '',
-      date: '',
-      period: '',
-      department: '',
-      faculty: '',
-      scheduleType: '',
-      room: '',
-      reason: '',
-      evidence: null
+  const classMap = useMemo(() => {
+    const map = {};
+    candidates.forEach((it) => {
+      const cls = it?.classSection;
+      if (!cls) return;
+      const key = classKeyOf(cls);
+      const detsSource = it?.details;
+      const dets = Array.isArray(detsSource)
+        ? detsSource
+        : detsSource
+        ? [detsSource]
+        : [];
+      const valid = dets.filter((d) => {
+        const k = dateKeyLocal(d?.teachingDate);
+        return Boolean(k) && Number.isFinite(Number(d?.periodStart)) && Number.isFinite(Number(d?.periodEnd));
+      });
+      if (!map[key]) map[key] = { cls, details: [] };
+      map[key].details.push(...valid);
     });
-    onClose();
+    Object.keys(map).forEach((k) => {
+      map[k].details = dedupeDetails(map[k].details);
+    });
+    return map;
+  }, [candidates]);
+
+  const selectedClass = selectedClassId ? classMap[selectedClassId]?.cls : null;
+  const availableDetailsRaw = selectedClassId ? (classMap[selectedClassId]?.details || []) : [];
+  const todayKey = dateKeyLocal(new Date());
+
+  const futureDetails = useMemo(() => {
+    return availableDetailsRaw.filter((d) => {
+      const k = dateKeyLocal(d?.teachingDate);
+      return k && k >= todayKey;
+    });
+  }, [availableDetailsRaw, todayKey]);
+
+  const availableDateOptions = useMemo(() => {
+    const seen = new Set();
+    const out = [];
+    futureDetails.forEach((d) => {
+      const key = dateKeyLocal(d?.teachingDate);
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        out.push({ key, label: toVNDate(d?.teachingDate) });
+      }
+    });
+    out.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
+    return out;
+  }, [futureDetails]);
+
+  const periodChoices = useMemo(() => {
+    if (!selectedDateKey) return [];
+    const map = new Map();
+    futureDetails.forEach((d) => {
+      if (dateKeyLocal(d?.teachingDate) !== selectedDateKey) return;
+      const ps = Number(d?.periodStart);
+      const pe = Number(d?.periodEnd);
+      if (!Number.isFinite(ps) || !Number.isFinite(pe)) return;
+      const key = `${ps}-${pe}`;
+      if (!map.has(key)) map.set(key, { id: d?.id, ps, pe, label: `Tiết ${ps} → ${pe}` });
+    });
+    return Array.from(map.values()).sort((a, b) => a.ps - b.ps || a.pe - b.pe);
+  }, [futureDetails, selectedDateKey]);
+
+  useEffect(() => {
+    setSelectedPeriodStart("");
+    setSelectedPeriodEnd("");
+    setSelectedDetailId("");
+    if (!selectedDateKey) return;
+    if (periodChoices.length === 1) {
+      const only = periodChoices[0];
+      setSelectedPeriodStart(String(only.ps));
+      setSelectedPeriodEnd(String(only.pe));
+      setSelectedDetailId(only.id ? String(only.id) : "");
+    }
+  }, [selectedDateKey, periodChoices]);
+
+  const handleChangePeriodChoice = (key) => {
+    const found = periodChoices.find((p) => `${p.ps}-${p.pe}` === key);
+    if (!found) return;
+    setSelectedPeriodStart(String(found.ps));
+    setSelectedPeriodEnd(String(found.pe));
+    setSelectedDetailId(found.id ? String(found.id) : "");
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onEsc = (e) => e.key === "Escape" && onClose?.();
+    window.addEventListener("keydown", onEsc);
+    return () => window.removeEventListener("keydown", onEsc);
+  }, [isOpen, onClose]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedDetailId) {
+      setErrMsg("Vui lòng chọn Ngày giảng hợp lệ (và ca dạy nếu có nhiều ca).");
+      return;
+    }
+    if (!reason.trim()) {
+      setErrMsg("Vui lòng nhập lý do nghỉ dạy.");
+      return;
+    }
+    try {
+      setErrMsg("");
+      const payload = {
+        teachingScheduleDetailId: selectedDetailId,
+        reason: reason.trim(),
+        file: fileObj || undefined, // gửi file object nếu cần
+      };
+      await createLeaveRequest(payload);
+      onSuccess?.();
+      onClose?.();
+    } catch (err) {
+      console.error(err);
+      setErrMsg("Gửi đăng ký thất bại. Vui lòng thử lại.");
+    }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-container">
-        <div className="modal-header">
-          <h2>ĐĂNG KÝ NGHỈ DẠY</h2>
-          <button className="close-btn" onClick={onClose}>
-            ✕
-          </button>
+    <div className="rl-overlay" onClick={onClose}>
+      <div className="rl-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="rl-header">
+          <div className="rl-title">ĐĂNG KÝ NGHỈ DẠY</div>
+          <button className="rl-close" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
 
-        <form className="modal-form" onSubmit={handleSubmit}>
-          <div className="form-row">
-            <div className="form-group full-width">
-              <label>Lớp học phần: <span className="required">*</span></label>
-              <select
-                name="scheduleId"
-                value={formData.scheduleId}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="">--Chọn lớp học phần--</option>
-                {schedules.map(schedule => (
-                  <option key={schedule.id} value={schedule.id}>
-                    {schedule.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+        <form className="rl-body" onSubmit={handleSubmit}>
+          {errMsg && <div className="rl-alert">{errMsg}</div>}
+          {loading ? (
+            <div className="rl-loading">Đang tải dữ liệu...</div>
+          ) : (
+            <>
+              {/* Lớp học phần */}
+              <div className="rl-field rl-col-2">
+                <label>Lớp học phần: <span className="rl-required">*</span></label>
+                <select
+                  value={selectedClassId}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSelectedClassId(val);
+                    setSelectedDateKey("");
+                    setSelectedPeriodStart("");
+                    setSelectedPeriodEnd("");
+                    setSelectedDetailId("");
+                  }}
+                  required
+                >
+                  <option value="">-- Chọn học phần --</option>
+                  {Object.entries(classMap).map(([key, { cls }]) => {
+                    const label = `${cls?.subject?.name || "Môn"} (${cls?.name || "Lớp"})`;
+                    return (
+                      <option key={key} value={key}>{label}</option>
+                    );
+                  })}
+                </select>
+              </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label>Ngày giảng: <span className="required">*</span></label>
-              <input
-                type="date"
-                name="date"
-                value={formData.date}
-                onChange={handleInputChange}
-                placeholder="dd/mm/yyyy"
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Tiết học: <span className="required">*</span></label>
-              <select
-                name="period"
-                value={formData.period}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="">--Chọn tiết học--</option>
-                {periods.map(period => (
-                  <option key={period.value} value={period.value}>
-                    {period.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+              {/* Khoa - Bộ môn */}
+              <div className="rl-row-2">
+                <div className="rl-field">
+                  <label>Khoa quản lý:</label>
+                  <input type="text" value={selectedClass?.faculty?.name || ""} readOnly />
+                </div>
+                <div className="rl-field">
+                  <label>Bộ môn quản lý:</label>
+                  <input type="text" value={selectedClass?.department?.name || ""} readOnly />
+                </div>
+              </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label>Bộ môn quản lý: <span className="required">*</span></label>
-              <select
-                name="department"
-                value={formData.department}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="">--Chọn bộ môn quản lý--</option>
-                {departments.map(dept => (
-                  <option key={dept.value} value={dept.value}>
-                    {dept.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group">
-              <label>Khoa quản lý: <span className="required">*</span></label>
-              <select
-                name="faculty"
-                value={formData.faculty}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="">--Chọn khoa quản lý--</option>
-                {faculties.map(faculty => (
-                  <option key={faculty.value} value={faculty.value}>
-                    {faculty.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+              {/* Ngày giảng - Phòng */}
+              <div className="rl-row-2">
+                <div className="rl-field">
+                  <label>Ngày giảng: <span className="rl-required">*</span></label>
+                  <select
+                    value={selectedDateKey}
+                    onChange={(e) => setSelectedDateKey(e.target.value)}
+                    disabled={!selectedClassId}
+                    required
+                  >
+                    {availableDateOptions.length === 0 ? (
+                      <option value="">(Không có ngày giảng từ hôm nay trở đi)</option>
+                    ) : (
+                      <>
+                        <option value="">-- Chọn ngày giảng --</option>
+                        {availableDateOptions.map((d) => (
+                          <option key={d.key} value={d.key}>{d.label}</option>
+                        ))}
+                      </>
+                    )}
+                  </select>
+                </div>
+                <div className="rl-field">
+                  <label>Phòng học:</label>
+                  <input type="text" value={selectedClass?.room?.name || ""} readOnly />
+                </div>
+              </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label>Loại lịch học: <span className="required">*</span></label>
-              <select
-                name="scheduleType"
-                value={formData.scheduleType}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="">--Chọn loại lịch học--</option>
-                {scheduleTypes.map(type => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group">
-              <label>Phòng học: <span className="required">*</span></label>
-              <select
-                name="room"
-                value={formData.room}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="">--Chọn phòng học--</option>
-                {rooms.map(room => (
-                  <option key={room.value} value={room.value}>
-                    {room.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+              {/* Chọn ca nếu nhiều */}
+              {selectedDateKey && periodChoices.length > 1 && (
+                <div className="rl-field rl-col-2">
+                  <label>Chọn ca trong ngày:</label>
+                  <div className="rl-radio-group">
+                    {periodChoices.map((p) => {
+                      const key = `${p.ps}-${p.pe}`;
+                      const checked = String(p.ps) === selectedPeriodStart && String(p.pe) === selectedPeriodEnd;
+                      return (
+                        <label key={key} className="rl-radio">
+                          <input
+                            type="radio"
+                            name="periodChoice"
+                            value={key}
+                            checked={checked}
+                            onChange={(e) => handleChangePeriodChoice(e.target.value)}
+                          />
+                          <span>{p.label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
-          <div className="form-row">
-            <div className="form-group full-width">
-              <label>Lí do đăng ký nghỉ dạy: <span className="required">*</span></label>
-              <textarea
-                name="reason"
-                value={formData.reason}
-                onChange={handleInputChange}
-                placeholder="Nhập lí do đăng ký nghỉ dạy"
-                rows="3"
-                required
-              />
-            </div>
-          </div>
+              {/* Tiết bắt đầu - kết thúc */}
+              <div className="rl-row-2">
+                <div className="rl-field">
+                  <label>Tiết bắt đầu:</label>
+                  <input type="text" value={selectedPeriodStart} placeholder="—" readOnly />
+                </div>
+                <div className="rl-field">
+                  <label>Tiết kết thúc:</label>
+                  <input type="text" value={selectedPeriodEnd} placeholder="—" readOnly />
+                </div>
+              </div>
 
-          <div className="form-row">
-            <div className="form-group full-width">
-              <label>Minh chứng: <span className="required">*</span></label>
-              <div className="file-upload-area">
-                <input
-                  type="file"
-                  id="evidence"
-                  name="evidence"
-                  onChange={handleFileChange}
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  style={{ display: 'none' }}
+              {/* Lý do */}
+              <div className="rl-field rl-col-2">
+                <label>Lí do đăng ký nghỉ dạy: <span className="rl-required">*</span></label>
+                <textarea
+                  rows={3}
+                  placeholder="Nhập lý do..."
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
                   required
                 />
-                <label htmlFor="evidence" className="file-upload-label">
-                  <span className="upload-icon">📁</span>
-                  <span>Ảnh minh hoạ</span>
-                </label>
               </div>
-            </div>
-          </div>
 
-          <div className="modal-footer">
-            <button type="submit" className="btn-confirm">
-              Xác nhận
-            </button>
-            <button type="button" className="btn-cancel" onClick={onClose}>
-              Hủy bỏ
-            </button>
-          </div>
+              {/* Minh chứng */}
+              <div className="rl-field rl-col-2">
+                <label>Minh chứng (PDF):</label>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    setFileObj(f || null);
+                  }}
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="rl-actions">
+                <button type="submit" className="rl-primary">Xác nhận</button>
+                <button type="button" className="rl-secondary" onClick={onClose}>Hủy bỏ</button>
+              </div>
+            </>
+          )}
         </form>
       </div>
     </div>

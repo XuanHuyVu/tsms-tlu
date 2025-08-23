@@ -13,6 +13,8 @@ public class StudentCreateDto {
     private String studentCode;
     private String fullName;
     private String gender;
+    private String email;
+    private String phoneNumber;
     private Date dateOfBirth;
     private String className;
     private Integer enrollmentYear;

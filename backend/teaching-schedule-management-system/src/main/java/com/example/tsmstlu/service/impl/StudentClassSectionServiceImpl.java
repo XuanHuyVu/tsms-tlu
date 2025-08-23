@@ -35,7 +35,9 @@ public class StudentClassSectionServiceImpl implements StudentClassSectionServic
         return students.stream()
                 .map(scs -> StudentInClassDto.builder()
                         .studentId(scs.getStudent().getId())
+                        .studentCode(scs.getStudent().getStudentCode())
                         .fullName(scs.getStudent().getFullName())
+                        .className(scs.getStudent().getClassName())
                         .build())
                 .collect(Collectors.toList());
     }

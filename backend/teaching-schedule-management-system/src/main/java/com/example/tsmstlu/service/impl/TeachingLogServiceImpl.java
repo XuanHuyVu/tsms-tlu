@@ -19,7 +19,7 @@ public class TeachingLogServiceImpl implements TeachingLogService {
     private final TeacherRepository teacherRepository;
 
     @Override
-    @Cacheable(value = "teacherStatsAll", key = "#semesterId")
+    @Cacheable(value = "teacherStatsAll", key = "'semester_' + #semesterId")
     public List<TeacherStatsDto> getAllTeacherStats(Long semesterId) {
         return teachingScheduleDetailRepository.getAllTeacherStats(semesterId);
     }

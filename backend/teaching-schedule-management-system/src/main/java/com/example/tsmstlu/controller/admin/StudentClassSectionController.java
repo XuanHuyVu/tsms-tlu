@@ -52,10 +52,8 @@ public class StudentClassSectionController {
     }
 
     @DeleteMapping("/{classSectionId}/students/{studentId}")
-    public ResponseEntity<Void> deleteStudentInClass(
-            @PathVariable Long studentId,
-            @PathVariable Long classSectionId) {
-        studentClassSectionService.deleteStudentInClass(studentId, classSectionId);
+    public ResponseEntity<Void> deleteStudentInClass(@PathVariable Long classSectionId, @PathVariable Long studentId) {
+        studentClassSectionService.deleteStudentInClass(classSectionId, studentId);
         return ResponseEntity.noContent().build();
     }
 

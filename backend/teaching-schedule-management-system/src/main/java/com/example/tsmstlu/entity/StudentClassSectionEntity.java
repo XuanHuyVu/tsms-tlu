@@ -14,7 +14,7 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = TableNameContants.STUDENT_CLASS_SECTION)
-public class StudentClassSectionEntity extends BaseEntity{
+public class StudentClassSectionEntity extends BaseEntity {
 
     @EmbeddedId
     private StudentClassSectionId id;

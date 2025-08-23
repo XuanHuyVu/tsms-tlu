@@ -11,9 +11,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,6 +35,10 @@ public class StudentClassSectionServiceImpl implements StudentClassSectionServic
     public List<StudentInClassDto> getStudentsInClassSection(Long classSectionId) {
         List<StudentClassSectionEntity> students =
                 studentClassSectionRepository.findAllByClassSectionIdFetchAll(classSectionId);
+
+        if (!classSectionRepository.existsById(classSectionId)) {
+            throw new ResourceNotFoundException("Class section with id " + classSectionId + " not found");
+        }
 
         return students.stream()
                 .map(scs -> StudentInClassDto.builder()
@@ -141,6 +148,13 @@ public class StudentClassSectionServiceImpl implements StudentClassSectionServic
         StudentClassSectionEntity saved = studentClassSectionRepository.save(entity);
         log.info("Added student {} to class section {}", studentId, classSectionId);
         return mapper.toStudentClassSectionDto(saved);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public static class ResourceNotFoundException extends RuntimeException {
+        public ResourceNotFoundException(String message) {
+            super(message);
+        }
     }
 
 }

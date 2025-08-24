@@ -18,7 +18,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   void initState() {
     super.initState();
+    _loadNotifications();
+  }
+
+  void _loadNotifications() {
     _futureNotifications = _notificationService.fetchNotifications();
+  }
+
+  void _refreshNotifications() {
+    setState(() {
+      _loadNotifications();
+    });
   }
 
   @override
@@ -63,12 +73,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
               icon: const Icon(Icons.search, color: Colors.white),
               tooltip: 'Tìm kiếm',
               onPressed: () {
+                // Thêm logic tìm kiếm nếu cần
               },
             ),
           ],
         ),
-
-
         body: FutureBuilder<List<NotificationModel>>(
           future: _futureNotifications,
           builder: (context, snapshot) {
@@ -84,9 +93,21 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
             return TabBarView(
               children: [
-                NotificationList(notifications: all),
-                NotificationList(notifications: read),
-                NotificationList(notifications: unread),
+                NotificationList(
+                  notifications: all,
+                  notificationService: _notificationService,
+                  refreshParent: _refreshNotifications,
+                ),
+                NotificationList(
+                  notifications: read,
+                  notificationService: _notificationService,
+                  refreshParent: _refreshNotifications,
+                ),
+                NotificationList(
+                  notifications: unread,
+                  notificationService: _notificationService,
+                  refreshParent: _refreshNotifications,
+                ),
               ],
             );
           },
@@ -96,22 +117,50 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 }
 
-class NotificationList extends StatelessWidget {
+class NotificationList extends StatefulWidget {
   final List<NotificationModel> notifications;
+  final NotificationService notificationService;
+  final VoidCallback refreshParent;
 
-  const NotificationList({super.key, required this.notifications});
+  const NotificationList({
+    super.key,
+    required this.notifications,
+    required this.notificationService,
+    required this.refreshParent,
+  });
+
+  @override
+  State<NotificationList> createState() => _NotificationListState();
+}
+
+class _NotificationListState extends State<NotificationList> {
+  late List<NotificationModel> data;
+
+  @override
+  void initState() {
+    super.initState();
+    data = List.from(widget.notifications);
+  }
+
+  @override
+  void didUpdateWidget(covariant NotificationList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.notifications != oldWidget.notifications) {
+      data = List.from(widget.notifications);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (notifications.isEmpty) {
+    if (data.isEmpty) {
       return const Center(child: Text('Không có thông báo.'));
     }
 
     return ListView.builder(
       padding: const EdgeInsets.all(12),
-      itemCount: notifications.length,
+      itemCount: data.length,
       itemBuilder: (context, index) {
-        final n = notifications[index];
+        final n = data[index];
         return Card(
           color: n.isRead ? Colors.white : Colors.blue[50],
           margin: const EdgeInsets.only(bottom: 10),
@@ -174,6 +223,7 @@ class NotificationList extends StatelessWidget {
               ],
             ),
             onTap: () {
+              // Có thể thêm hành động khi nhấn thông báo
             },
           ),
         );
@@ -201,12 +251,12 @@ class NotificationList extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {
-              // Gọi API xóa hoặc cập nhật trạng thái trong Provider
-              // Sau đó đóng dialog
               Navigator.pop(context);
+              // TODO: Bạn cần gọi API xóa ở đây nếu có
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Đã xóa thông báo')),
               );
+              widget.refreshParent();
             },
             child: const Text('Xóa'),
           ),
@@ -215,18 +265,31 @@ class NotificationList extends StatelessWidget {
     );
   }
 
-  void _markAsRead(BuildContext context, NotificationModel notification) {
-    // Cập nhật trạng thái đã đọc ở đây (có thể gọi Provider hoặc API)
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Đã đánh dấu là đã đọc')),
-    );
+  void _markAsRead(BuildContext context, NotificationModel notification) async {
+    try {
+      await widget.notificationService.markAsRead(notification.id);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đã đánh dấu là đã đọc')),
+      );
+
+      setState(() {
+        final i = data.indexWhere((element) => element.id == notification.id);
+        if (i != -1) {
+          data[i] = data[i].copyWith(isRead: true);
+        }
+      });
+
+      widget.refreshParent();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi: $e')),
+      );
+    }
   }
 
   void _markAsUnread(BuildContext context, NotificationModel notification) {
-    // Cập nhật trạng thái chưa đọc
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Đã đánh dấu là chưa đọc')),
+      const SnackBar(content: Text('Đã đánh dấu là chưa đọc (chức năng chưa có)')),
     );
   }
-
 }

@@ -31,4 +31,26 @@ class NotificationModel {
       isRead: json['isRead'],
     );
   }
+
+  NotificationModel copyWith({
+    int? id,
+    String? title,
+    String? content,
+    String? type,
+    int? relatedScheduleChangeId,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    bool? isRead,
+  }) {
+    return NotificationModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      content: content ?? this.content,
+      type: type ?? this.type,
+      relatedScheduleChangeId: relatedScheduleChangeId ?? this.relatedScheduleChangeId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      isRead: isRead ?? this.isRead,
+    );
+  }
 }

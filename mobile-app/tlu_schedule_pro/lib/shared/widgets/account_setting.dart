@@ -43,26 +43,10 @@ class AccountSettingsScreen extends StatelessWidget {
               label: "Ngôn ngữ",
               onTap: () {},
             ),
-            const Spacer(),
-            Center(
-              child: ElevatedButton(
-                onPressed: () => _logout(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red.shade700,
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
-                ),
-                child: Text(
-                  'Đăng xuất',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+            _buildSettingOption(
+              icon: Icons.logout,
+              label: "Đăng xuất",
+              onTap: () => _logout(context),
             ),
           ],
         ),

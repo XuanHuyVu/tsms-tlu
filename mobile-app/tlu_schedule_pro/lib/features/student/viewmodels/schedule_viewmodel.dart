@@ -13,35 +13,35 @@ class ScheduleViewModel extends ChangeNotifier {
   List<StudentScheduleModel> _filteredSchedules = [];
   bool _isLoading = false;
   String _errorMessage = '';
+
   DateTime _selectedDate = DateTime.now();
   bool _isWeekView = false;
 
+  List<StudentScheduleModel> get allSchedules => _schedules;
   List<StudentScheduleModel> get schedules => _filteredSchedules;
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
   DateTime get selectedDate => _selectedDate;
   bool get isWeekView => _isWeekView;
 
+  void showToday() {
+    _isWeekView = false;
+    _selectedDate = DateTime.now();
+    _filterSchedulesByDate();
+    notifyListeners();
+  }
+
+  void showWeek() {
+    _isWeekView = true;
+    notifyListeners();
+  }
+
   void toggleView() {
     _isWeekView = !_isWeekView;
-    notifyListeners();
-  }
-
-  void selectDate(DateTime date) {
-    _selectedDate = date;
-    _filterSchedulesByDate();
-    notifyListeners();
-  }
-
-  void nextDate() {
-    _selectedDate = _selectedDate.add(const Duration(days: 1));
-    _filterSchedulesByDate();
-    notifyListeners();
-  }
-
-  void previousDate() {
-    _selectedDate = _selectedDate.subtract(const Duration(days: 1));
-    _filterSchedulesByDate();
+    if (!_isWeekView) {
+      _selectedDate = DateTime.now();
+      _filterSchedulesByDate();
+    }
     notifyListeners();
   }
 
@@ -62,6 +62,11 @@ class ScheduleViewModel extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+  void setSelectedDate(DateTime date) {
+    _selectedDate = date;
+    _filterSchedulesByDate();
+    notifyListeners();
   }
 
   Future<void> refreshSchedules() async {
@@ -84,10 +89,42 @@ class ScheduleViewModel extends ChangeNotifier {
     }).toList();
   }
 
+  void previousWeek() {
+    final startOfWeek = _selectedDate.subtract(Duration(days: _selectedDate.weekday - 1));
+    _selectedDate = startOfWeek.subtract(const Duration(days: 7));
+    notifyListeners();
+  }
+
+  void nextWeek() {
+    final startOfWeek = _selectedDate.subtract(Duration(days: _selectedDate.weekday - 1));
+    _selectedDate = startOfWeek.add(const Duration(days: 7));
+    notifyListeners();
+  }
+
+  List<StudentScheduleModel> getSchedulesForWeek(DateTime date) {
+    final startOfWeek = date.subtract(Duration(days: date.weekday - 1));
+    final endOfWeek = startOfWeek.add(const Duration(days: 6));
+    return _schedules.where((s) {
+      if (s.teachingDate == null) return false;
+      final d = s.teachingDate!;
+      return !d.isBefore(startOfWeek) && !d.isAfter(endOfWeek);
+    }).toList();
+  }
+
   List<DateTime> getWeekDates() {
-    final today = DateTime.now();
-    final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
-    return List.generate(7, (index) => startOfWeek.add(Duration(days: index)));
+    final startOfWeek = _selectedDate.subtract(Duration(days: _selectedDate.weekday - 1));
+    return List.generate(7, (i) => startOfWeek.add(Duration(days: i)));
+  }
+
+  String getVietnameseType(String? type) {
+    switch (type) {
+      case "LY_THUYET":
+        return "Lý thuyết";
+      case "THUC_HANH":
+        return "Thực hành";
+      default:
+        return "Khác";
+    }
   }
 
   String getVietnameseDayName(int weekday) {

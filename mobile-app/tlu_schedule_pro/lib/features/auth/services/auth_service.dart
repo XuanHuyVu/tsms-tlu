@@ -8,9 +8,29 @@ import '../../../shared/models/user_entity.dart';
 
 class AuthService {
   /// Base URL configuration
-  static String get baseUrl => kIsWeb ? 'http://localhost:8080' : 'http://10.0.2.2:8080';
+  static String get baseUrl =>
+      kIsWeb ? 'http://localhost:8080' : 'http://10.0.2.2:8080';
 
-  /// Login and return UserEntity
+  /// Danh sách các key auth cần xoá khi login/logout
+  /// 👉 Thêm helper để tránh lặp code nhiều lần
+  static const _authKeys = [
+    'token',
+    'username',
+    'role',
+    'id',
+    'teacherId',
+    'studentId',
+    'fullName',
+  ];
+
+  /// Helper xoá toàn bộ key auth
+  static Future<void> _clearAuthKeys(SharedPreferences prefs) async {
+    for (final key in _authKeys) {
+      await prefs.remove(key);
+    }
+  }
+
+  /// Login và trả về UserEntity
   static Future<UserEntity> login(String username, String password) async {
     final uri = Uri.parse('$baseUrl/api/auth/login');
 
@@ -20,7 +40,8 @@ class AuthService {
     }
 
     try {
-      final response = await http.post(
+      final response = await http
+          .post(
         uri,
         headers: const {
           'Content-Type': 'application/json',
@@ -30,7 +51,8 @@ class AuthService {
           'username': username,
           'password': password,
         }),
-      ).timeout(const Duration(seconds: 15));
+      )
+          .timeout(const Duration(seconds: 15));
 
       // Debug response
       if (kDebugMode) {
@@ -43,13 +65,13 @@ class AuthService {
         final data = jsonDecode(response.body);
         final user = UserEntity.fromJson(data);
 
-        // Save to SharedPreferences with detailed debug
         final prefs = await SharedPreferences.getInstance();
 
-        // Clear any existing data first
-        await prefs.clear();
+        // ❌ Sửa: trước đây code gọi remove từng key
+        // ✅ Nay dùng _clearAuthKeys cho gọn
+        await _clearAuthKeys(prefs);
 
-        // Save new data
+        // Lưu dữ liệu mới
         await prefs.setString('token', user.token);
         await prefs.setString('username', user.username);
         await prefs.setString('role', user.role);
@@ -65,21 +87,17 @@ class AuthService {
           await prefs.setString('fullName', user.fullName!);
         }
 
-        // Verify saved data
+        // Debug verify
         if (kDebugMode) {
           print('✅ LOGIN SUCCESSFUL');
           print('🔑 Token received: ${user.token}');
           print('🔑 Token length: ${user.token.length}');
           print('💾 Token saved to SharedPreferences: ${prefs.getString('token')}');
           print('👤 User details saved:');
-          print('   - username: ${prefs.getString('username')}');
-          print('   - role: ${prefs.getString('role')}');
-          print('   - id: ${prefs.getInt('id')}');
-          print('   - teacherId: ${prefs.getInt('teacherId')}');
-          print('   - studentId: ${prefs.getInt('studentId')}');
-          print('   - fullName: ${prefs.getString('fullName')}');
+          for (final key in _authKeys) {
+            print('   - $key: ${prefs.get(key)}');
+          }
 
-          // Verify token match
           final savedToken = prefs.getString('token');
           if (savedToken == user.token) {
             print('✅ Token verification: MATCHED');
@@ -92,7 +110,7 @@ class AuthService {
 
         return user;
       } else {
-        // Handle error responses
+        // Xử lý lỗi
         String errorMessage = 'Login failed (${response.statusCode})';
         try {
           final errorData = jsonDecode(response.body);
@@ -107,11 +125,11 @@ class AuthService {
             print('⚠️ Error parsing error response: $e');
           }
         }
-
         throw Exception(errorMessage);
       }
     } on TimeoutException {
-      throw Exception('Connection timeout. Please check your network and try again.');
+      throw Exception(
+          'Connection timeout. Please check your network and try again.');
     } on http.ClientException catch (e) {
       throw Exception('Network error: ${e.message}');
     } catch (e) {
@@ -122,7 +140,7 @@ class AuthService {
     }
   }
 
-  /// Get token from local storage with debug
+  /// Lấy token từ SharedPreferences
   static Future<String?> getToken() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -133,12 +151,10 @@ class AuthService {
         print('   - Token exists: ${token != null}');
         print('   - Token length: ${token?.length ?? 0}');
         if (token != null) {
-          print('   - Token first 20 chars: ${token.substring(0, token.length > 20 ? 20 : token.length)}...');
+          print(
+              '   - Token first 20 chars: ${token.substring(0, token.length > 20 ? 20 : token.length)}...');
         }
-
-        // Print all keys for debugging
-        final allKeys = prefs.getKeys();
-        print('   - All SharedPreferences keys: $allKeys');
+        print('   - All SharedPreferences keys: ${prefs.getKeys()}');
       }
 
       return token;
@@ -150,19 +166,16 @@ class AuthService {
     }
   }
 
-  /// Get current user with detailed debug
+  /// Lấy user hiện tại từ SharedPreferences
   static Future<UserEntity?> getCurrentUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
 
       if (kDebugMode) {
         print('🔍 Retrieving current user from SharedPreferences:');
-        final allKeys = prefs.getKeys();
-        print('   - Available keys: $allKeys');
-
-        for (var key in allKeys) {
+        for (var key in prefs.getKeys()) {
           final value = prefs.get(key);
-          print('     $key: $value (${value.runtimeType})');
+          print('   - $key: $value (${value.runtimeType})');
         }
       }
 
@@ -177,10 +190,6 @@ class AuthService {
       if (token == null || username == null || role == null || id == null) {
         if (kDebugMode) {
           print('❌ Incomplete user data in SharedPreferences');
-          print('   - token: $token');
-          print('   - username: $username');
-          print('   - role: $role');
-          print('   - id: $id');
         }
         return null;
       }
@@ -197,14 +206,6 @@ class AuthService {
 
       if (kDebugMode) {
         print('✅ Current user retrieved successfully');
-        print('👤 User details:');
-        print('   - username: ${user.username}');
-        print('   - role: ${user.role}');
-        print('   - id: ${user.id}');
-        print('   - teacherId: ${user.teacherId}');
-        print('   - studentId: ${user.studentId}');
-        print('   - fullName: ${user.fullName}');
-        print('   - token length: ${user.token.length}');
       }
 
       return user;
@@ -216,7 +217,7 @@ class AuthService {
     }
   }
 
-  /// Logout with debug
+  /// Logout với debug
   static Future<void> logout() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -224,13 +225,22 @@ class AuthService {
       if (kDebugMode) {
         print('🚪 Logging out - Clearing SharedPreferences');
         print('   - Current token: ${prefs.getString('token')}');
+        // ❌ Sửa: trước đây log nhầm 'avatar'
+        // ✅ Đúng phải là 'profile_avatar_base64'
+        print(
+            '   - Current avatar: ${prefs.getString('profile_avatar_base64')}');
       }
 
-      await prefs.clear();
+      // ❌ Sửa: trước đây gọi remove từng key
+      // ✅ Nay dùng helper _clearAuthKeys
+      await _clearAuthKeys(prefs);
 
       if (kDebugMode) {
-        print('✅ Logout successful - SharedPreferences cleared');
+        print('✅ Logout successful - Auth keys cleared');
         print('   - Token after clear: ${prefs.getString('token')}');
+        // Avatar giữ nguyên (không xoá)
+        print(
+            '   - Avatar still exists: ${prefs.getString('profile_avatar_base64')}');
       }
     } catch (e) {
       if (kDebugMode) {
@@ -240,7 +250,7 @@ class AuthService {
     }
   }
 
-  /// Additional method to verify token consistency
+  /// Kiểm tra token trong prefs có khớp với UserEntity không
   static Future<bool> verifyTokenConsistency() async {
     try {
       final prefs = await SharedPreferences.getInstance();

@@ -1,5 +1,6 @@
 package com.example.tsmstlu.dto.student_class_section;
 
+import com.example.tsmstlu.dto.class_section.ClassSectionDto;
 import com.example.tsmstlu.dto.class_section.ClassSectionResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +12,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StudentClassSectionListDto {
-    private Long id;
-    private ClassSectionResponseDto classSection;
+    private ClassSectionDto classSection;
     private Long studentCount;
 }

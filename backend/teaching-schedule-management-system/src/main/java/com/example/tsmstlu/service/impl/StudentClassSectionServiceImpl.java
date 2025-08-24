@@ -60,7 +60,7 @@ public class StudentClassSectionServiceImpl implements StudentClassSectionServic
                     ClassSectionEntity classSection = (ClassSectionEntity) obj[0];
                     Long studentCount = (Long) obj[1];
                     return StudentClassSectionListDto.builder()
-                            .classSection(mapper.toClassSectionResponseDto(classSection))
+                            .classSection(mapper.toClassSectionDetailDto(classSection))
                             .studentCount(studentCount)
                             .build();
                 })

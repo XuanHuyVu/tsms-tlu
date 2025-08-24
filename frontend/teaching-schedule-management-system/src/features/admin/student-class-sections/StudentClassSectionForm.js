@@ -4,60 +4,153 @@ import { FaChevronDown, FaTrash } from "react-icons/fa";
 import * as XLSX from "xlsx";
 import axiosInstance from "../../../api/axiosInstance";
 import StudentClassSectionApi from "../../../api/StudentClassSectionApi";
-import { useAuth } from "../../../contexts/AuthContext";
 import "../../../styles/StudentClassSectionForm.css";
 import AppToast from "../../../components/AppToast";
 
-/* -------------------- helpers -------------------- */
-async function loadClassSections(search = "") {
-  const { data } = await axiosInstance.get("/admin/class-sections", {
-    params: { search: search?.trim() || undefined },
-  });
-  return Array.isArray(data) ? data : data?.content || [];
-}
-async function loadClassSectionDetail(id) {
-  const { data } = await axiosInstance.get(`/admin/class-sections/${id}`);
-  return data;
-}
-async function loadStudents(search = "") {
-  const { data } = await axiosInstance.get("/admin/students", {
-    params: { search: search?.trim() || undefined },
-  });
-  const list = Array.isArray(data) ? data : data?.content || [];
-  return list.map((s) => ({
-    id: s.id ?? s.studentId,
-    code: s.code ?? s.studentCode,
-    fullName: s.fullName ?? s.name,
-    className: s.className ?? s.classGroup ?? s.classCode ?? "",
-  }));
-}
-function mapAssignmentToRow(raw) {
+/* ======================= Helpers ======================= */
+// Chuẩn hóa dữ liệu sinh viên
+function normalizeStudentRow(raw) {
   const st = raw?.student || {};
   return {
-    studentId: st?.id ?? raw?.studentId,
-    code: st?.studentCode ?? st?.code ?? raw?.studentCode ?? raw?.code ?? "",
-    fullName: st?.fullName ?? raw?.fullName ?? "",
+    studentId: raw?.studentId ?? st?.id ?? raw?.id ?? null,
+    code: raw?.studentCode ?? st?.studentCode ?? st?.code ?? raw?.code ?? "",
+    fullName: raw?.fullName ?? st?.fullName ?? "",
     className:
-      raw?.className ??
-      st?.className ??
-      st?.classGroup ??
-      st?.classCode ??
-      "",
+      raw?.className ?? st?.className ?? st?.classGroup ?? st?.classCode ?? "",
   };
 }
 
+// Lấy chi tiết sinh viên theo ID (để bổ sung nếu thiếu code/className)
+async function fetchStudentDetailById(id) {
+  try {
+    const { data } = await axiosInstance.get(`/admin/students/${id}`);
+    const d = Array.isArray(data) ? data[0] : data || {};
+    return {
+      id: d.id ?? d.studentId ?? id,
+      code: d.code ?? d.studentCode ?? "",
+      fullName: d.fullName ?? d.name ?? "",
+      className: d.className ?? d.classGroup ?? d.classCode ?? "",
+    };
+  } catch {
+    try {
+      const { data } = await axiosInstance.get(`/admin/students`, {
+        params: { search: String(id) },
+      });
+      const list = Array.isArray(data) ? data : data?.content || [];
+      const d =
+        list.find((x) => String(x.id ?? x.studentId) === String(id)) ||
+        list[0] ||
+        {};
+      return {
+        id: d.id ?? d.studentId ?? id,
+        code: d.code ?? d.studentCode ?? "",
+        fullName: d.fullName ?? d.name ?? "",
+        className: d.className ?? d.classGroup ?? d.classCode ?? "",
+      };
+    } catch {
+      return { id, code: "", fullName: "", className: "" };
+    }
+  }
+}
+
+// Tải danh sách lớp học phần
+async function loadClassSections(search = "") {
+  try {
+    const { data } = await axiosInstance.get("/admin/class-sections", {
+      params: { search: search?.trim() || undefined },
+    });
+    return Array.isArray(data) ? data : data?.content || [];
+  } catch (error) {
+    console.error("Error loading class sections:", error);
+    return [];
+  }
+}
+
+// Tải chi tiết lớp học phần
+async function loadClassSectionDetail(id) {
+  try {
+    const { data } = await axiosInstance.get(`/admin/class-sections/${id}`);
+    return data;
+  } catch (error) {
+    console.error("Error loading class section detail:", error);
+    return null;
+  }
+}
+
+// Tải danh sách sinh viên (global search cho combobox)
+async function loadStudents(search = "") {
+  try {
+    const { data } = await axiosInstance.get("/admin/students", {
+      params: { search: search?.trim() || undefined },
+    });
+    const list = Array.isArray(data) ? data : data?.content || [];
+    return list.map((s) => ({
+      id: s.id ?? s.studentId,
+      code: s.code ?? s.studentCode,
+      fullName: s.fullName ?? s.name,
+      className: s.className ?? s.classGroup ?? s.classCode ?? "",
+    }));
+  } catch (error) {
+    console.error("Error loading students:", error);
+    return [];
+  }
+}
+
+// Tải danh sách sinh viên đang ở trong lớp học phần (API mới)
+async function preloadStudentsOfSection(sectionId) {
+  try {
+    const list = await StudentClassSectionApi.listStudentsInSection(sectionId);
+    let rows = list.map(normalizeStudentRow);
+
+    // Bổ sung nếu thiếu thông tin
+    const needIds = Array.from(
+      new Set(
+        rows
+          .filter((r) => (!r.code || !r.className) && r.studentId)
+          .map((r) => r.studentId)
+      )
+    );
+    if (needIds.length) {
+      const CHUNK = 10;
+      const details = [];
+      for (let i = 0; i < needIds.length; i += CHUNK) {
+        const chunk = needIds.slice(i, i + CHUNK);
+        const part = await Promise.all(chunk.map((id) => fetchStudentDetailById(id)));
+        details.push(...part);
+      }
+      const dById = new Map(details.map((d) => [String(d.id), d]));
+      rows = rows.map((r) => {
+        if (r.code && r.className) return r;
+        const d = dById.get(String(r.studentId));
+        return d
+          ? {
+              ...r,
+              code: r.code || d.code || "",
+              fullName: r.fullName || d.fullName || "",
+              className: r.className || d.className || "",
+            }
+          : r;
+      });
+    }
+    return rows;
+  } catch (err) {
+    console.error("Error loading students in section:", err);
+    return [];
+  }
+}
+
+/* ======================= Component ======================= */
 export default function StudentClassSectionForm({
   open,
-  // null hoặc {_mode:'edit', studentId?, classSectionId?, name?} hoặc {id|classSectionId|sectionId, name?}
   initialSection = null,
   onClose,
   onSuccess,
 }) {
   const toastRef = useRef(null);
   const fileRef = useRef(null);
-  const { ready, isLoggedIn } = useAuth();
 
-  // Chuẩn hóa tham số edit
+  // Cho phép vào edit-mode bằng _mode: 'edit' hoặc có id
+  const requestedEdit = initialSection?._mode === "edit";
   const editSectionId = useMemo(
     () =>
       initialSection?.classSectionId ??
@@ -66,14 +159,12 @@ export default function StudentClassSectionForm({
       null,
     [initialSection]
   );
-  const editStudentId = initialSection?.studentId ?? null;
-  const isEdit = Boolean(editSectionId || editStudentId || initialSection?.name);
-  const isEditByPair = Boolean(editSectionId && editStudentId);
+  const isEdit = Boolean(requestedEdit || editSectionId);
 
+  // State chính
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // LHP
   const [sectionKeyword, setSectionKeyword] = useState(initialSection?.name || "");
   const [sections, setSections] = useState([]);
   const [selectedSection, setSelectedSection] = useState(
@@ -82,90 +173,98 @@ export default function StudentClassSectionForm({
   const [secOpen, setSecOpen] = useState(false);
   const secBoxRef = useRef(null);
 
-  // SV & chọn
   const [studentKeyword, setStudentKeyword] = useState("");
-  const [students, setStudents] = useState([]);
+  const [students, setStudents] = useState([]); // nguồn cho combobox
   const [selectedStudentCode, setSelectedStudentCode] = useState("");
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [selectedList, setSelectedList] = useState([]);
-  const [existingCodes, setExistingCodes] = useState(new Set());
 
-  // combobox MSV
+  const [selectedList, setSelectedList] = useState([]); // bảng hiển thị
+  const [existingCodes, setExistingCodes] = useState(new Set()); // SV đã ở trong lớp (dùng phân biệt thêm mới / xoá trên BE)
+
   const [msvOpen, setMsvOpen] = useState(false);
   const msvBoxRef = useRef(null);
   const msvInputRef = useRef(null);
 
-  /* -------------------- init -------------------- */
+  /* ======================= Init / Preload ======================= */
   useEffect(() => {
-    if (!ready || !isLoggedIn || !open) return;
+    if (!open) return;
     let cancelled = false;
 
     (async () => {
       try {
         setLoading(true);
-        const [sec, stds] = await Promise.all([
-          loadClassSections(""),
-          loadStudents(""),
-        ]);
+
+        // 1) Tải dữ liệu nền
+        const [sec, stds] = await Promise.all([loadClassSections(""), loadStudents("")]);
         if (cancelled) return;
         setSections(sec);
         setStudents(stds);
 
-        // Lấy chi tiết LHP để hiện thông tin
-        if (editSectionId) {
-          try {
-            const detail = await loadClassSectionDetail(editSectionId);
+        // 2) Nếu là "Sửa": khóa chọn lớp + preload thông tin & DS SV
+        if (isEdit) {
+          // 2a) Resolve id nếu chưa có, dựa theo name
+          let resolvedId = editSectionId ?? null;
+          if (!resolvedId && initialSection?.name) {
+            try {
+              const cand = await loadClassSections(initialSection.name);
+              const picked =
+                cand.find(
+                  (x) => String(x?.name).trim() === String(initialSection.name).trim()
+                ) || cand[0];
+              if (picked?.id) resolvedId = picked.id;
+              if (!cancelled && picked) {
+                setSelectedSection(picked);
+                setSectionKeyword(picked?.name || initialSection?.name || "");
+              }
+            } catch (e) {
+              console.warn("Resolve sectionId by name failed", e);
+            }
+          }
+
+          // 2b) Lấy detail bằng id (nếu resolve được)
+          if (resolvedId) {
+            const detail = await loadClassSectionDetail(resolvedId);
             if (!cancelled) {
-              setSelectedSection(detail);
+              setSelectedSection(detail || { id: resolvedId, name: initialSection?.name });
               setSectionKeyword(detail?.name || initialSection?.name || "");
             }
-          } catch {
-            const fallback =
-              sec.find((s) => String(s.id) === String(editSectionId)) || null;
-            setSelectedSection(fallback);
-            setSectionKeyword(fallback?.name || initialSection?.name || "");
-          }
-        }
 
-        // Nếu edit theo cặp {studentId}/{classSectionId} -> load đúng 1 sinh viên
-        if (isEditByPair) {
-          try {
-            const pair = await StudentClassSectionApi.getByPair(
-              editStudentId,
-              editSectionId
-            );
-            const row = mapAssignmentToRow(pair);
-            if (row?.code) {
-              setSelectedList([row]);
-              setExistingCodes(new Set([row.code]));
-              // hợp nhất vào kho students để dropdown thấy được
-              setStudents((prev) => {
-                const byCode = new Map(prev.map((x) => [String(x.code).trim(), x]));
-                const key = String(row.code).trim();
-                if (!byCode.has(key)) {
-                  byCode.set(key, {
-                    id: row.studentId,
-                    code: row.code,
-                    fullName: row.fullName,
-                    className: row.className,
+            // 2c) Preload danh sách SV đang ở trong lớp
+            const rows = await preloadStudentsOfSection(resolvedId);
+            if (!cancelled) {
+              setSelectedList(rows);
+              const exist = new Set(rows.filter((r) => r.code).map((r) => r.code));
+              setExistingCodes(exist);
+
+              // Merge DS SV cho combobox (đảm bảo có đủ các SV đã ở lớp)
+              const byCode = new Map(stds.map((s) => [s.code, s]));
+              rows.forEach((r) => {
+                if (r.code && !byCode.has(r.code)) {
+                  byCode.set(r.code, {
+                    id: r.studentId,
+                    code: r.code,
+                    fullName: r.fullName,
+                    className: r.className,
                   });
                 }
-                return Array.from(byCode.values());
               });
-              setSelectedStudentCode(String(row.code));
-            } else {
-              setSelectedList([]);
-              setExistingCodes(new Set());
+              setStudents(Array.from(byCode.values()));
             }
-          } catch {
-            setSelectedList([]);
-            setExistingCodes(new Set());
+          } else {
+            // Không resolve được id -> báo lỗi nhẹ, vẫn cho chọn lại hoặc đóng form
+            if (!cancelled) {
+              toastRef.current?.error(
+                "Không xác định được lớp học phần để sửa (thiếu ID)."
+              );
+            }
           }
         } else {
+          // 3) Tạo mới -> clear bảng
           setSelectedList([]);
           setExistingCodes(new Set());
         }
-      } catch {
+      } catch (error) {
+        console.error("Initialization error:", error);
         if (!cancelled) toastRef.current?.error("Không thể tải dữ liệu ban đầu");
       } finally {
         if (!cancelled) setLoading(false);
@@ -175,36 +274,34 @@ export default function StudentClassSectionForm({
     return () => {
       cancelled = true;
     };
-  }, [
-    open,
-    ready,
-    isLoggedIn,
-    isEditByPair,
-    editSectionId,
-    editStudentId,
-    initialSection,
-  ]);
+  }, [open, isEdit, editSectionId, initialSection]);
 
-  /* -------------------- search LHP (debounce) -------------------- */
+  /* ======================= Search ======================= */
+  // Tìm kiếm lớp học phần (khóa hẳn khi là Sửa)
   useEffect(() => {
-    const locked = isEdit && selectedSection?.id;
-    if (!open || !ready || !isLoggedIn || locked) return;
+    const locked = isEdit;
+    if (!open || locked) return;
+
     let cancelled = false;
     const t = setTimeout(async () => {
       try {
         const sec = await loadClassSections(sectionKeyword);
         if (!cancelled) setSections(sec);
-      } catch {}
+      } catch (error) {
+        console.error("Error searching class sections:", error);
+      }
     }, 300);
+
     return () => {
       cancelled = true;
       clearTimeout(t);
     };
-  }, [sectionKeyword, open, ready, isLoggedIn, isEdit, selectedSection]);
+  }, [sectionKeyword, open, isEdit]);
 
-  /* -------------------- search SV (debounce) -------------------- */
+  // Tìm kiếm sinh viên
   useEffect(() => {
-    if (!open || !ready || !isLoggedIn) return;
+    if (!open) return;
+
     let cancelled = false;
     const t = setTimeout(async () => {
       try {
@@ -213,31 +310,35 @@ export default function StudentClassSectionForm({
           const byCode = new Map(stds.map((x) => [String(x.code).trim(), x]));
           selectedList.forEach((r) => {
             const k = String(r.code).trim();
-            if (!byCode.has(k))
+            if (!byCode.has(k) && r.code) {
               byCode.set(k, {
                 id: r.studentId,
                 code: r.code,
                 fullName: r.fullName,
                 className: r.className,
               });
+            }
           });
           setStudents(Array.from(byCode.values()));
         }
-      } catch {}
+      } catch (error) {
+        console.error("Error searching students:", error);
+      }
     }, 250);
+
     return () => {
       cancelled = true;
       clearTimeout(t);
     };
-  }, [studentKeyword, open, ready, isLoggedIn, selectedList]);
+  }, [studentKeyword, open, selectedList]);
 
-  /* -------------------- map MSV -> info -------------------- */
+  /* ======================= Student Lookup ======================= */
   const studentLookup = useMemo(() => {
     const map = new Map();
     students.forEach((s) => map.set(String(s.code).trim(), s));
     selectedList.forEach((r) => {
       const key = String(r.code).trim();
-      if (!map.has(key)) {
+      if (key && !map.has(key)) {
         map.set(key, {
           id: r.studentId,
           code: r.code,
@@ -258,7 +359,7 @@ export default function StudentClassSectionForm({
     setSelectedStudent(found || null);
   }, [selectedStudentCode, studentLookup]);
 
-  /* -------------------- click outside / ESC -------------------- */
+  /* ======================= Outside click / ESC ======================= */
   useEffect(() => {
     const onDown = (e) => {
       if (msvOpen && msvBoxRef.current && !msvBoxRef.current.contains(e.target))
@@ -280,33 +381,22 @@ export default function StudentClassSectionForm({
     };
   }, [msvOpen, secOpen]);
 
-  /* -------------------- info hiển thị -------------------- */
+  /* ======================= Section Info ======================= */
   const info = useMemo(() => {
     const cs = selectedSection || {};
-    const department =
-      cs.department?.name ||
-      cs.subject?.department?.name ||
-      cs.teacher?.department?.name ||
-      cs.departmentName ||
-      "";
-    const faculty =
-      cs.faculty?.name || cs.subject?.faculty?.name || cs.facultyName || "";
     return {
-      faculty,
-      department,
+      faculty: cs.faculty?.name || cs.subject?.faculty?.name || cs.facultyName || "",
+      department:
+        cs.department?.name || cs.subject?.department?.name || cs.departmentName || "",
       teacher: cs.teacher?.fullName || cs.teacherName || "",
-      semester:
-        cs.semester?.name ||
-        cs.semester?.term ||
-        cs.semester?.academicYear ||
-        "",
+      semester: cs.semester?.name || cs.semester?.term || cs.semester?.academicYear || "",
       subject: cs.subject?.name || cs.subjectName || "",
       room: cs.room?.name || cs.roomName || "",
       sectionName: cs.name || "",
     };
   }, [selectedSection]);
 
-  /* -------------------- add/remove -------------------- */
+  /* ======================= Add/Remove student ======================= */
   const addStudent = () => {
     const code = String(selectedStudentCode || "").trim();
     const found = studentLookup.get(code);
@@ -327,11 +417,36 @@ export default function StudentClassSectionForm({
     setSelectedStudent(null);
     setMsvOpen(false);
   };
-  const removeStudent = (code) => {
+
+  const removeStudent = async (code) => {
+    const target = selectedList.find((x) => x.code === code);
+    if (!target) return;
+
+    // Nếu đang Sửa & sinh viên đã tồn tại trong lớp -> gọi DELETE API
+    if (isEdit && selectedSection?.id && existingCodes.has(code)) {
+      try {
+        await StudentClassSectionApi.removeStudentFromSection(
+          selectedSection.id,
+          target.studentId
+        );
+        setExistingCodes((prev) => {
+          const n = new Set(prev);
+          n.delete(code);
+          return n;
+        });
+        toastRef.current?.success("Đã xoá khỏi lớp học phần");
+      } catch (e) {
+        console.error("removeStudent error", e);
+        toastRef.current?.error("Xoá thất bại");
+        return; // giữ nguyên UI nếu BE xoá thất bại
+      }
+    }
+
+    // Cập nhật UI
     setSelectedList((prev) => prev.filter((x) => x.code !== code));
   };
 
-  /* -------------------- excel -------------------- */
+  /* ======================= Excel ======================= */
   const downloadTemplate = () => {
     const wb = XLSX.utils.book_new();
     const wsData = [
@@ -430,9 +545,7 @@ export default function StudentClassSectionForm({
       const finalAdd = [...toAdd, ...resolved];
       setSelectedList((prev) => [...prev, ...finalAdd]);
 
-      const missing = notFound.filter(
-        (c) => !finalAdd.some((x) => x.code === c)
-      );
+      const missing = notFound.filter((c) => !finalAdd.some((x) => x.code === c));
       const ok = finalAdd.length;
       if (ok > 0) toastRef.current?.success(`Đã thêm ${ok} sinh viên từ Excel.`);
       if (missing.length > 0) {
@@ -449,57 +562,49 @@ export default function StudentClassSectionForm({
     }
   };
 
-  /* -------------------- submit -------------------- */
+  /* ======================= Submit ======================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedSection?.id)
       return toastRef.current?.error("Vui lòng chọn lớp học phần");
 
+    if (selectedList.length === 0)
+      return toastRef.current?.error("Vui lòng thêm ít nhất 1 sinh viên");
+
     try {
       setSaving(true);
 
-      if (isEditByPair) {
-        if (selectedList.length !== 1) {
-          return toastRef.current?.error(
-            "Chế độ sửa: vui lòng chọn đúng 1 sinh viên để cập nhật"
-          );
-        }
-        const s = selectedList[0];
-        const body = {
-          studentId: s.studentId,
-          classSectionId: selectedSection.id,
-        };
-        await StudentClassSectionApi.updatePair(
-          editStudentId,
-          editSectionId,
-          body
-        );
-        toastRef.current?.success("Cập nhật đăng ký thành công.");
-        onSuccess?.([body], "update");
-        return;
-      }
-
-      if (selectedList.length === 0)
-        return toastRef.current?.error("Vui lòng thêm ít nhất 1 sinh viên");
-
-      const listToPost = selectedList
-        .filter((it) => !existingCodes.has(it.code))
-        .map((s) => ({
-          studentId: s.studentId,
-          classSectionId: selectedSection.id,
-        }));
-
-      if (listToPost.length === 0) {
+      // Chỉ gửi những SV CHƯA có trong lớp (dựa theo existingCodes)
+      const listToAdd = selectedList.filter((it) => !existingCodes.has(it.code));
+      if (listToAdd.length === 0) {
         toastRef.current?.success("Không có bản ghi mới cần đăng ký.");
-        onSuccess?.([], "update");
+        onSuccess?.([], isEdit ? "update" : "create");
         return;
       }
 
-      await StudentClassSectionApi.bulkCreate(listToPost);
-      toastRef.current?.success(
-        `Đăng ký thành công ${listToPost.length} sinh viên.`
+      // POST từng sinh viên theo API mới
+      for (const it of listToAdd) {
+        await StudentClassSectionApi.addStudentToSection(
+          selectedSection.id,
+          it.studentId
+        );
+      }
+
+      toastRef.current?.success(`Đăng ký thành công ${listToAdd.length} sinh viên.`);
+      // cập nhật existingCodes
+      setExistingCodes((prev) => {
+        const n = new Set(prev);
+        listToAdd.forEach((it) => n.add(it.code));
+        return n;
+      });
+
+      onSuccess?.(
+        listToAdd.map((s) => ({
+          studentId: s.studentId,
+          classSectionId: selectedSection.id,
+        })),
+        isEdit ? "update" : "create"
       );
-      onSuccess?.(listToPost, "create");
     } catch (err) {
       console.error("[SCS-Form] submit error", err);
       toastRef.current?.error("Thao tác thất bại");
@@ -521,10 +626,8 @@ export default function StudentClassSectionForm({
     onClose?.();
   };
 
-  // ---- Dropdown MSV (đặt sau toàn bộ hooks, KHÔNG return sớm) ----
-  const keyword = (studentKeyword || selectedStudentCode || "")
-    .trim()
-    .toLowerCase();
+  /* ======================= Combobox options ======================= */
+  const keyword = (studentKeyword || selectedStudentCode || "").trim().toLowerCase();
 
   const inClassOptions = useMemo(() => {
     const base = selectedList.map((r) => ({
@@ -554,8 +657,10 @@ export default function StudentClassSectionForm({
     return arr.slice(0, 50);
   }, [students, inClassOptions, keyword]);
 
-  // ---- Render điều kiện ở CUỐI, không return sớm trước hooks ----
-  return !open ? null : (
+  /* ======================= Render ======================= */
+  if (!open) return null;
+
+  return (
     <div
       className="scsf-backdrop"
       role="dialog"
@@ -581,28 +686,19 @@ export default function StudentClassSectionForm({
         {/* Form tổng */}
         <form className="scsf-form" onSubmit={handleSubmit}>
           <div className="scsf-body">
-            {/* ... (phần thân giữ nguyên như trước: chọn LHP, info, combobox MSV, bảng SV, nút Excel) ... */}
-            {/* Để ngắn gọn: phần JSX ở đây giống hệt phiên bản trước của bạn,
-                chỉ khác ở cách return cuối file. */}
-            {/* --- Lớp học phần, info, block sinh viên: dùng lại cùng code JSX trước --- */}
-            {/* --------- LỚP HỌC PHẦN --------- */}
+            {/* LỚP HỌC PHẦN */}
             <label className="scsf-label">
               Lớp học phần: <span className="req">*</span>
             </label>
             <div className="scsf-select-row">
               <div
                 ref={secBoxRef}
-                className={`scsf-select ${
-                  loading || (isEdit && selectedSection?.id) ? "disabled" : ""
-                }`}
+                className={`scsf-select ${loading || isEdit ? "disabled" : ""}`}
                 onClick={() => {
-                  if (!(isEdit && selectedSection?.id)) setSecOpen(true);
+                  if (!isEdit) setSecOpen(true);
                 }}
                 onKeyDown={(e) => {
-                  if (
-                    !(isEdit && selectedSection?.id) &&
-                    ["Enter", " ", "ArrowDown"].includes(e.key)
-                  )
+                  if (!isEdit && ["Enter", " ", "ArrowDown"].includes(e.key))
                     setSecOpen(true);
                 }}
                 role="button"
@@ -614,36 +710,29 @@ export default function StudentClassSectionForm({
                   placeholder="— Chọn học phần —"
                   value={sectionKeyword}
                   onChange={(e) => {
-                    if (!(isEdit && selectedSection?.id))
-                      setSectionKeyword(e.target.value);
+                    if (!isEdit) setSectionKeyword(e.target.value);
                   }}
                   onFocus={() => {
-                    if (!(isEdit && selectedSection?.id)) setSecOpen(true);
+                    if (!isEdit) setSecOpen(true);
                   }}
                   aria-label="Tìm hoặc chọn lớp học phần"
-                  readOnly={isEdit && selectedSection?.id}
+                  readOnly={isEdit}
                 />
                 <FaChevronDown
                   className="scsf-select-caret"
                   onClick={(e) => {
-                    if (isEdit && selectedSection?.id) return;
+                    if (isEdit) return;
                     e.stopPropagation();
                     setSecOpen((v) => !v);
                   }}
                   style={{
-                    cursor: isEdit && selectedSection?.id ? "default" : "pointer",
-                    opacity: isEdit && selectedSection?.id ? 0.3 : 1,
+                    cursor: isEdit ? "default" : "pointer",
+                    opacity: isEdit ? 0.3 : 1,
                   }}
-                  title={
-                    isEdit && selectedSection?.id
-                      ? ""
-                      : secOpen
-                      ? "Thu gọn"
-                      : "Mở danh sách"
-                  }
+                  title={isEdit ? "" : secOpen ? "Thu gọn" : "Mở danh sách"}
                 />
 
-                {!(isEdit && selectedSection?.id) && secOpen && (
+                {!isEdit && secOpen && (
                   <div
                     className="scsf-select-dropdown"
                     onMouseDown={(e) => e.preventDefault()}
@@ -672,9 +761,7 @@ export default function StudentClassSectionForm({
                           }}
                         >
                           <div className="scsf-dd-name">{cs.name}</div>
-                          <div className="scsf-dd-sub">
-                            {cs.subject?.name || ""}
-                          </div>
+                          <div className="scsf-dd-sub">{cs.subject?.name || ""}</div>
                         </div>
                       ))
                     )}
@@ -716,18 +803,10 @@ export default function StudentClassSectionForm({
               <div className="scsf-block-title-row">
                 <span className="scsf-block-title">Thiết lập sinh viên</span>
                 <div className="scsf-upload-right">
-                  <button
-                    type="button"
-                    className="scsf-btn ghost"
-                    onClick={downloadTemplate}
-                  >
+                  <button type="button" className="scsf-btn ghost" onClick={downloadTemplate}>
                     Tải mẫu Excel
                   </button>
-                  <button
-                    type="button"
-                    className="scsf-btn ghost"
-                    onClick={() => fileRef.current?.click()}
-                  >
+                  <button type="button" className="scsf-btn ghost" onClick={() => fileRef.current?.click()}>
                     Tải lên Excel
                   </button>
                   <input
@@ -769,9 +848,7 @@ export default function StudentClassSectionForm({
                       <div className="scsf-combo-list">
                         {inClassOptions.length > 0 && (
                           <>
-                            <div className="scsf-combo-group-title">
-                              Sinh viên đang chọn
-                            </div>
+                            <div className="scsf-combo-group-title">Sinh viên đang chọn</div>
                             {inClassOptions.map((s) => (
                               <div
                                 key={`in-${s.code}`}
@@ -781,10 +858,7 @@ export default function StudentClassSectionForm({
                                   setSelectedStudentCode(String(s.code));
                                   setStudentKeyword(String(s.code));
                                   setMsvOpen(false);
-                                  setTimeout(
-                                    () => msvInputRef.current?.focus(),
-                                    0
-                                  );
+                                  setTimeout(() => msvInputRef.current?.focus(), 0);
                                 }}
                               >
                                 <div className="code">{s.code}</div>
@@ -796,14 +870,10 @@ export default function StudentClassSectionForm({
                         )}
 
                         {globalOptions.length === 0 ? (
-                          <div className="scsf-combo-empty">
-                            Không có kết quả
-                          </div>
+                          <div className="scsf-combo-empty">Không có kết quả</div>
                         ) : (
                           <>
-                            <div className="scsf-combo-group-title">
-                              Tất cả sinh viên
-                            </div>
+                            <div className="scsf-combo-group-title">Tất cả sinh viên</div>
                             {globalOptions.map((s) => (
                               <div
                                 key={`all-${s.id}-${s.code}`}
@@ -813,10 +883,7 @@ export default function StudentClassSectionForm({
                                   setSelectedStudentCode(String(s.code));
                                   setStudentKeyword(String(s.code));
                                   setMsvOpen(false);
-                                  setTimeout(
-                                    () => msvInputRef.current?.focus(),
-                                    0
-                                  );
+                                  setTimeout(() => msvInputRef.current?.focus(), 0);
                                 }}
                               >
                                 <div className="code">{s.code}</div>
@@ -847,16 +914,13 @@ export default function StudentClassSectionForm({
                   />
                 </div>
                 <div className="scsf-stu-col add">
-                  <button
-                    type="button"
-                    className="scsf-add-student"
-                    onClick={addStudent}
-                  >
-                    {isEditByPair ? "Chọn sinh viên" : "Thêm sinh viên"}
+                  <button type="button" className="scsf-add-student" onClick={addStudent}>
+                    Thêm sinh viên
                   </button>
                 </div>
               </div>
 
+              {/* Bảng SV */}
               <table className="scsf-table">
                 <thead>
                   <tr>
@@ -876,11 +940,11 @@ export default function StudentClassSectionForm({
                     </tr>
                   ) : (
                     selectedList.map((s, i) => (
-                      <tr key={s.code}>
+                      <tr key={`${s.code}-${i}`}>
                         <td>{i + 1}</td>
-                        <td>{s.code}</td>
+                        <td>{s.code || "—"}</td>
                         <td>{s.fullName}</td>
-                        <td>{s.className}</td>
+                        <td>{s.className || "—"}</td>
                         <td style={{ textAlign: "center" }}>
                           <button
                             type="button"
@@ -902,22 +966,11 @@ export default function StudentClassSectionForm({
 
           {/* Footer */}
           <div className="scsf-actions">
-            <button
-              type="button"
-              className="scsf-btn ghost"
-              onClick={closeNow}
-              disabled={saving}
-            >
+            <button type="button" className="scsf-btn ghost" onClick={closeNow} disabled={saving}>
               Hủy bỏ
             </button>
             <button type="submit" className="scsf-btn primary" disabled={saving}>
-              {saving
-                ? isEditByPair
-                  ? "Đang cập nhật..."
-                  : "Đang xử lý..."
-                : isEditByPair
-                ? "Cập nhật"
-                : "Xác nhận"}
+              {saving ? "Đang xử lý..." : "Xác nhận"}
             </button>
           </div>
         </form>

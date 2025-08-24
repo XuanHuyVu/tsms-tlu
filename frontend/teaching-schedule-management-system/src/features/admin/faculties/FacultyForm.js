@@ -117,32 +117,6 @@ const FacultyForm = ({ editData, onClose, onSuccess }) => {
               />
             </div>
 
-            {/* Trưởng khoa (dropdown) */}
-            <div className="form-group">
-              <label>
-                Trưởng khoa: <span>*</span>
-              </label>
-              <div className="select-wrapper">
-                <select
-                  name="deanName"
-                  value={form.deanName}
-                  onChange={handleChangeDean}
-                  required
-                >
-                  <option value="">-- Chọn trưởng khoa --</option>
-                  {teachers.map((t) => (
-                    <option key={t.id} value={t.fullName || ""}>
-                      {t.fullName}
-                    </option>
-                  ))}
-                </select>
-                <span className="select-icon">
-                  <FaChevronDown />
-                </span>
-              </div>
-            </div>
-
-
             {/* Mô tả */}
             <div className="form-group full-width">
               <label>Mô tả:</label>

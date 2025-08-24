@@ -217,7 +217,6 @@ const FacultyList = () => {
             <th>STT</th>
             <th>Mã khoa</th>
             <th>Tên khoa</th>
-            <th>Trưởng khoa</th>
             <th>Số lượng giảng viên</th>
             <th>Số lượng bộ môn</th>
             <th>Thao tác</th>
@@ -229,7 +228,6 @@ const FacultyList = () => {
               <td>{i + 1}</td>
               <td>{f.code}</td>
               <td>{f.name}</td>
-              <td>{f.deanName || "Chưa cập nhật"}</td>
               <td>{f.teacherCount ?? 0}</td>
               <td>{f.departmentCount ?? 0}</td>
               <td className="actions">

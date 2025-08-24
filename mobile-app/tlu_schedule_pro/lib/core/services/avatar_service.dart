@@ -5,6 +5,8 @@ import 'dart:io' show File;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
+
 import 'dart:html' as html;
 
 class AvatarService {
@@ -19,17 +21,15 @@ class AvatarService {
         targetHeight: 300,
       );
       final ui.FrameInfo frameInfo = await codec.getNextFrame();
-
       final byteData =
       await frameInfo.image.toByteData(format: ui.ImageByteFormat.png);
-
       return byteData?.buffer.asUint8List();
     } catch (_) {
       return null;
     }
   }
 
-  /// Lưu avatar vào SharedPreferences + localStorage (web)
+  /// Lưu avatar vào SharedPreferences + localStorage (Web)
   static Future<void> saveAvatar(String base64Image) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_prefsKey, base64Image);
@@ -90,7 +90,7 @@ class AvatarService {
 
     if (bytes == null) return null;
 
-    // resize nếu quá lớn
+    // Resize nếu quá lớn
     if (bytes.length > 500000) {
       final resized = await resizeImage(bytes);
       bytes = resized ?? bytes;
@@ -98,7 +98,6 @@ class AvatarService {
 
     final base64Image = base64Encode(bytes);
     await saveAvatar(base64Image);
-
     return base64Image;
   }
 }

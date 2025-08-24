@@ -7,6 +7,7 @@ import '../widgets/schedule_card.dart';
 import '../widgets/week_calendar.dart';
 import 'profile_screen.dart';
 import 'notification_screen.dart';
+import '../../services/notification_service.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
@@ -24,6 +25,16 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     });
   }
 
+  Future<int> _getUnreadCount() async {
+    try {
+      final service = NotificationService();
+      final notifications = await service.fetchNotifications();
+      return notifications.where((n) => !n.isRead).length;
+    } catch (e) {
+      return 0;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,14 +48,45 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               children: [
                 Image.asset('assets/images/LOGO_THUYLOI.png', height: 28),
                 const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.notifications_rounded),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const NotificationScreen(),
-                      ),
+                FutureBuilder<int>(
+                  future: _getUnreadCount(),
+                  builder: (context, snapshot) {
+                    int unreadCount = snapshot.data ?? 0;
+                    return Stack(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.notifications_rounded),
+                          onPressed: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const NotificationScreen()),
+                            );
+                            setState(() {});
+                          },
+                        ),
+                        if (unreadCount > 0)
+                          Positioned(
+                            right: 4,
+                            top: 4,
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                              child: Text(
+                                '$unreadCount',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                      ],
                     );
                   },
                 ),

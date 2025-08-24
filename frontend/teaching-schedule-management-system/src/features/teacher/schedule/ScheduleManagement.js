@@ -3,17 +3,18 @@ import React, { useEffect, useState, useCallback } from "react";
 import { FaCalendarAlt, FaClock, FaMapMarkerAlt } from "react-icons/fa";
 import { getScheduleChanges } from "../../../api/TeachingScheduleChangeApi";
 import RegisterLeaveModal from "./RegisterLeaveModal";
+import RegisterMakeupModal from "./RegisterMakeupModal"; // <-- thêm import
 import "../../../styles/ScheduleManagement.css";
 
 const ScheduleManagement = () => {
   const [scheduleChanges, setScheduleChanges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [showMakeupModal, setShowMakeupModal] = useState(false); // <-- thêm state
   const [errMsg, setErrMsg] = useState("");
 
   // ===== Helpers =====
   const ts = (v) => {
-    // parse timestamp an toàn, trả về số ms hoặc -Infinity nếu không hợp lệ
     const d = v ? new Date(v) : null;
     return d && !isNaN(d) ? d.getTime() : Number.NEGATIVE_INFINITY;
   };
@@ -25,7 +26,6 @@ const ScheduleManagement = () => {
 
   const sortByCreatedDesc = useCallback((arr) => {
     return [...(Array.isArray(arr) ? arr : [])].sort((a, b) => {
-      // Ưu tiên createdAt ↓, sau đó updatedAt ↓, rồi id ↓
       const ca = ts(a?.createdAt);
       const cb = ts(b?.createdAt);
       if (cb !== ca) return cb - ca;
@@ -94,16 +94,29 @@ const ScheduleManagement = () => {
   // ===== Modal success handler =====
   const handleLeaveSuccess = useCallback(
     (newItem) => {
-      // Nếu modal trả về newItem => thêm vào đầu & sort; nếu không => refetch để đồng bộ
       if (newItem) {
         setScheduleChanges((prev) =>
           sortByCreatedDesc([newItem, ...prev.filter((x) => x?.id !== newItem?.id)])
         );
       } else {
-        // phòng khi modal chưa truyền object trả về
         fetchData();
       }
       setShowLeaveModal(false);
+    },
+    [fetchData, sortByCreatedDesc]
+  );
+
+  // ===== Handler cho dạy bù =====
+  const handleMakeupSuccess = useCallback(
+    (newItem) => {
+      if (newItem) {
+        setScheduleChanges((prev) =>
+          sortByCreatedDesc([newItem, ...prev.filter((x) => x?.id !== newItem?.id)])
+        );
+      } else {
+        fetchData();
+      }
+      setShowMakeupModal(false);
     },
     [fetchData, sortByCreatedDesc]
   );
@@ -117,7 +130,7 @@ const ScheduleManagement = () => {
           <button className="btn-leave" onClick={() => setShowLeaveModal(true)}>
             + Đăng ký nghỉ dạy
           </button>
-          <button className="btn-makeup" disabled>
+          <button className="btn-makeup" onClick={() => setShowMakeupModal(true)}>
             + Đăng ký dạy bù
           </button>
         </div>
@@ -161,11 +174,6 @@ const ScheduleManagement = () => {
                     <FaMapMarkerAlt /> {item?.classSection?.room?.name || "Không rõ"}
                   </p>
                 </div>
-
-                {/* Nếu muốn hiển thị thêm "Ngày tạo" để thấy rõ lý do sắp xếp */}
-                {/* <div className="schedule-meta">
-                  <small>Tạo lúc: {formatDate(item?.createdAt)}</small>
-                </div> */}
               </li>
             );
           })}
@@ -180,7 +188,15 @@ const ScheduleManagement = () => {
           onSuccess={handleLeaveSuccess}
         />
       )}
-      
+
+      {/* Modal đăng ký dạy bù */}
+      {showMakeupModal && (
+        <RegisterMakeupModal
+          isOpen={showMakeupModal}   // <-- truyền isOpen
+          onClose={() => setShowMakeupModal(false)}
+          onSuccess={handleMakeupSuccess}
+        />
+      )}
     </div>
   );
 };

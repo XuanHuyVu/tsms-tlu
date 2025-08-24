@@ -45,7 +45,6 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
           children: [
             _HomeTab(onSeeAll: () => setState(() => _index = 1)),
             const TeacherScheduleScreen(), // dùng chung TeacherScheduleViewModel ở trên
-            const _NotifyTab(),
             const _StatsTab(),
             const _ProfileTab(),
           ],
@@ -183,13 +182,6 @@ class _TopBar extends StatelessWidget {
       ),
     );
   }
-}
-
-class _NotifyTab extends StatelessWidget {
-  const _NotifyTab();
-  @override
-  Widget build(BuildContext context) =>
-      const SafeArea(child: Center(child: Text('Thông báo (đang phát triển)')));
 }
 
 class _StatsTab extends StatelessWidget {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'teacher_profile_screen.dart';
+import 'teacher_notification_screen.dart';
 import '../../viewmodels/teacher_home_viewmodel.dart';
 import '../../viewmodels/teacher_schedule_viewmodel.dart';
 import '../../models/schedule_model.dart';
@@ -11,6 +12,7 @@ import '../widgets/bottom_nav_bar.dart';
 import '../widgets/stats_panel.dart';
 import 'teacher_schedule_screen.dart';
 import 'teacher_stat_screen.dart';
+
 class TeacherHomeScreen extends StatefulWidget {
   const TeacherHomeScreen({super.key});
 
@@ -44,7 +46,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
           index: _index,
           children: [
             _HomeTab(onSeeAll: () => setState(() => _index = 1)),
-            const TeacherScheduleScreen(), // dùng chung TeacherScheduleViewModel ở trên
+            const TeacherScheduleScreen(),
             const _StatsTab(),
             const _ProfileTab(),
           ],
@@ -84,8 +86,6 @@ class _HomeTab extends StatelessWidget {
           _TopBar(name: displayName),
           const SizedBox(height: 12),
 
-          // Stats giữ API cũ (periodsToday/periodsThisWeek/percentCompleted)
-          // Nếu bạn đã nâng cấp StatsPanel có X/Y, có thể truyền thêm completed/total tại đây.
           StatsPanel(
             periodsToday: vm.periodsToday,
             periodsThisWeek: vm.periodsThisWeek,
@@ -120,15 +120,12 @@ class _HomeTab extends StatelessWidget {
             ],
           ),
 
-          // Danh sách lịch hôm nay
           ...vm.todaySchedules.map(
                 (e) => ScheduleCard(
               item: e,
               onMarkDone: () async {
-                // LẤY scheduleVM TRƯỚC KHI await để tránh lỗi context sau await
                 final schedVM = context.read<TeacherScheduleViewModel>();
-                await vm.markDone(e); // API + update Home
-                // Đồng bộ ngay sang tab Lịch (không cần chờ reload)
+                await vm.markDone(e);
                 schedVM.applyStatus(e.id, ScheduleStatus.done);
               },
             ),
@@ -167,7 +164,15 @@ class _TopBar extends StatelessWidget {
           Image.asset('assets/images/LOGO_THUYLOI.png', height: 28),
           const Spacer(),
           IconButton(
-            onPressed: () {/* TODO: mở trang thông báo */},
+            onPressed: () {
+              // Mở trang thông báo
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const TeacherNotificationScreen(),
+                ),
+              );
+            },
             icon: const Icon(Icons.notifications_rounded),
           ),
           CircleAvatar(

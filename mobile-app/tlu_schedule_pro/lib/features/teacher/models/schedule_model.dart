@@ -1,7 +1,7 @@
-// lib/features/teacher/models/schedule_model.dart
 import '../../../core/extensions/extensions.dart';
 
-enum ScheduleStatus { upcoming, ongoing, done, canceled, unknown }
+/// Có thêm 'expired' để hiển thị UI
+enum ScheduleStatus { upcoming, ongoing, done, canceled, expired, unknown }
 
 // ===== Helpers map status <-> API =====
 ScheduleStatus statusFromApi(String? s) {
@@ -11,6 +11,7 @@ ScheduleStatus statusFromApi(String? s) {
       return ScheduleStatus.done;
     case 'NGHI_DAY':
     case 'CANCELED':
+    case 'CANCELLED':
       return ScheduleStatus.canceled;
     case 'DANG_DAY':
     case 'ONGOING':
@@ -18,6 +19,9 @@ ScheduleStatus statusFromApi(String? s) {
     case 'SAP_DAY':
     case 'UPCOMING':
       return ScheduleStatus.upcoming;
+    case 'QUA_GIO':
+    case 'EXPIRED':
+      return ScheduleStatus.expired;
     default:
       return ScheduleStatus.unknown;
   }
@@ -33,28 +37,28 @@ String statusToApi(ScheduleStatus s) {
       return 'DANG_DAY';
     case ScheduleStatus.upcoming:
       return 'SAP_DAY';
+    case ScheduleStatus.expired:
+    case ScheduleStatus.unknown:
     default:
       return 'UNKNOWN';
   }
 }
 
 class ScheduleModel {
-  // 🔹 Thêm id để thao tác API theo từng lịch (ví dụ /details/{id}/attendance)
   final int id;
-
   final DateTime? teachingDate;
 
-  final String? periodStartRaw; // "Tiết 1"
-  final String? periodEndRaw;   // "Tiết 3"
+  final String? periodStartRaw;
+  final String? periodEndRaw;
 
-  final int periodStart;        // 1
-  final int periodEnd;          // 3
+  final int periodStart;
+  final int periodEnd;
 
-  final String type;            // "Lý thuyết" | "Thực hành"
-  final String subjectName;     // Tên môn
-  final String classCode;       // Mã lớp, vd: 64KTPM3
-  final String roomName;        // Phòng
-  final String? chapter;        // tuỳ backend
+  final String type;
+  final String subjectName;
+  final String classCode;
+  final String roomName;
+  final String? chapter;
   final ScheduleStatus status;
 
   const ScheduleModel({
@@ -72,7 +76,6 @@ class ScheduleModel {
     required this.status,
   });
 
-  // "Tiết 1 – Tiết 3" (ưu tiên dùng raw nếu có)
   String get periodText {
     final a = periodStartRaw;
     final b = periodEndRaw;
@@ -81,19 +84,16 @@ class ScheduleModel {
     return '- – -';
   }
 
-  // "07:00 - 09:40"
   String get timeRange {
     if (periodStart <= 0 || periodEnd <= 0) return '';
     return periodTimeRange(periodStart, periodEnd);
   }
 
-  // "dd/MM/yyyy"
   String get dateText => teachingDate == null ? '' : formatDdMMyyyy(teachingDate!);
 
   int get periodsCount =>
       (periodStart > 0 && periodEnd >= periodStart) ? (periodEnd - periodStart + 1) : 1;
 
-  // ===== Common parsing =====
   static DateTime? _parseDateFlexible(String? s) {
     if (s == null || s.isEmpty) return null;
     final iso = DateTime.tryParse(s);
@@ -115,18 +115,18 @@ class ScheduleModel {
     return int.tryParse(v.toString()) ?? 0;
   }
 
-  // Fallback status theo ngày nếu API không có status
+  /// Fallback theo NGÀY nếu API không có:
+  /// - Quá khứ -> expired
+  /// - Hôm nay/tương lai -> upcoming (UI tự quyết ongoing/expired theo giờ)
   static ScheduleStatus _fallbackStatusByDate(DateTime? date) {
     if (date == null) return ScheduleStatus.unknown;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final d = DateTime(date.year, date.month, date.day);
-    if (d.isBefore(today)) return ScheduleStatus.done;
-    if (d.isAfter(today)) return ScheduleStatus.upcoming;
+    if (d.isBefore(today)) return ScheduleStatus.expired;
     return ScheduleStatus.upcoming;
   }
 
-  // ========== Factory từ JSON đã "phẳng" ==========
   factory ScheduleModel.fromJson(Map<String, dynamic> json) {
     final date = _parseDateFlexible(json['teachingDate']?.toString());
     final psRaw = json['periodStart']?.toString();
@@ -140,14 +140,10 @@ class ScheduleModel {
     final type      = (json['type'] ?? '').toString();
     final chapter   = json['chapter']?.toString();
 
-    // 🔹 id có thể là 'id' hoặc 'detailId' tuỳ backend
     final id        = _toInt(json['id'] ?? json['detailId']);
 
-    // Ưu tiên status từ API; nếu không có thì fallback theo ngày
     final stApi     = statusFromApi(json['status'] as String?);
-    final st        = stApi == ScheduleStatus.unknown
-        ? _fallbackStatusByDate(date)
-        : stApi;
+    final st        = stApi == ScheduleStatus.unknown ? _fallbackStatusByDate(date) : stApi;
 
     return ScheduleModel(
       id: id,
@@ -165,7 +161,6 @@ class ScheduleModel {
     );
   }
 
-  // ========== Factory đúng mẫu JSON của bạn (section + detail) ==========
   factory ScheduleModel.fromSectionDetail({
     required Map<String, dynamic> section,
     required Map<String, dynamic> detail,
@@ -181,12 +176,10 @@ class ScheduleModel {
     final ps    = extractPeriodNumber(psRaw);
     final pe    = extractPeriodNumber(peRaw);
 
-    final id    = _toInt(detail['id']); // 🔹 id detail theo payload bạn đưa
+    final id    = _toInt(detail['id']);
 
     final stApi = statusFromApi(detail['status'] as String?);
-    final st    = stApi == ScheduleStatus.unknown
-        ? _fallbackStatusByDate(date)
-        : stApi;
+    final st    = stApi == ScheduleStatus.unknown ? _fallbackStatusByDate(date) : stApi;
 
     return ScheduleModel(
       id: id,
@@ -204,7 +197,6 @@ class ScheduleModel {
     );
   }
 
-  // ===== tiện cho cập nhật trong ViewModel
   ScheduleModel copyWith({
     int? id,
     DateTime? teachingDate,

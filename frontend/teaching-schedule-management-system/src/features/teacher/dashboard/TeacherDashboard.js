@@ -20,6 +20,21 @@ function formatYMD(d = new Date()) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+// Hàm chỉ lấy yyyy/mm/dd
+function formatDateOnly(dateStr) {
+  if (!dateStr) return "—";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d)) return dateStr;
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}/${mm}/${dd}`;
+  } catch {
+    return dateStr;
+  }
+}
+
 // Lấy tên môn học
 function getSubjectName(parent) {
   return (
@@ -74,7 +89,7 @@ function getPeriod(parent, detail) {
 
 // Chuẩn hoá 1 detail => 1 card item
 function normalizeDetail(parent, detail, idx, didx) {
-  const day =
+  const dayRaw =
     detail?.teachingDate ||
     detail?.date ||
     parent?.teachingDate ||
@@ -86,7 +101,7 @@ function normalizeDetail(parent, detail, idx, didx) {
     subject: getSubjectName(parent),
     classSection: getClassSectionName(parent),
     type: detail?.type || parent?.type || "Lý thuyết",
-    day,
+    day: formatDateOnly(dayRaw),
     room: getRoom(parent, detail),
     period: getPeriod(parent, detail),
     department: parent?.classSection?.department?.name || parent?.department?.name || "",
@@ -97,7 +112,7 @@ function normalizeDetail(parent, detail, idx, didx) {
 
 // Fallback khi không có details
 function normalizeParentFallback(parent, idx) {
-  const day =
+  const dayRaw =
     parent?.teachingDate ||
     parent?.date ||
     (parent?.startTime ? String(parent.startTime).slice(0, 10) : "—");
@@ -107,7 +122,7 @@ function normalizeParentFallback(parent, idx) {
     subject: getSubjectName(parent),
     classSection: getClassSectionName(parent),
     type: parent?.type || "Lý thuyết",
-    day,
+    day: formatDateOnly(dayRaw),
     room: getRoom(parent, null),
     period: getPeriod(parent, null),
     department: parent?.classSection?.department?.name || parent?.department?.name || "",
@@ -213,7 +228,7 @@ const TeacherDashboard = () => {
             <div className="schedule-content">
               <div className="section-header">
                 <h2>
-                  Lịch dạy hôm nay{user?.fullName ? ` - ${user.fullName}` : ""}
+                  Lịch dạy sắp tới{user?.fullName ? ` - ${user.fullName}` : ""}
                 </h2>
                 {err && (
                   <div style={{ color: "#c00", fontSize: 14, marginTop: 8 }}>
@@ -287,4 +302,4 @@ const TeacherDashboard = () => {
   );
 };
 
-export default TeacherDashboard; 
+export default TeacherDashboard;

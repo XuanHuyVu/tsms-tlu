@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../models/schedule_model.dart';
 import '../screens/class_cancel_screen.dart';
+import './schedule_status_badge.dart'; // ScheduleStatusStyleX & ScheduleStatusBadge
 
 class ScheduleCard extends StatelessWidget {
   final ScheduleModel item;
 
-  /// Callback khi bấm Hoàn thành
   final Future<void> Function()? onMarkDone;
-
-  /// Callback mở form NGHỈ DẠY (màn mới sẽ gọi ngược lại)
   final Future<Map<String, dynamic>> Function(String reason, String? fileUrl)?
   onRequestCancel;
 
@@ -42,11 +40,7 @@ class ScheduleCard extends StatelessWidget {
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: titleColor,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: titleColor),
               ),
               const SizedBox(height: 12),
               Text(message, textAlign: TextAlign.center),
@@ -58,9 +52,7 @@ class ScheduleCard extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: titleColor,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                   child: const Text('OK'),
@@ -93,11 +85,7 @@ class ScheduleCard extends StatelessWidget {
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
               ),
               const SizedBox(height: 10),
               Text(message, textAlign: TextAlign.center),
@@ -110,9 +98,7 @@ class ScheduleCard extends StatelessWidget {
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.black26),
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                       child: const Text('Hủy'),
                     ),
@@ -125,9 +111,7 @@ class ScheduleCard extends StatelessWidget {
                         backgroundColor: color,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                       child: const Text('Xác nhận'),
                     ),
@@ -162,6 +146,7 @@ class ScheduleCard extends StatelessWidget {
     return (start, end);
   }
 
+  /// Tính trạng thái thực tế theo thời gian, có 'expired'
   ScheduleStatus get effectiveStatus {
     if (item.status == ScheduleStatus.done) return ScheduleStatus.done;
     if (item.status == ScheduleStatus.canceled) return ScheduleStatus.canceled;
@@ -169,62 +154,29 @@ class ScheduleCard extends StatelessWidget {
     final now = DateTime.now();
     final d = item.teachingDate;
     if (d == null) {
-      return item.status == ScheduleStatus.unknown
-          ? ScheduleStatus.upcoming
-          : item.status;
+      return item.status == ScheduleStatus.unknown ? ScheduleStatus.upcoming : item.status;
     }
 
     final today = DateTime(now.year, now.month, now.day);
     final thatDay = DateTime(d.year, d.month, d.day);
-    if (!_isSameDay(today, thatDay)) {
-      if (thatDay.isAfter(today)) return ScheduleStatus.upcoming;
-      return item.status;
-    }
+
+    if (thatDay.isAfter(today)) return ScheduleStatus.upcoming;
+    if (thatDay.isBefore(today)) return ScheduleStatus.expired;
 
     final range = _parseRangeForDate(today);
     if (range == null) {
-      return item.status == ScheduleStatus.unknown
-          ? ScheduleStatus.upcoming
-          : item.status;
+      return item.status == ScheduleStatus.unknown ? ScheduleStatus.upcoming : item.status;
     }
     final (start, end) = range;
 
     if (now.isBefore(start)) return ScheduleStatus.upcoming;
-    if (now.isAfter(end)) return item.status;
+    if (now.isAfter(end)) return ScheduleStatus.expired;
     return ScheduleStatus.ongoing;
   }
 
-  Color get statusColor {
-    switch (effectiveStatus) {
-      case ScheduleStatus.ongoing:
-        return const Color(0xFF2F6BFF);
-      case ScheduleStatus.upcoming:
-        return const Color(0xFFFFA726);
-      case ScheduleStatus.done:
-        return const Color(0xFF43A047);
-      case ScheduleStatus.canceled:
-        return const Color(0xFFE53935);
-      default:
-        return Colors.grey;
-    }
-  }
+  String _formatHm(DateTime t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
-  String get statusLabel {
-    switch (effectiveStatus) {
-      case ScheduleStatus.ongoing:
-        return 'ĐANG DIỄN RA';
-      case ScheduleStatus.upcoming:
-        return 'SẮP DIỄN RA';
-      case ScheduleStatus.done:
-        return 'HOÀN THÀNH';
-      case ScheduleStatus.canceled:
-        return 'NGHỈ DẠY';
-      default:
-        return '';
-    }
-  }
-
-  /// Cho phép chấm công trong [end - 60’ .. end + 60’] của ĐÚNG NGÀY học
   (bool, String?, DateTime?, DateTime?) _canCompleteNow() {
     final now = DateTime.now();
     final d = item.teachingDate;
@@ -233,12 +185,7 @@ class ScheduleCard extends StatelessWidget {
     final today = DateTime(now.year, now.month, now.day);
     final thatDay = DateTime(d.year, d.month, d.day);
     if (!_isSameDay(today, thatDay)) {
-      return (
-      false,
-      'Chỉ có thể đánh dấu trong đúng ngày diễn ra buổi học.',
-      null,
-      null
-      );
+      return (false, 'Chỉ có thể đánh dấu trong đúng ngày diễn ra buổi học.', null, null);
     }
 
     final range = _parseRangeForDate(today);
@@ -251,45 +198,29 @@ class ScheduleCard extends StatelessWidget {
     final windowEnd = end.add(const Duration(minutes: 60));
 
     if (now.isBefore(windowStart)) {
-      return (
-      false,
+      return (false,
       'Chưa đến thời gian: chỉ được đánh dấu trong 60 phút trước khi kết thúc.',
-      windowStart,
-      windowEnd
-      );
+      windowStart, windowEnd);
     }
     if (now.isAfter(windowEnd)) {
-      return (
-      false,
-      'Quá thời gian: đã quá 60 phút sau khi kết thúc.',
-      windowStart,
-      windowEnd
-      );
+      return (false, 'Quá thời gian: đã quá 60 phút sau khi kết thúc.',
+      windowStart, windowEnd);
     }
     return (true, null, windowStart, windowEnd);
   }
 
-  String _formatHm(DateTime t) =>
-      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
-
-  Widget _chipButton(String text, Color fg, Color bg, VoidCallback? onTap) =>
-      InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration:
-          BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
-          child: Text(
-            text,
-            style: TextStyle(
-              color: fg,
-              fontWeight: FontWeight.w700,
-              fontSize: 12,
-            ),
-          ),
-        ),
-      );
+  Widget _chipButton(String text, Color fg, Color bg, VoidCallback? onTap) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(8),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
+      child: Text(
+        text,
+        style: TextStyle(color: fg, fontWeight: FontWeight.w700, fontSize: 12),
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -297,8 +228,13 @@ class ScheduleCard extends StatelessWidget {
         ? 'Tiết ${item.periodStart} → ${item.periodEnd} (${item.timeRange})'
         : item.periodText;
 
-    final locked =
-    (item.status == ScheduleStatus.done || item.status == ScheduleStatus.canceled);
+    final locked = item.status == ScheduleStatus.done ||
+        item.status == ScheduleStatus.canceled ||
+        effectiveStatus == ScheduleStatus.expired;
+
+    // DÙNG TRỰC TIẾP extension override, KHÔNG gán vào biến riêng
+    final statusColor = ScheduleStatusStyleX(effectiveStatus).color;
+    final statusLabel = ScheduleStatusStyleX(effectiveStatus).label;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -340,38 +276,16 @@ class ScheduleCard extends StatelessWidget {
                     Row(children: <Widget>[
                       Text(
                         header,
-                        style: TextStyle(
-                          color: statusColor,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: TextStyle(color: statusColor, fontWeight: FontWeight.w700),
                       ),
                       const Spacer(),
-                      if (statusLabel.isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            statusLabel,
-                            style: TextStyle(
-                              color: statusColor,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
+                      if (statusLabel.isNotEmpty) ScheduleStatusBadge(status: effectiveStatus),
                     ]),
                     const SizedBox(height: 10),
 
                     Text(
                       item.subjectName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 16,
-                      ),
+                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
                     ),
                     const SizedBox(height: 4),
                     Text(item.classCode, style: const TextStyle(color: Colors.grey)),
@@ -411,22 +325,21 @@ class ScheduleCard extends StatelessWidget {
                           final confirm = await _showConfirmDialog(
                             context,
                             title: 'Xác nhận hoàn thành?',
-                            message:
-                            'Bạn có muốn đánh dấu buổi học này là HOÀN THÀNH không?',
+                            message: 'Bạn có muốn đánh dấu buổi học này là HOÀN THÀNH không?',
                             color: const Color(0xFF2E7D32),
                           );
                           if (!confirm) return;
+                          if (!context.mounted) return; // ✅ sau await
 
-                          // 2) Sau khi xác nhận mới kiểm tra điều kiện thời gian
+                          // 2) Kiểm tra điều kiện thời gian
                           final (ok, reason, from, to) = _canCompleteNow();
                           if (!ok) {
+                            if (!context.mounted) return; // ✅ trước khi show dialog
                             var msg = reason ?? 'Không thể cập nhật.';
                             if (from != null && to != null) {
-                              msg +=
-                              '\nCửa sổ cho phép: ${_formatHm(from)} → ${_formatHm(to)}';
+                              msg += '\nCửa sổ cho phép: ${_formatHm(from)} → ${_formatHm(to)}';
                             }
 
-                            // Dialog đẹp theo loại lỗi
                             if (reason?.contains('Chưa đến thời gian') == true) {
                               await _showCustomDialog(
                                 context,
@@ -471,7 +384,7 @@ class ScheduleCard extends StatelessWidget {
                           if (onMarkDone == null) return;
                           try {
                             await onMarkDone!();
-                            if (!context.mounted) return;
+                            if (!context.mounted) return; // ✅ sau await
                             await _showCustomDialog(
                               context,
                               title: 'Thành công',
@@ -481,7 +394,7 @@ class ScheduleCard extends StatelessWidget {
                               iconColor: const Color(0xFF43A047),
                             );
                           } catch (e) {
-                            if (!context.mounted) return;
+                            if (!context.mounted) return; // ✅
                             await _showCustomDialog(
                               context,
                               title: 'Lỗi',
@@ -503,8 +416,7 @@ class ScheduleCard extends StatelessWidget {
                         onRequestCancel == null
                             ? null
                             : () async {
-                          final result =
-                          await Navigator.push<Map<String, dynamic>?>(
+                          final result = await Navigator.push<Map<String, dynamic>?>(
                             context,
                             MaterialPageRoute(
                               builder: (_) => ClassCancelScreen(
@@ -513,7 +425,8 @@ class ScheduleCard extends StatelessWidget {
                               ),
                             ),
                           );
-                          if (result != null && context.mounted) {
+                          if (!context.mounted) return; // ✅ sau await
+                          if (result != null) {
                             await _showCustomDialog(
                               context,
                               title: 'Đã gửi yêu cầu',

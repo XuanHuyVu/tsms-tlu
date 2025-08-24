@@ -1,26 +1,54 @@
-import React, { useState, useRef, useEffect } from 'react';
+// src/components/Header.js
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faChevronDown, faBell, faUser, faCog, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import {
+  faBars,
+  faChevronDown,
+  faBell,
+  faUser,
+  faCog,
+  faSignOutAlt,
+} from '@fortawesome/free-solid-svg-icons';
 import '../styles/Header.css';
 import avatar from '../assets/images/avt.jpg';
 import { useAuth } from '../contexts/AuthContext';
+import axiosInstance from '../api/axiosInstance';
+
+// ===== Helpers =====
+const fmtDate = (dt) => {
+  if (!dt) return '';
+  try {
+    const d = new Date(dt);
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(
+      d.getHours()
+    )}:${pad(d.getMinutes())}`;
+  } catch {
+    return String(dt);
+  }
+};
 
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const { user, logout } = useAuth();
 
+  const [userOpen, setUserOpen] = useState(false);
+  const userRef = useRef(null);
+
+  const [notis, setNotis] = useState([]);
+  const [loadingNoti, setLoadingNoti] = useState(false);
+  const [errNoti, setErrNoti] = useState('');
+
+  // ------- Page title resolver -------
   const getPageTitle = (pathname) => {
     switch (pathname) {
       case '/':
-        return 'TRANG CHỦ';
       case '/dashboard':
         return 'TRANG CHỦ';
       case '/teachers':
-        return 'QUẢN LÝ GIẢNG VIÊN'
+        return 'QUẢN LÝ GIẢNG VIÊN';
       case '/semesters':
         return 'QUẢN LÝ HỌC KỲ';
       case '/rooms':
@@ -33,7 +61,6 @@ const Header = () => {
         return 'QUẢN LÝ LỚP HỌC PHẦN';
       case '/majors':
         return 'QUẢN LÝ NGÀNH HỌC';
-
       case '/faculties':
         return 'QUẢN LÝ KHOA';
       case '/departments':
@@ -44,7 +71,6 @@ const Header = () => {
         return 'QUẢN LÝ TÀI KHOẢN';
       case '/teaching-schedules':
         return 'QUẢN LÝ LỊCH GIẢNG DẠY';
-
       case '/students':
         return 'QUẢN LÝ SINH VIÊN';
       case '/statistics':
@@ -56,21 +82,52 @@ const Header = () => {
     }
   };
 
+  // ------- Logout -------
   const handleLogout = () => {
-    logout(); // Sử dụng logout từ AuthContext
-    navigate('/login'); // Chuyển về trang login
+    logout();
+    navigate('/login');
   };
 
-  const handleClickOutside = (event) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-      setDropdownOpen(false);
+  // ------- Outside click to close (menu tài khoản) -------
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (userRef.current && !userRef.current.contains(e.target)) {
+        setUserOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // ------- Fetch notifications to show count badge -------
+  const fetchNotifications = async () => {
+    try {
+      setLoadingNoti(true);
+      setErrNoti('');
+      const { data } = await axiosInstance.get('/admin/notifications', {
+        params: { size: 10, sort: 'createdAt,desc' },
+      });
+      const list = Array.isArray(data) ? data : data?.content || [];
+      setNotis(list);
+    } catch (err) {
+      setErrNoti('Không tải được thông báo');
+    } finally {
+      setLoadingNoti(false);
     }
   };
 
   useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    fetchNotifications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const unreadCount = useMemo(() => {
+    const n = notis.filter((x) => !x?.read && x?.status !== 'READ').length;
+    return n > 99 ? '99+' : n || '';
+  }, [notis]);
+
+  // ------- Handlers -------
+  const toggleUserMenu = () => setUserOpen((v) => !v);
 
   return (
     <div className="header-container">
@@ -84,22 +141,48 @@ const Header = () => {
         <span className="header-title">{getPageTitle(location.pathname)}</span>
 
         <div className="header-right">
+          {/* ===== Notifications: click -> go /notifications ===== */}
           <div className="header-bell">
-            <FontAwesomeIcon icon={faBell} className="bell-icon" />
-            <span className="notification-dot"></span>
+            <button
+              className="bell-btn"
+              type="button"
+              onClick={() => navigate('/notifications')}
+              title="Thông báo"
+            >
+              <FontAwesomeIcon icon={faBell} className="bell-icon" />
+              {unreadCount !== '' && (
+                <span
+                  className="notification-count"
+                  aria-label={`${unreadCount} thông báo chưa đọc`}
+                >
+                  {unreadCount}
+                </span>
+              )}
+            </button>
           </div>
 
-          <div className="header-user-wrapper" ref={dropdownRef}>
-            <div className="header-user" onClick={() => setDropdownOpen(!dropdownOpen)}>
+          {/* ===== User ===== */}
+          <div className="header-user-wrapper" ref={userRef}>
+            <div
+              className="header-user"
+              onClick={toggleUserMenu}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') toggleUserMenu();
+              }}
+              aria-haspopup="menu"
+              aria-expanded={userOpen}
+            >
               <img src={avatar} alt="User Avatar" className="header-avatar" />
               <div className="header-user-info">
-                <span className="header-user-name">Nguyễn Văn A</span>
+                <span className="header-user-name">{user?.username || 'User'}</span>
                 <span className="header-user-role">Quản trị viên</span>
               </div>
               <FontAwesomeIcon icon={faChevronDown} className="dropdown-arrow" />
             </div>
 
-            {dropdownOpen && (
+            {userOpen && (
               <div className="dropdown-menu">
                 <div className="dropdown-item">
                   <FontAwesomeIcon icon={faUser} />

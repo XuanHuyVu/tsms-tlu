@@ -96,14 +96,14 @@ const Sidebar = () => {
         <li>
           <NavLink to="/statistics" className="menu-link-standalone">THỐNG KÊ - BÁO CÁO</NavLink>
         </li>
+        <li>
+          <NavLink to="/notifications" className="menu-link-standalone">THÔNG BÁO</NavLink>
+        </li>
+
 
         {/* TÀI KHOẢN */}
         <li>
           <NavLink to="/accounts" className="menu-link-standalone">TÀI KHOẢN</NavLink>
-        </li>
-
-        <li>
-          <NavLink to="/notifications" className="menu-link-standalone">THÔNG BÁO</NavLink>
         </li>
       </ul>
     </div>

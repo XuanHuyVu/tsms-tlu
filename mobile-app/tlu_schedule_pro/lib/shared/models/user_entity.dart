@@ -20,7 +20,7 @@ class UserEntity {
 
   factory UserEntity.fromJson(Map<String, dynamic> json) {
     final user = (json['user'] ?? {}) as Map<String, dynamic>;
-    int? _toInt(dynamic v) {
+    int? toInt(dynamic v) {
       if (v == null) return null;
       if (v is int) return v;
       return int.tryParse('$v');
@@ -30,9 +30,9 @@ class UserEntity {
       username: (user['username'] ?? '').toString(),
       token: (json['token'] ?? '').toString(),
       role: (user['role'] ?? '').toString(),
-      id: _toInt(user['id']) ?? 0,          // <-- thêm
-      teacherId: _toInt(user['teacherId']),
-      studentId: _toInt(user['studentId']),
+      id: toInt(user['id']) ?? 0,
+      teacherId: toInt(user['teacherId']),
+      studentId: toInt(user['studentId']),
       fullName: user['fullName']?.toString(),
     );
   }

@@ -1,5 +1,7 @@
 // lib/core/constants/constants.dart
 
+import '../../features/student/models/student_schedule_model.dart';
+
 /// Tiện ích format ngày YYYY-MM-DD
 extension DateX on DateTime {
   String toYMD() {
@@ -50,3 +52,16 @@ String periodTimeRange(int start, int end) {
 /// Format dd/MM/yyyy (không cần intl)
 String _two(int n) => n.toString().padLeft(2, '0');
 String formatDdMMyyyy(DateTime d) => '${_two(d.day)}/${_two(d.month)}/${d.year}';
+
+extension StudentScheduleExtension on StudentScheduleModel {
+  String get vietnameseType {
+    switch (type) {
+      case "LY_THUYET":
+        return "Lý thuyết";
+      case "THUC_HANH":
+        return "Thực hành";
+      default:
+        return "Khác";
+    }
+  }
+}

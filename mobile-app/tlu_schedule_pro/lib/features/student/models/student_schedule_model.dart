@@ -1,12 +1,14 @@
-class StudentScheduleModel {
+import 'package:flutter/cupertino.dart';
+
+class StudentScheduleModel extends ChangeNotifier{
   final int classSectionId;
   final String classSectionName;
   final String subjectName;
   final String teacherName;
   final String roomCode;
   final DateTime? teachingDate;
-  final String periodStart;
-  final String periodEnd;
+  final int periodStart;
+  final int periodEnd;
   final String type;
 
   StudentScheduleModel({
@@ -31,8 +33,8 @@ class StudentScheduleModel {
       teachingDate: json['teachingDate'] != null
           ? DateTime.tryParse(json['teachingDate'])
           : null,
-      periodStart: json['periodStart'] ?? '',
-      periodEnd: json['periodEnd'] ?? '',
+      periodStart: json['periodStart'] as int,
+      periodEnd: json['periodEnd'] as int,
       type: json['type'] ?? '',
     );
   }

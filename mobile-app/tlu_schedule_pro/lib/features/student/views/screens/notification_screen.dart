@@ -44,9 +44,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
             splashRadius: 24,
             tooltip: 'Quay lại Trang Chủ',
             onPressed: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const ScheduleScreen()),
-              );
+              Navigator.of(context).pop();
             },
           ),
           centerTitle: true,
@@ -166,10 +164,10 @@ class _NotificationListState extends State<NotificationList> {
           margin: const EdgeInsets.only(bottom: 10),
           child: ListTile(
             leading: n.isRead
-                ? const Icon(Icons.notifications)
+                ? const Icon(Icons.calendar_today)
                 : Stack(
               children: [
-                const Icon(Icons.notifications),
+                const Icon(Icons.calendar_today),
                 Positioned(
                   right: 0,
                   top: 0,

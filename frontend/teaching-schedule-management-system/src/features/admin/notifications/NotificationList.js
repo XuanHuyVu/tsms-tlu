@@ -1,14 +1,12 @@
-// src/features/admin/notifications/NotificationsList.js
 import { useEffect, useMemo, useRef, useState } from "react";
-import { FaSearch, FaInfoCircle, FaTrash, FaPaperPlane } from "react-icons/fa";
+import { FaSearch, FaInfoCircle, FaPaperPlane } from "react-icons/fa";
 import NotificationApi from "../../../api/NotificationApi";
 import "../../../styles/NotificationsList.css";
 import "../../../styles/Toast.css";
 import AppToast from "../../../components/AppToast";
-import DeleteConfirmModal from "../../../components/DeleteConfirmModal";
 import NotificationDetail from "./NotificationDetail";
 
-/* Format dd/MM/yyyy HH:mm */
+/* ===== Helpers ===== */
 function fmtDate(dt) {
   if (!dt) return "";
   try {
@@ -22,21 +20,23 @@ function fmtDate(dt) {
   }
 }
 
+const TYPE_LABELS = { THAY_DOI_LICH: "Thay đổi lịch", HUY_LICH: "Hủy lịch" };
+const toTypeLabel = (raw) => TYPE_LABELS[raw] || (raw || "");
+
 export default function NotificationsList() {
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("ALL");
+
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const [showDelete, setShowDelete] = useState(false);
-  const [deleteId, setDeleteId] = useState(null);
-
-  // Detail modal
-  const [detailOpen, setDetailOpen] = useState(false);
-  const [detailId, setDetailId] = useState(null);
+  // Modal xem chi tiết: chỉ giữ object từ list
+  const [showDetail, setShowDetail] = useState(false);
+  const [detailItem, setDetailItem] = useState(null);
 
   const toastRef = useRef(null);
 
@@ -49,28 +49,27 @@ export default function NotificationsList() {
         search: search.trim(),
         sort: "createdAt,desc",
       });
-
       if (signal?.aborted) return;
 
-      // BE có thể trả mảng hoặc Page object
       if (Array.isArray(res)) {
         const q = search.trim().toLowerCase();
+        let filtered = res;
+        if (q) {
+          filtered = filtered.filter(
+            (n) =>
+              (n.title || "").toLowerCase().includes(q) ||
+              (n.content || "").toLowerCase().includes(q) ||
+              (n.type || "").toLowerCase().includes(q)
+          );
+        }
+        if (typeFilter !== "ALL")
+          filtered = filtered.filter((n) => (n.type || "") === typeFilter);
 
-        const filtered = q
-          ? res.filter(
-              (n) =>
-                (n.title || "").toLowerCase().includes(q) ||
-                (n.content || "").toLowerCase().includes(q) ||
-                (n.type || "").toLowerCase().includes(q)
-            )
-          : res;
-
-        const sorted = [...filtered].sort((a, b) => {
-          const ta = Date.parse(a.createdAt || "") || 0;
-          const tb = Date.parse(b.createdAt || "") || 0;
-          return tb - ta;
-        });
-
+        const sorted = [...filtered].sort(
+          (a, b) =>
+            (Date.parse(b.createdAt || "") || 0) -
+            (Date.parse(a.createdAt || "") || 0)
+        );
         const totalAll = sorted.length;
         const start = page * size;
         const end = start + size;
@@ -79,8 +78,11 @@ export default function NotificationsList() {
         setTotal(totalAll);
         setTotalPages(Math.max(1, Math.ceil(totalAll / size)));
       } else {
-        setRows(res?.content || []);
-        setTotal(res?.totalElements || 0);
+        let pageData = res?.content || [];
+        if (typeFilter !== "ALL")
+          pageData = pageData.filter((n) => (n.type || "") === typeFilter);
+        setRows(pageData);
+        setTotal(res?.totalElements || pageData.length || 0);
         setTotalPages(res?.totalPages || 0);
       }
     } catch (err) {
@@ -100,8 +102,7 @@ export default function NotificationsList() {
     const ctrl = new AbortController();
     load(ctrl.signal);
     return () => ctrl.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, size, search]);
+  }, [page, size, search, typeFilter]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -114,42 +115,14 @@ export default function NotificationsList() {
     return `Từ ${start} đến ${end} bản ghi`;
   }, [page, size, total]);
 
-  const promptDelete = (id) => {
-    setDeleteId(id);
-    setShowDelete(true);
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteId) return;
-    setShowDelete(false);
-    try {
-      await NotificationApi.delete(deleteId);
-      // nếu xoá phần tử cuối của trang hiện tại thì lùi trang
-      if (rows.length === 1 && page > 0) setPage((p) => p - 1);
-      else {
-        const ctrl = new AbortController();
-        await load(ctrl.signal);
-      }
-      toastRef.current?.success("Xoá thông báo thành công");
-    } catch (err) {
-      console.error("[Notifications] delete error", err);
-      toastRef.current?.error("Xoá thông báo thất bại");
-    } finally {
-      setDeleteId(null);
-    }
-  };
-
   const renderRow = (n, i) => {
     const id = n.id ?? `noti-${i}`;
     const recipients = Array.isArray(n.recipients) ? n.recipients : [];
     const unread = recipients.filter((r) => !r.isRead).length;
     const receiversCount = recipients.length;
-
-    // Suy luận trạng thái từ recipients
     const status =
       receiversCount === 0 ? "Chưa gửi" : unread > 0 ? "Đã gửi" : "Đã đọc hết";
-
-    const canPublish = receiversCount === 0; // chưa gửi → hiện nút gửi
+    const canPublish = receiversCount === 0;
 
     return (
       <tr key={id}>
@@ -158,58 +131,52 @@ export default function NotificationsList() {
           <div className="noti-title-text">{n.title || ""}</div>
           <div className="noti-subtext">{n.content || ""}</div>
         </td>
-        <td>{n.type || ""}</td>
+        <td>{toTypeLabel(n.type)}</td>
         <td>{fmtDate(n.createdAt)}</td>
-        <td style={{ textAlign: "center" }}>{receiversCount}</td>
+        <td>
+          {receiversCount}{" "}
+          {receiversCount > 0 && (
+            <span className="noti-subtext">
+              ({receiversCount - unread} đã đọc)
+            </span>
+          )}
+        </td>
         <td>{status}</td>
         <td>
           <div className="noti-actions">
-            {/* Gửi */}
-            <button
-              type="button"
-              className={`noti-btn primary ${!canPublish ? "disabled" : ""}`}
-              disabled={!canPublish}
-              title={canPublish ? "Gửi thông báo" : "Đã gửi"}
-              onClick={async () => {
-                try {
-                  await NotificationApi.publish(n.id);
-                  toastRef.current?.success("Đã gửi thông báo");
-                  const ctrl = new AbortController();
-                  await load(ctrl.signal);
-                } catch (e) {
-                  console.error(e);
-                  toastRef.current?.error(
-                    "Không thể gửi. Kiểm tra endpoint /{id}/publish."
-                  );
-                }
-              }}
-            >
-              <FaPaperPlane style={{ marginRight: 6 }} />
-              {canPublish ? "Gửi" : "Đã gửi"}
-            </button>
+            {canPublish && (
+              <button
+                type="button"
+                className="noti-btn primary"
+                title="Gửi thông báo"
+                onClick={async () => {
+                  try {
+                    await NotificationApi.publish(n.id);
+                    toastRef.current?.success("Đã gửi thông báo");
+                    const ctrl = new AbortController();
+                    await load(ctrl.signal);
+                  } catch (e) {
+                    console.error(e);
+                    toastRef.current?.error(
+                      "Không thể gửi. Kiểm tra endpoint /{id}/publish."
+                    );
+                  }
+                }}
+              >
+                <FaPaperPlane style={{ marginRight: 6 }} />
+                Gửi
+              </button>
+            )}
 
-            {/* Chi tiết */}
-            <button
-              type="button"
-              className="noti-icon info"
+            {/* Xem chi tiết: chỉ mở modal với dữ liệu từ list */}
+            <FaInfoCircle
+              className="noti-detail-icon"
               title="Chi tiết"
               onClick={() => {
-                setDetailId(n.id);
-                setDetailOpen(true);
+                setDetailItem(n);
+                setShowDetail(true);
               }}
-            >
-              <FaInfoCircle />
-            </button>
-
-            {/* Xoá (luôn dùng id thật) */}
-            <button
-              type="button"
-              className="noti-icon danger"
-              title="Xoá"
-              onClick={() => n.id && promptDelete(n.id)}
-            >
-              <FaTrash />
-            </button>
+            />
           </div>
         </td>
       </tr>
@@ -220,34 +187,45 @@ export default function NotificationsList() {
     <div className="noti-container">
       <AppToast ref={toastRef} />
 
-      {/* Modal chi tiết */}
-      {detailOpen && (
-        <NotificationDetail
-          open={detailOpen}
-          notificationId={detailId}
-          onClose={() => {
-            setDetailOpen(false);
-            setDetailId(null);
-          }}
-        />
+      {showDetail && (
+        <>
+          {/* chỉ truyền object từ list */}
+          <NotificationDetail
+            open={showDetail}
+            data={detailItem}
+            onClose={() => {
+              setShowDetail(false);
+              setDetailItem(null);
+            }}
+          />
+        </>
       )}
 
-      <DeleteConfirmModal
-        isOpen={showDelete}
-        onClose={() => setShowDelete(false)}
-        onConfirm={confirmDelete}
-        title="XÓA THÔNG BÁO"
-        message="Bạn có chắc chắn muốn xóa thông báo này không?"
-      />
-
-      {/* Header */}
+      {/* HEADER: Loại (trái) / Tìm kiếm (phải) */}
       <div className="noti-header">
-        <div className="noti-title">Thông báo</div>
+        <div className="noti-header-left">
+          <label className="noti-filter-label" htmlFor="typeFilter">
+            Loại
+          </label>
+        <select
+            id="typeFilter"
+            className="noti-filter-select"
+            value={typeFilter}
+            onChange={(e) => {
+              setTypeFilter(e.target.value);
+              setPage(0);
+            }}
+          >
+            <option value="ALL">Tất cả</option>
+            <option value="THAY_DOI_LICH">Thay đổi lịch</option>
+            <option value="HUY_LICH">Hủy lịch</option>
+          </select>
+        </div>
 
         <form className="noti-search" onSubmit={handleSearch}>
           <input
             className="noti-search-input"
-            placeholder="Tìm theo tiêu đề/nội dung/loại"
+            placeholder="Tìm theo tiêu đề/nội dung"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -255,7 +233,7 @@ export default function NotificationsList() {
         </form>
       </div>
 
-      {/* Table */}
+      {/* TABLE */}
       <table className="noti-table">
         <thead>
           <tr>
@@ -287,7 +265,7 @@ export default function NotificationsList() {
         </tbody>
       </table>
 
-      {/* Footer / Pagination (đồng bộ kiểu DepartmentList) */}
+      {/* FOOTER / PAGINATION */}
       <div className="footer">
         <div>
           Hiển thị {rows.length} kết quả

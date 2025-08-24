@@ -23,7 +23,7 @@
 
 /* Modal */
 .scsf-modal{
-  width:860px; max-width:100%; background:var(--bg);
+  width:750px; max-width:100%; background:var(--bg);
   border-radius:12px; overflow:hidden; box-shadow:var(--shadow);
   animation:spop .14s ease-out;
   display:flex; flex-direction:column;
@@ -115,9 +115,9 @@
 }
 .scsf-upload-right{ display:flex; align-items:center; gap:8px; }
 
-/* Student row */
+/* Student row – Name rộng hơn, Lớp hẹp lại */
 .scsf-stu-row{
-  display:grid; grid-template-columns:180px 1fr 200px 160px;
+  display:grid; grid-template-columns:180px 2fr 120px 160px;
   gap:10px; padding:12px; align-items:center;
 }
 .scsf-stu-col.add{ display:flex; justify-content:flex-start; }
@@ -150,6 +150,16 @@
   background:var(--pri); color:#fff; text-align:left; padding:8px 10px; font-weight:700;
 }
 .scsf-table td{ border-bottom:1px solid #eef0f6; padding:8px 10px; }
+
+/* Ưu tiên cột Họ tên, thu nhỏ cột Lớp */
+.scsf-table th:nth-child(3),
+.scsf-table td:nth-child(3){ width:45%; }
+.scsf-table th:nth-child(4),
+.scsf-table td:nth-child(4){
+  width:16%;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+
 .scsf-icon{ background:transparent; border:0; font-size:16px; cursor:pointer; line-height:0; }
 .scsf-icon.danger{ color:var(--danger); }
 .scsf-icon.danger:hover{ filter:brightness(.9); }
@@ -177,14 +187,17 @@
 .scsf-select-dropdown::-webkit-scrollbar-thumb,
 .scsf-combo-list::-webkit-scrollbar-thumb{ background:#e2e8f0; border-radius:8px; }
 
-/* Responsive */
+/* Responsive – Name vẫn rộng hơn */
 @media (max-width:900px){
   .scsf-modal{ width:100%; }
   .scsf-grid{ grid-template-columns:1fr; }
-  .scsf-stu-row{ grid-template-columns:1fr 1fr; }
-  .scsf-stu-col.code{ grid-column:1 / -1; }
-  .scsf-stu-col.cls{ grid-column:1 / -1; }
-  .scsf-stu-col.add{ grid-column:1 / -1; }
+  /* Hai hàng: (MSV | Họ tên) rồi (Lớp | Nút) */
+  .scsf-stu-row{ grid-template-columns:140px 1fr; }
+  .scsf-stu-col.code{ grid-column:1 / 2; }
+  .scsf-stu-col.name{ grid-column:2 / 3; }
+  .scsf-stu-col.cls{ grid-column:1 / 2; }
+  .scsf-stu-col.add{ grid-column:2 / 3; }
 }
-.scsf-combo-group-title { font-size: 12px; font-weight: 600; opacity:.7; padding:6px 8px; }
-.scsf-combo-sep { height:1px; background:#eee; margin:6px 0; }
+
+.scsf-combo-group-title{ font-size:12px; font-weight:600; opacity:.7; padding:6px 8px; }
+.scsf-combo-sep{ height:1px; background:#eee; margin:6px 0; }

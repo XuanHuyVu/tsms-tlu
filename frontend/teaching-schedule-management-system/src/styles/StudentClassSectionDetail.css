@@ -4,7 +4,7 @@
   display:flex; align-items:center; justify-content:center; z-index:1000;
 }
 .scsd-modal{
-  width:min(960px, 96vw);
+  width:min(600px, 96vw);
   max-height:92vh; overflow:auto;
   background:#fff; border-radius:12px;
   box-shadow:0 10px 30px rgba(0,0,0,.25);

@@ -1,12 +1,10 @@
 // src/api/StudentClassSectionApi.js
 import axiosInstance from "./axiosInstance";
 
-/* ================================================================
- * BASE (mặc định ADMIN). Có thể override qua REACT_APP_SCS_BASE
- * ================================================================ */
+/** BASE đã có prefix /api trong axiosInstance */
 const BASE = process.env.REACT_APP_SCS_BASE || "/admin/student-class-sections";
 
-/* -------------------- utils -------------------- */
+/* -------------------- Utils -------------------- */
 const sanitizeParams = (params = {}) => {
   const out = {};
   Object.entries(params).forEach(([k, v]) => {
@@ -19,41 +17,28 @@ const sanitizeParams = (params = {}) => {
   return out;
 };
 
-const getCreatedAtTs = (it) => {
-  const raw = it?.createdAt || it?.classSection?.createdAt || null;
-  const ts = raw ? Date.parse(raw) : NaN;
-  return Number.isNaN(ts) ? 0 : ts;
-};
-
-export const normalizeSCSItem = (it, index = 0, page = 0, size = 10) => {
-  const cs = it?.classSection || {};
-  const subject = cs?.subject || {};
-  const teacher = cs?.teacher || {};
-  const semester = cs?.semester || {};
-
-  const subjectCode = cs?.name ?? "";
-  const subjectName = subject?.name ?? "";
-  const teacherName = teacher?.fullName ?? "";
-
-  const parts = [];
-  if (semester?.name || semester?.term)
-    parts.push(semester?.name || semester?.term);
-  if (semester?.academicYear) parts.push(semester?.academicYear);
-  const semesterText = parts.join(" - ");
-
+/* Chuẩn hoá 1 row sinh viên từ nhiều dạng trả về */
+export const normalizeSectionStudent = (raw) => {
+  const st = raw?.student || {};
   return {
-    stt: page * size + index + 1,
-    subjectCode,
-    subjectName,
-    teacherName,
-    semesterText,
-    studentCount: it?.studentCount ?? 0,
-    createdAt: it?.createdAt || cs?.createdAt || null,
-    raw: it,
+    studentId: raw?.studentId ?? st?.id ?? raw?.id,
+    code:
+      raw?.studentCode ??
+      st?.studentCode ??
+      st?.code ??
+      raw?.code ??
+      "",
+    fullName: raw?.fullName ?? st?.fullName ?? "",
+    className:
+      raw?.className ??
+      st?.className ??
+      st?.classGroup ??
+      st?.classCode ??
+      "",
   };
 };
 
-/* -------------------- CRUD + paging -------------------- */
+/* -------------------- Paging (nếu vẫn cần ở nơi khác) -------------------- */
 export const fetchPage = async ({
   page = 0,
   size = 10,
@@ -74,101 +59,39 @@ export const fetchPage = async ({
   return data;
 };
 
-export const fetchPageNormalized = async (args = {}) => {
-  const {
-    page = 0,
-    size = 10,
-    search = "",
-    sort = "createdAt,desc",
-    studentId,
-    classSectionId,
-  } = args;
-
-  const raw = await fetchPage({
-    page,
-    size,
-    search,
-    sort,
-    studentId,
-    classSectionId,
-  });
-
-  if (Array.isArray(raw)) {
-    const sorted = [...raw].sort((a, b) => getCreatedAtTs(b) - getCreatedAtTs(a));
-    const totalAll = sorted.length;
-    const start = page * size;
-    const end = start + size;
-    const paged = sorted.slice(start, end);
-    return {
-      content: paged.map((it, i) => normalizeSCSItem(it, i, page, size)),
-      totalElements: totalAll,
-      totalPages: Math.max(1, Math.ceil(totalAll / size)),
-      number: page,
-      size,
-    };
-    }
-
-  const content = Array.isArray(raw?.content) ? raw.content : [];
-  const contentSorted = [...content].sort(
-    (a, b) => getCreatedAtTs(b) - getCreatedAtTs(a)
-  );
-  return { ...raw, content: contentSorted.map((it, i) => normalizeSCSItem(it, i, page, size)) };
-};
-
 export const getById = async (id) =>
   (await axiosInstance.get(`${BASE}/${id}`)).data;
 
-/* ---------- APIs theo cặp studentId/classSectionId ---------- */
-export const getByPair = async (studentId, classSectionId) =>
-  (await axiosInstance.get(`${BASE}/${studentId}/${classSectionId}`)).data;
-
-export const updatePair = async (
-  oldStudentId,
-  oldClassSectionId,
-  payload // { studentId, classSectionId }
-) =>
-  (
-    await axiosInstance.put(
-      `${BASE}/${oldStudentId}/${oldClassSectionId}`,
-      payload
-    )
-  ).data;
-
-/* ---------- create / delete / bulk ---------- */
-export const create = async (payload) => {
-  const body = {
-    studentId: payload?.studentId,
-    classSectionId: payload?.classSectionId,
-  };
-  return (await axiosInstance.post(BASE, body)).data;
+/* -------------------- APIs theo yêu cầu mới -------------------- */
+/** GET /admin/student-class-sections/{sectionId}/students */
+export const listStudentsInSection = async (sectionId) => {
+  const { data } = await axiosInstance.get(`${BASE}/${sectionId}/students`);
+  const list = Array.isArray(data) ? data : data?.content || [];
+  return list.map(normalizeSectionStudent);
 };
 
-export const remove = async (id) =>
-  (await axiosInstance.delete(`${BASE}/${id}`)).data;
+/** POST /admin/student-class-sections/{sectionId}/students/{studentId} */
+export const addStudentToSection = async (sectionId, studentId) => {
+  const { data } = await axiosInstance.post(
+    `${BASE}/${sectionId}/students/${studentId}`
+  );
+  return data;
+};
 
-export const bulkCreate = async (list = []) => {
-  const arr = Array.isArray(list) ? list : [];
-  const results = [];
-  for (const it of arr) {
-    const body = {
-      studentId: it?.studentId,
-      classSectionId: it?.classSectionId,
-    };
-    const { data } = await axiosInstance.post(BASE, body);
-    results.push(data);
-  }
-  return results;
+/** DELETE /admin/student-class-sections/{sectionId}/students/{studentId} */
+export const removeStudentFromSection = async (sectionId, studentId) => {
+  const { data } = await axiosInstance.delete(
+    `${BASE}/${sectionId}/students/${studentId}`
+  );
+  return data;
 };
 
 const StudentClassSectionApi = {
   fetchPage,
-  fetchPageNormalized,
   getById,
-  getByPair,
-  updatePair,
-  create,
-  delete: remove,
-  bulkCreate,
+  listStudentsInSection,
+  addStudentToSection,
+  removeStudentFromSection,
 };
 
 export default StudentClassSectionApi;

@@ -1,72 +1,155 @@
-// src/features/admin/notifications/NotificationDetail.js
-import { useEffect, useMemo, useRef, useState } from "react";
-import NotificationApi from "../../../api/NotificationApi";
-import "../../../styles/NotificationsList.css"; // tái dùng style bảng, header
+import { useEffect, useMemo, useState } from "react";
+import { accountApi } from "../../../api/AccountApi";
+import "../../../styles/NotificationDetail.css";
 
+/* ===== Helpers ===== */
 function fmtDate(dt) {
   if (!dt) return "";
   try {
     const d = new Date(dt);
     const pad = (n) => String(n).padStart(2, "0");
-    return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(
-      d.getHours()
-    )}:${pad(d.getMinutes())}`;
+    return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   } catch {
     return String(dt);
   }
 }
 
-export default function NotificationDetail({ open, notificationId, onClose }) {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const mounted = useRef(false);
+const TYPE_LABELS = { THAY_DOI_LICH: "Thay đổi lịch", HUY_LICH: "Hủy lịch" };
+const toTypeLabel = (raw) => TYPE_LABELS[raw] || (raw || "");
 
-  useEffect(() => {
-    mounted.current = true;
-    return () => { mounted.current = false; };
-  }, []);
+/* Lấy userId đúng theo schema bạn đang có */
+const extractUserId = (rec) =>
+  rec?.userId ?? rec?.user?.id ?? rec?.accountId ?? null;
 
+/* Nếu BE có nhồi sẵn tên/username vào record, dùng làm fallback cuối cùng */
+const extractInlineName = (rec) =>
+  rec?.user?.username ?? rec?.username ?? rec?.user?.fullName ?? rec?.fullName ?? rec?.name ?? null;
+
+export default function NotificationDetail({ open, data, onClose }) {
+  // Khóa scroll + ESC để đóng
   useEffect(() => {
-    if (!open || !notificationId) {
-      setData(null);
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      try {
-        setLoading(true);
-        const detail = await NotificationApi.getById(notificationId);
-        if (!cancelled && mounted.current) setData(detail || null);
-      } finally {
-        if (!cancelled && mounted.current) setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [open, notificationId]);
+    if (!open) return;
+    const onKey = (e) => { if (e.key === "Escape") onClose?.(); };
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open, onClose]);
 
   const recipients = useMemo(
     () => (Array.isArray(data?.recipients) ? data.recipients : []),
-    [data]
+    [data?.recipients]
   );
+
   const unread = useMemo(
     () => recipients.filter((r) => !r.isRead).length,
     [recipients]
   );
 
+  // Cache account theo userId để tránh gọi lại khi re-render
+  const [accountById, setAccountById] = useState({}); // { [userId]: { id, username, ... } }
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const ids = [
+      ...new Set(
+        recipients
+          .map(extractUserId)
+          .filter((id) => id !== null && id !== undefined && id !== "")
+      ),
+    ];
+
+    if (ids.length === 0) {
+      setAccountById({});
+      return;
+    }
+
+    // Lọc các id chưa có trong cache
+    const needFetch = ids.filter((id) => !accountById[id]);
+    if (needFetch.length === 0) return;
+
+    let cancelled = false;
+    setLoading(true);
+    console.log("🔎 Fetch accounts by ids:", needFetch);
+
+    (async () => {
+      try {
+        const results = await Promise.all(
+          needFetch.map(async (uid) => {
+            try {
+              const acc = await accountApi.getById(uid); // KHÔNG dùng search để tránh 403
+              return [uid, acc];
+            } catch (e) {
+              console.warn("⚠️ accountApi.getById failed:", uid, e?.response?.status || e);
+              return [uid, null];
+            }
+          })
+        );
+
+        if (!cancelled) {
+          setAccountById((prev) => {
+            const next = { ...prev };
+            results.forEach(([uid, acc]) => {
+              if (acc) next[uid] = acc;
+              // nếu fail, không set để lần sau có thể thử lại (hoặc giữ null tùy ý)
+            });
+            return next;
+          });
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+    // accountById là cache; không muốn refetch trừ khi recipients thay đổi
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, recipients]);
+
+  // Hiển thị username ưu tiên: Account.username → inline fallback → "User #id"
+  const displayUser = (rec) => {
+    const uid = extractUserId(rec);
+    if (uid == null) return "—";
+
+    const acc = accountById[uid];
+    if (acc?.username) {
+      console.log("➡️ Display username from Account", uid, ":", acc.username);
+      return acc.username;
+    }
+
+    const inline = extractInlineName(rec);
+    if (inline) {
+      console.log("➡️ Display inline fallback for", uid, ":", inline);
+      return inline;
+    }
+
+    console.log("➡️ Display fallback for", uid);
+    return `User #${uid}`;
+  };
+
   if (!open) return null;
 
   return (
-    <div className="noti-modal-backdrop" role="dialog" aria-modal="true" aria-label="Chi tiết thông báo">
-      <div className="noti-modal">
+    <div
+      className="noti-modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Chi tiết thông báo"
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose?.(); }}
+    >
+      <div className="noti-modal" onMouseDown={(e) => e.stopPropagation()}>
         <div className="noti-modal-header">
           <div>CHI TIẾT THÔNG BÁO</div>
           <button className="noti-close" onClick={onClose} aria-label="Đóng">×</button>
         </div>
 
         <div className="noti-modal-body">
-          {loading ? (
-            <div style={{ padding: 16 }}>Đang tải…</div>
-          ) : !data ? (
+          {!data ? (
             <div style={{ padding: 16 }}>Không có dữ liệu</div>
           ) : (
             <>
@@ -77,7 +160,7 @@ export default function NotificationDetail({ open, notificationId, onClose }) {
                 </div>
                 <div>
                   <label className="noti-label">Loại:</label>
-                  <input className="noti-input" value={data.type || ""} readOnly />
+                  <input className="noti-input" value={toTypeLabel(data.type)} readOnly />
                 </div>
                 <div>
                   <label className="noti-label">Ngày tạo:</label>
@@ -87,61 +170,36 @@ export default function NotificationDetail({ open, notificationId, onClose }) {
                   <label className="noti-label">Cập nhật:</label>
                   <input className="noti-input" value={fmtDate(data.updatedAt)} readOnly />
                 </div>
-                <div>
-                  <label className="noti-label">Mã thay đổi lịch (nếu có):</label>
-                  <input
-                    className="noti-input"
-                    value={data.relatedScheduleChangeId ?? ""}
-                    readOnly
-                  />
-                </div>
-                <div>
-                  <label className="noti-label">Trạng thái:</label>
-                  <input
-                    className="noti-input"
-                    value={
-                      recipients.length === 0
-                        ? "Chưa gửi"
-                        : unread > 0
-                        ? "Đã gửi"
-                        : "Đã đọc hết"
-                    }
-                    readOnly
-                  />
-                </div>
-              </div>
-
-              <div style={{ marginTop: 12 }}>
-                <label className="noti-label">Nội dung:</label>
-                <textarea
-                  className="noti-textarea"
-                  value={data.content || ""}
-                  rows={5}
-                  readOnly
-                />
               </div>
 
               <div style={{ marginTop: 16 }}>
-                <div className="noti-subtitle">Danh sách người nhận</div>
+                <div className="noti-subtitle">
+                  Danh sách người nhận
+                  {recipients.length > 0 && (
+                    <span style={{ marginLeft: 8, color: "#6b7280", fontWeight: 400 }}>
+                      (Tổng {recipients.length} — {recipients.length - unread} đã đọc{loading ? ", đang tải…" : ""})
+                    </span>
+                  )}
+                </div>
                 <table className="noti-table">
                   <thead>
                     <tr>
                       <th>STT</th>
-                      <th>Recipient ID</th>
-                      <th>User ID</th>
-                      <th>Đã đọc?</th>
+                      <th>Username</th>
+                      <th>Trạng thái</th>
+                      <th>Thời điểm đọc</th>
                     </tr>
                   </thead>
                   <tbody>
                     {recipients.length === 0 ? (
-                      <tr><td colSpan={4} style={{ padding: 12 }}>Chưa có người nhận</td></tr>
+                      <tr><td colSpan={4} style={{ padding: 12 }}>Chưa có dữ liệu người nhận</td></tr>
                     ) : (
                       recipients.map((r, i) => (
-                        <tr key={r.id ?? `${r.userId}-${i}`}>
+                        <tr key={r.id ?? extractUserId(r) ?? i}>
                           <td>{i + 1}</td>
-                          <td>{r.id ?? "—"}</td>
-                          <td>{r.userId ?? "—"}</td>
+                          <td>{displayUser(r)}</td>
                           <td>{r.isRead ? "Đã đọc" : "Chưa đọc"}</td>
+                          <td>{r.readAt ? fmtDate(r.readAt) : "—"}</td>
                         </tr>
                       ))
                     )}

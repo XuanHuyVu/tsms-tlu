@@ -15,11 +15,10 @@ class TeacherBottomNavBar extends StatelessWidget {
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
       currentIndex: currentIndex,
-      onTap: onTap, // ✅ chỉ callback về màn cha để đổi tab
+      onTap: onTap,
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Trang chủ'),
         BottomNavigationBarItem(icon: Icon(Icons.calendar_month_rounded), label: 'Lịch dạy'),
-        BottomNavigationBarItem(icon: Icon(Icons.notifications_rounded), label: 'Thông báo'),
         BottomNavigationBarItem(icon: Icon(Icons.bar_chart_rounded), label: 'Thống kê'),
         BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Hồ sơ'),
       ],

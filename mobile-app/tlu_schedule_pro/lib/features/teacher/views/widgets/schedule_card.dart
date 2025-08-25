@@ -437,7 +437,7 @@ class ScheduleCard extends StatelessWidget {
                                 context,
                                 title: 'Đã gửi yêu cầu',
                                 message:
-                                'Trạng thái: ${(result['status'] ?? 'CHUA_DUYET').toString()}',
+                                'Trạng thái: ${(result['status'] ?? 'chưa duyệt').toString()}',
                                 titleColor: const Color(0xFFF29900),
                                 icon: Icons.send,
                                 iconColor: const Color(0xFFF29900),

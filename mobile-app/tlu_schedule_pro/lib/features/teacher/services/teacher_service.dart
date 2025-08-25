@@ -24,12 +24,12 @@ class TeacherHomeData {
 class TeacherService {
   Future<int?> _getTeacherId() async {
     final p = await SharedPreferences.getInstance();
-    return p.getInt('teacher_id');
+    return p.getInt('teacherId');
   }
 
   Future<String?> _getFullName() async {
     final p = await SharedPreferences.getInstance();
-    return p.getString('full_name');
+    return p.getString('fullName');
   }
 
   bool _sameDate(DateTime a, DateTime b) =>

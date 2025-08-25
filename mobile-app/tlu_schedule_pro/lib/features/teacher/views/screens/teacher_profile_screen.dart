@@ -1,4 +1,4 @@
-// lib/features/teacher/screens/teacher_profile_screen.dart
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,9 +6,60 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../viewmodels/teacher_profile_viewmodel.dart';
 import '../../../../shared/widgets/settings_section.dart';
 import '../../../../shared/widgets/logout_dialog.dart';
+import 'package:tlu_schedule_pro/core/services/avatar_service.dart';
 
-class TeacherProfileScreen extends StatelessWidget {
+class TeacherProfileScreen extends StatefulWidget {
   const TeacherProfileScreen({super.key});
+
+  @override
+  State<TeacherProfileScreen> createState() => _TeacherProfileScreenState();
+}
+
+class _TeacherProfileScreenState extends State<TeacherProfileScreen> {
+  String? _avatarBase64;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAvatar();
+  }
+
+  Future<void> _loadAvatar() async {
+    final savedBase64 = await AvatarService.loadAvatar();
+    if (mounted) {
+      setState(() => _avatarBase64 = savedBase64);
+    }
+  }
+
+  Future<void> _pickAvatar() async {
+    final newAvatar = await AvatarService.pickAvatar();
+    if (newAvatar != null) {
+      if (mounted) {
+        setState(() => _avatarBase64 = newAvatar);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Cập nhật avatar thành công!"),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _removeAvatar() async {
+    await AvatarService.removeAvatar();
+    if (mounted) {
+      setState(() => _avatarBase64 = null);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Đã xoá avatar"),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,34 +99,80 @@ class TeacherProfileScreen extends StatelessWidget {
                           vertical: 28, horizontal: 20),
                       child: Column(
                         children: [
+                          // ✅ Avatar có chỉnh sửa giống sinh viên
                           Stack(
                             alignment: Alignment.bottomRight,
                             children: [
                               CircleAvatar(
                                 radius: 50,
-                                backgroundColor: Colors.white,
-                                child: ClipOval(
-                                  child: Image.asset(
-                                    "assets/images/avatar.png",
-                                    fit: BoxFit.cover,
-                                    width: 100,
-                                    height: 100,
-                                    errorBuilder:
-                                        (context, error, stackTrace) {
-                                      return const Icon(Icons.person,
-                                          size: 56, color: Colors.blue);
-                                    },
+                                backgroundColor: Colors.blue.shade300,
+                                backgroundImage: _avatarBase64 != null
+                                    ? MemoryImage(base64Decode(_avatarBase64!))
+                                    : null,
+                                child: _avatarBase64 == null
+                                    ? Text(
+                                  _getInitials(profile.fullName),
+                                  style: GoogleFonts.montserrat(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 26,
+                                  ),
+                                )
+                                    : null,
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    shape: const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.vertical(
+                                          top: Radius.circular(20)),
+                                    ),
+                                    builder: (context) => Container(
+                                      padding: const EdgeInsets.all(20),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          ListTile(
+                                            leading:
+                                            const Icon(Icons.photo_library),
+                                            title: const Text("Chọn ảnh mới"),
+                                            onTap: () {
+                                              Navigator.pop(context);
+                                              _pickAvatar();
+                                            },
+                                          ),
+                                          if (_avatarBase64 != null)
+                                            ListTile(
+                                              leading: const Icon(Icons.delete),
+                                              title: const Text("Xóa ảnh"),
+                                              onTap: () {
+                                                Navigator.pop(context);
+                                                _removeAvatar();
+                                              },
+                                            ),
+                                          ListTile(
+                                            leading: const Icon(Icons.cancel),
+                                            title: const Text("Hủy"),
+                                            onTap: () =>
+                                                Navigator.pop(context),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white,
+                                  ),
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(6.0),
+                                    child: Icon(Icons.edit,
+                                        color: Colors.indigo, size: 20),
                                   ),
                                 ),
-                              ),
-                              Container(
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.white70,
-                                ),
-                                padding: const EdgeInsets.all(6.0),
-                                child: const Icon(Icons.school,
-                                    color: Colors.indigo, size: 30),
                               ),
                             ],
                           ),
@@ -146,7 +243,7 @@ class TeacherProfileScreen extends StatelessWidget {
                                   profile.department?.name ?? ''),
                               const Divider(height: 20),
                               _buildInfoRow(Icons.info, "Trạng thái",
-                                  _mapStatus(profile.status)), // ✅ đổi sang tiếng Việt
+                                  _mapStatus(profile.status)),
                             ],
                           ),
                         ),
@@ -155,7 +252,7 @@ class TeacherProfileScreen extends StatelessWidget {
 
                     const SizedBox(height: 26),
 
-                    // Phần Cài đặt (SettingsSection bạn đã viết)
+                    // Phần Cài đặt
                     const SettingsSection(),
                     const SizedBox(height: 26),
                   ],
@@ -207,10 +304,8 @@ class TeacherProfileScreen extends StatelessWidget {
         "${date.year}";
   }
 
-  // ✅ Hàm chuyển đổi trạng thái từ API sang tiếng Việt
   String _mapStatus(String? status) {
     if (status == null) return "Chưa cập nhật";
-
     switch (status.toUpperCase()) {
       case "ACTIVE":
         return "Đang công tác";
@@ -219,5 +314,12 @@ class TeacherProfileScreen extends StatelessWidget {
       default:
         return status;
     }
+  }
+
+  String _getInitials(String name) {
+    if (name.trim().isEmpty) return "";
+    final parts = name.trim().split(" ");
+    if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
+    return parts.map((e) => e[0]).take(3).join().toUpperCase();
   }
 }

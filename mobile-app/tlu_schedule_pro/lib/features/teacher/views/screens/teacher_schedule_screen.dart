@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -249,7 +248,7 @@ class _WeekTab extends StatelessWidget {
 
     return Column(
       children: [
-        // Thanh chọn ngày (full tuần) - ĐÃ SỬA ĐỂ HIỂN THỊ ĐẦY ĐỦ KHÔNG CẦN CUỘN
+        // Thanh chọn ngày (full tuần) – không cần cuộn, chia đều 7 cột
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           child: Row(
@@ -258,77 +257,25 @@ class _WeekTab extends StatelessWidget {
                 onPressed: () => vm.shiftWeek(-1),
                 icon: const Icon(Icons.chevron_left, size: 24),
               ),
-              // Thay thế ListView bằng Expanded với Row để hiển thị tất cả các ngày
               Expanded(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: weekDays.map((day) {
+                  children: List.generate(7, (i) {
+                    final day = weekDays[i];
                     final isSelected = _dateOnly(day) == _dateOnly(vm.selectedDate);
                     final isToday = _dateOnly(day) == _dateOnly(DateTime.now());
                     final hasSchedules = (grouped[day] ?? const <ScheduleModel>[]).isNotEmpty;
 
                     return Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 2),
-                        child: GestureDetector(
-                          onTap: () => vm.pickDate(day),
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(vertical: 4),
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? _brandBlue
-                                  : (isToday ? const Color(0x144A90E2) : Colors.transparent),
-                              border: Border.all(
-                                color: isSelected
-                                    ? _brandBlue
-                                    : (isToday ? _brandBlue : const Color(0x404A90E2)),
-                                width: 1.3,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  _weekdayShort(day),
-                                  softWrap: false,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: isSelected ? Colors.white : Colors.black54,
-                                  ),
-                                ),
-                                Text(
-                                  '${day.day}',
-                                  softWrap: false,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w800,
-                                    color: isSelected ? Colors.white : Colors.black87,
-                                  ),
-                                ),
-                                // Dấu chấm chiếm chỗ cố định
-                                Opacity(
-                                  opacity: hasSchedules ? 1 : 0,
-                                  child: Container(
-                                    width: 6,
-                                    height: 6,
-                                    decoration: BoxDecoration(
-                                      color: isSelected ? Colors.white : _brandBlue,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                      child: _DayPill(
+                        day: day,
+                        isSelected: isSelected,
+                        isToday: isToday,
+                        hasSchedules: hasSchedules,
+                        onTap: () => vm.pickDate(day),
                       ),
                     );
-                  }).toList(),
+                  }),
                 ),
               ),
               IconButton(
@@ -356,7 +303,7 @@ class _WeekTab extends StatelessWidget {
     final vm = context.watch<TeacherScheduleViewModel>();
     final selectedDate = _dateOnly(vm.selectedDate);
 
-    // Tìm những ngày có lịch trong tuần
+    // Những ngày có lịch trong tuần
     final daysWithSchedules =
     weekDays.where((day) => (grouped[day] ?? const <ScheduleModel>[]).isNotEmpty).toList();
 
@@ -372,7 +319,7 @@ class _WeekTab extends StatelessWidget {
       );
     }
 
-    // Sắp xếp: ngày đang chọn lên đầu nếu có, còn lại theo thứ tự tăng dần
+    // Sắp xếp: ngày đang chọn lên đầu nếu có, còn lại tăng dần
     final sortedDays = _sortDaysStartingFromSelected(daysWithSchedules, selectedDate);
 
     return ListView(
@@ -412,5 +359,84 @@ class _WeekTab extends StatelessWidget {
     }
     final sorted = [...days]..sort();
     return sorted;
+  }
+}
+
+/// Ô chọn ngày (1/7 cột)
+class _DayPill extends StatelessWidget {
+  final DateTime day;
+  final bool isSelected;
+  final bool isToday;
+  final bool hasSchedules;
+  final VoidCallback onTap;
+
+  const _DayPill({
+    required this.day,
+    required this.isSelected,
+    required this.isToday,
+    required this.hasSchedules,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 4),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? _brandBlue
+                : (isToday ? const Color(0x144A90E2) : Colors.transparent),
+            border: Border.all(
+              color: isSelected
+                  ? _brandBlue
+                  : (isToday ? _brandBlue : const Color(0x404A90E2)),
+              width: 1.3,
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _weekdayShort(day),
+                softWrap: false,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: isSelected ? Colors.white : Colors.black54,
+                ),
+              ),
+              Text(
+                '${day.day}',
+                softWrap: false,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: isSelected ? Colors.white : Colors.black87,
+                ),
+              ),
+              Opacity(
+                opacity: hasSchedules ? 1 : 0,
+                child: Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.white : _brandBlue,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

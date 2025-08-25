@@ -1,4 +1,5 @@
-import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb; // thêm dòng này
+import 'dart:io' show Platform; // vẫn giữ cho mobile
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -17,6 +18,13 @@ class AppNotificationService {
 
   Future<void> init() async {
     if (_inited) return;
+
+    // Nếu là web thì bỏ qua luôn (plugin chưa hỗ trợ web)
+    if (kIsWeb) {
+      _inited = true;
+      return;
+    }
+
     await TimezoneHelper.ensureInitialized();
 
     // Android init
@@ -59,13 +67,16 @@ class AppNotificationService {
     _inited = true;
   }
 
-  /// Hiển thị thông báo ngay (khi bấm Hoàn thành)
   Future<void> showNow({
     required String title,
     required String body,
     int id = 1000,
   }) async {
     await init();
+    if (kIsWeb) {
+      print("🔔 [WEB] Fake notification: $title - $body");
+      return;
+    }
     await _fln.show(
       id,
       title,
@@ -83,8 +94,6 @@ class AppNotificationService {
     );
   }
 
-  /// Lên lịch nhắc trước [before] (mặc định 15')
-  /// Dùng INEXACT để không cần quyền SCHEDULE_EXACT_ALARM trên Android 12+.
   Future<void> scheduleReminderBefore({
     required int scheduleId,
     required String title,
@@ -94,11 +103,13 @@ class AppNotificationService {
   }) async {
     await init();
 
-    final fireAt = classStartLocal.subtract(before);
-    if (fireAt.isBefore(DateTime.now())) {
-      // Quá giờ thì bỏ qua
+    if (kIsWeb) {
+      print("🔔 [WEB] Fake schedule: $title - $body at ${classStartLocal.subtract(before)}");
       return;
     }
+
+    final fireAt = classStartLocal.subtract(before);
+    if (fireAt.isBefore(DateTime.now())) return;
 
     final tzTime = tz.TZDateTime.from(fireAt, tz.local);
 
@@ -118,28 +129,24 @@ class AppNotificationService {
           ),
           iOS: DarwinNotificationDetails(),
         ),
-        // 🔑 Không dùng exact để tránh lỗi exact_alarms_not_permitted
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         uiLocalNotificationDateInterpretation:
         UILocalNotificationDateInterpretation.absoluteTime,
         payload: 'schedule-$scheduleId',
       );
-    } on PlatformException catch (e) {
-      // Nếu vẫn lỗi (thiết bị đặc thù), đừng làm app crash
-      // Có thể fallback: nếu còn < 1 phút tới giờ thì show ngay
+    } on PlatformException {
       final secs = fireAt.difference(DateTime.now()).inSeconds;
       if (secs >= 0 && secs <= 60) {
         await showNow(id: scheduleId, title: title, body: body);
       }
-      // (tuỳ ý) log e.code/e.message nếu bạn có hệ thống log
     }
   }
 
   Future<void> cancel(int id) async {
-    await _fln.cancel(id);
+    if (!kIsWeb) await _fln.cancel(id);
   }
 
   Future<void> cancelAll() async {
-    await _fln.cancelAll();
+    if (!kIsWeb) await _fln.cancelAll();
   }
 }

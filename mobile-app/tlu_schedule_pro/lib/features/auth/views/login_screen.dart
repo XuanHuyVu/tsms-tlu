@@ -99,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Đăng nhập để xem lịch học của bạn',
+                  'Đăng nhập để xem lịch của bạn',
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     color: Colors.grey,

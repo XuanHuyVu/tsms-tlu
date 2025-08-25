@@ -1,4 +1,5 @@
 import 'dart:io' show Platform;
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'timezone_helper.dart';
@@ -37,7 +38,8 @@ class AppNotificationService {
 
     // Android: tạo kênh
     const androidChannel = AndroidNotificationChannel(
-      _channelId, _channelName,
+      _channelId,
+      _channelName,
       description: _channelDesc,
       importance: Importance.high,
     );
@@ -47,7 +49,7 @@ class AppNotificationService {
         AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(androidChannel);
 
-    // Android 13+: nên xin quyền (ở iOS đã xin trong iosInit)
+    // Android 13+: xin quyền POST_NOTIFICATIONS
     if (Platform.isAndroid) {
       final impl = _fln.resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>();
@@ -68,27 +70,27 @@ class AppNotificationService {
       id,
       title,
       body,
-      NotificationDetails(
+      const NotificationDetails(
         android: AndroidNotificationDetails(
-          _channelId, _channelName,
+          _channelId,
+          _channelName,
           channelDescription: _channelDesc,
           importance: Importance.high,
           priority: Priority.high,
         ),
-        iOS: const DarwinNotificationDetails(),
+        iOS: DarwinNotificationDetails(),
       ),
     );
   }
 
-  /// Lên lịch nhắc trước 15 phút
-  /// [scheduleId] dùng làm unique id để có thể cancel/update nếu cần.
+  /// Lên lịch nhắc trước [before] (mặc định 15')
+  /// Dùng INEXACT để không cần quyền SCHEDULE_EXACT_ALARM trên Android 12+.
   Future<void> scheduleReminderBefore({
     required int scheduleId,
     required String title,
     required String body,
     required DateTime classStartLocal,
     Duration before = const Duration(minutes: 15),
-    bool allowWhileIdle = true,
   }) async {
     await init();
 
@@ -100,26 +102,37 @@ class AppNotificationService {
 
     final tzTime = tz.TZDateTime.from(fireAt, tz.local);
 
-    await _fln.zonedSchedule(
-      scheduleId, // ID duy nhất cho mỗi buổi dạy
-      title,
-      body,
-      tzTime,
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-          _channelId, _channelName,
-          channelDescription: _channelDesc,
-          importance: Importance.high,
-          priority: Priority.high,
+    try {
+      await _fln.zonedSchedule(
+        scheduleId,
+        title,
+        body,
+        tzTime,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            _channelId,
+            _channelName,
+            channelDescription: _channelDesc,
+            importance: Importance.high,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(),
         ),
-        iOS: const DarwinNotificationDetails(),
-      ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-      UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: null,
-      payload: 'schedule-$scheduleId',
-    );
+        // 🔑 Không dùng exact để tránh lỗi exact_alarms_not_permitted
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+        UILocalNotificationDateInterpretation.absoluteTime,
+        payload: 'schedule-$scheduleId',
+      );
+    } on PlatformException catch (e) {
+      // Nếu vẫn lỗi (thiết bị đặc thù), đừng làm app crash
+      // Có thể fallback: nếu còn < 1 phút tới giờ thì show ngay
+      final secs = fireAt.difference(DateTime.now()).inSeconds;
+      if (secs >= 0 && secs <= 60) {
+        await showNow(id: scheduleId, title: title, body: body);
+      }
+      // (tuỳ ý) log e.code/e.message nếu bạn có hệ thống log
+    }
   }
 
   Future<void> cancel(int id) async {

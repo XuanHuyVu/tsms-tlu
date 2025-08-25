@@ -6,7 +6,15 @@ import 'features/auth/views/splash_screen.dart';
 import 'features/auth/views/login_screen.dart';
 import 'features/student/views/screens/schedule_screen.dart';
 
-void main() {
+// 🔔 import service theo đúng path bạn đang để (lib/notification/…)
+import '../../../core/notification/notification_service.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // 🔔 KHỞI TẠO local notifications + timezone
+  await AppNotificationService.I.init();
+
   runApp(
     MultiProvider(
       providers: [
@@ -21,7 +29,6 @@ void main() {
       ],
       child: const MyApp(),
     ),
-
   );
 }
 

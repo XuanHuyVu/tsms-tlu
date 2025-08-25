@@ -183,7 +183,6 @@ const StatisticsReport = () => {
             <th>Giờ chưa dạy</th>
             <th>Giờ dạy bù</th>
             <th>Tổng giờ</th>
-            <th>Thao tác</th>
           </tr>
         </thead>
         <tbody>
@@ -203,9 +202,6 @@ const StatisticsReport = () => {
                 <td>{item.notTaughtHours}</td>
                 <td>{item.makeUpHours}</td>
                 <td>{item.totalHours}</td>
-                <td className="actions">
-                  <FaInfoCircle className="icon info" title="Chi tiết" />
-                </td>
               </tr>
             ))
           ) : (

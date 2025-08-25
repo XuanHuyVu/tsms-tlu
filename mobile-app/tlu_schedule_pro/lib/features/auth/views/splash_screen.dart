@@ -10,7 +10,7 @@ class SplashScreen extends StatefulWidget {
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
-
+  
 class _SplashScreenState extends State<SplashScreen> {
   bool _didNavigate = false;
 

@@ -15,7 +15,7 @@ class ProfileService {
 
   Future<ProfileModel> fetchProfile() async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('jwt_token');
+    final token = prefs.getString('token');
 
     if (token == null) {
       throw Exception('Không tìm thấy token. Vui lòng đăng nhập lại.');

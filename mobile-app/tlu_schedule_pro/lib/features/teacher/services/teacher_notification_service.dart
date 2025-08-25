@@ -15,7 +15,7 @@ class TeacherNotificationService {
 
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('jwt_token');
+    return prefs.getString('token');
   }
 
   Future<List<TeacherNotification>> fetchNotifications() async {

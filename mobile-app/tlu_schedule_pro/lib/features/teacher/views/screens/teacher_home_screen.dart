@@ -149,7 +149,7 @@ class _TopBar extends StatelessWidget {
   const _TopBar({super.key, required this.name});
 
   String _getInitials(String fullName) {
-    final parts = fullName.trim().split(RegExp(r'\s+'));
+    final parts = fullName.trim().split(RegExp(r'\\s+'));
     if (parts.length >= 2) return (parts.first[0] + parts.last[0]).toUpperCase();
     if (parts.isNotEmpty) return parts.first[0].toUpperCase();
     return '';
@@ -157,23 +157,51 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final vm = context.watch<TeacherHomeViewModel>();
+    final unread = vm.unreadCount; // Thuộc tính thêm trong ViewModel
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Row(
         children: [
           Image.asset('assets/images/LOGO_THUYLOI.png', height: 28),
           const Spacer(),
-          IconButton(
-            onPressed: () {
-              // Mở trang thông báo
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const TeacherNotificationScreen(),
+          Stack(
+            children: [
+              IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const TeacherNotificationScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.notifications_rounded, size: 30), // chuông to hơn
+              ),
+              if (unread > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(2), // nhỏ hơn
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                    child: Text(
+                      '$unread',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 9, // chữ nhỏ hơn
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 ),
-              );
-            },
-            icon: const Icon(Icons.notifications_rounded),
+            ],
           ),
           CircleAvatar(
             radius: 18,

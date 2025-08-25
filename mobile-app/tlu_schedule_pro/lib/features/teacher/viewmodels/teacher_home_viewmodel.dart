@@ -6,6 +6,10 @@ import '../services/teacher_service.dart';
 import '../services/teacher_schedule_service.dart';
 import '../../auth/services/auth_service.dart';
 
+// ==== NEW IMPORT để xử lý thông báo ====
+import '../models/teacher_notification_model.dart';
+import '../services/teacher_notification_service.dart';
+
 class TeacherHomeViewModel extends ChangeNotifier {
   final _service = TeacherService();
 
@@ -41,6 +45,24 @@ class TeacherHomeViewModel extends ChangeNotifier {
   int get percentTodayCompleted =>
       totalTodaySessions == 0 ? 0 : ((completedTodaySessions * 100) / totalTodaySessions).round();
 
+  // ----------------- NEW: Notification -----------------
+  final TeacherNotificationService _notificationService = TeacherNotificationService();
+
+  int _unreadCount = 0;
+  int get unreadCount => _unreadCount;
+
+  Future<void> refreshUnreadCount() async {
+    try {
+      final List<TeacherNotification> list = await _notificationService.fetchNotifications();
+      _unreadCount = list.where((n) => !n.isRead).length;
+      notifyListeners();
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('refreshUnreadCount error: $e');
+      }
+    }
+  }
+
   // ----------------- Actions -----------------
   Future<void> load() async {
     loading = true;
@@ -59,6 +81,9 @@ class TeacherHomeViewModel extends ChangeNotifier {
       percentCompleted = data.percentCompleted;
 
       todaySchedules = data.todaySchedules;
+
+      // NEW: cập nhật số thông báo chưa đọc mỗi lần load
+      await refreshUnreadCount();
     } catch (e) {
       error = e.toString();
     } finally {

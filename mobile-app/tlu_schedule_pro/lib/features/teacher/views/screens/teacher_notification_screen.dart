@@ -69,6 +69,7 @@ class _TeacherNotificationScreenState extends State<TeacherNotificationScreen> {
             ],
           ),
           actions: [
+
             IconButton(
               icon: const Icon(Icons.search, color: Colors.white),
               tooltip: 'Tìm kiếm',
@@ -174,8 +175,8 @@ class _TeacherNotificationListState extends State<TeacherNotificationList> {
                 Positioned(
                   right: 0,
                   top: 0,
-                  child:
-                  CircleAvatar(radius: 5, backgroundColor: Colors.red),
+                  child: CircleAvatar(
+                      radius: 5, backgroundColor: Colors.red),
                 ),
               ],
             ),
